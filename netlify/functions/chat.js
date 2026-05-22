@@ -38,7 +38,17 @@ exports.handler = async (event, context) => {
             const newMessage = {
                 nickname: (nickname || '神秘喵').substring(0, 10),
                 content: content.substring(0, 100), // 限制100字，防止灌水
-                time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+                // 强制使用亚洲/上海时区（北京时间），并输出完整的年月日时分秒
+                time: new Date().toLocaleString('zh-CN', { 
+                    timeZone: 'Asia/Shanghai',
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit',
+                    hour12: false
+                })
             };
 
             // 1. 将新消息塞入 Redis 列表头部
