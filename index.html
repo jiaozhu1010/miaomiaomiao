@@ -300,10 +300,377 @@
             100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
         }
 
+        .main-split-layout {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+        
+        .generator-main-content {
+            flex: 2;
+            background: #ffffff;
+            border: 3px solid #ffcc80;
+            border-radius: 20px;
+            box-shadow: 0 6px 0 #ffcc80;
+            padding: 25px;
+        }
+        /* 聊天室内嵌样式 */
+        .chat-header {
+            background: #fff3e0;
+            padding: 12px 15px;
+            border-bottom: 3px solid #ffcc80;
+            color: #ff8a80;
+            font-weight: bold;
+        }
+        .chat-header h3 { margin: 0; font-size: 16px; }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse; /* 新消息在最下面，自动滚动 */
+            gap: 10px;
+            background: #fafafa;
+        }
+        .chat-loading { text-align: center; color: #999; font-size: 13px; margin-top: 20px; }
+        .msg-bubble {
+            background: #fff3e0;
+            border: 2px solid #ffe0b2;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 85%;
+            align-self: flex-start;
+            animation: bubbleIn 0.25s ease-out;
+        }
+        @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-meta { font-size: 11px; color: #ff8a80; font-weight: bold; margin-bottom: 3px; display: flex; justify-content: space-between; gap: 10px; }
+        .msg-time { color: #b0bec5; font-weight: normal; }
+        .msg-text { font-size: 13.5px; color: #2c3e50; word-break: break-all; }
+        .chat-footer {
+            padding: 12px;
+            background: #fff3e0;
+            border-top: 3px solid #ffcc80;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        #chat-nick {
+            border: 2px solid #ffcc80;
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-size: 12px;
+            background: #fff;
+            color: #ff8a80;
+        }
+        .chat-input-row { display: flex; gap: 6px; }
+        #chat-msg {
+            flex: 1;
+            border: 2px solid #ffcc80;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 13px;
+        }
+        #chat-send-btn {
+            background: #ff8a80;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #e57373;
+            transition: all 0.05s;
+        }
+        #chat-send-btn:active { transform: translateY(3px); box-shadow: none; }
+
+        /* 窄屏手机适配：自动变成上下叠放 */
+        @media (max-width: 768px) {
+            .main-split-layout { flex-direction: column; }
+            .chat-sidebar { max-width: 100%; width: 100%; height: 350px; position: static; }
+        }
+
+        /* =========================
+        喵喵大厅悬浮按钮
+        ========================= */
+
+        .floating-chat-btn {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(145deg, #ffd180, #ffb74d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            cursor: pointer;
+            z-index: 9999;
+            border: 4px solid #fff3e0;
+
+            box-shadow:
+                0 8px 20px rgba(255,183,77,0.45),
+                0 0 20px rgba(255,183,77,0.35);
+
+            animation:
+                floatingBreath 2.8s ease-in-out infinite,
+                floatingBounce 4s ease-in-out infinite;
+
+            transition: all 0.25s ease;
+        }
+
+        .floating-chat-btn::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,183,77,0.4);
+            animation: pulseRing 2s infinite;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        .floating-chat-btn:hover {
+            transform: scale(1.12) rotate(8deg);
+        }
+
+        .floating-chat-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* 呼吸动画 */
+        @keyframes floatingBreath {
+            0%,100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.06);
+            }
+        }
+
+        /* 漂浮动画 */
+        @keyframes floatingBounce {
+            0%,100% {
+                translate: 0 0;
+            }
+            50% {
+                translate: 0 -6px;
+            }
+        }
+
+        /* =========================
+        喵喵大厅悬浮窗
+        ========================= */
+
+        .floating-chat-window {
+            position: fixed;
+            right: 25px;
+            bottom: 115px;
+
+            width: 360px;
+            height: 520px;
+
+            background: #ffffff;
+
+            border: 3px solid #ffcc80;
+            border-radius: 24px;
+
+            box-shadow:
+                0 12px 40px rgba(0,0,0,0.15),
+                0 0 30px rgba(255,183,77,0.15);
+
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+
+            z-index: 9998;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transform:
+                translateY(30px)
+                scale(0.85);
+
+            transition:
+                all 0.35s cubic-bezier(.2,.8,.2,1);
+        }
+
+        /* 打开状态 */
+        .floating-chat-window.show {
+            opacity: 1;
+            pointer-events: auto;
+
+            animation: catPopup 0.45s cubic-bezier(.18,1.25,.4,1);
+
+            transform:
+                translateY(0)
+                scale(1);
+        }
+
+        @keyframes catPopup {
+                0% {
+                    opacity: 0;
+                    transform:
+                        translateY(60px)
+                        scale(0.6)
+                        rotate(-8deg);
+                }
+                60% {
+                    opacity: 1;
+                    transform:
+                        translateY(-10px)
+                        scale(1.04)
+                        rotate(2deg);
+                }
+                100% {
+                    opacity: 1;
+                    transform:
+                        translateY(0)
+                        scale(1)
+                        rotate(0deg);
+                }
+            }
+
+        /* 顶部 */
+        .floating-chat-header {
+            height: 60px;
+
+            background: linear-gradient(135deg,#fff3e0,#ffe0b2);
+
+            border-bottom: 3px solid #ffcc80;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 18px;
+
+            color: #ff8a80;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .chat-title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .chat-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .online-count {
+            font-size: 12px;
+            color: #ff8a80;
+            opacity: 0.85;
+
+            animation: onlineGlow 2s infinite ease-in-out;
+        }
+
+        @keyframes onlineGlow {
+
+            0%,100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+
+        /* 关闭按钮 */
+        #close-chat-btn {
+            width: 34px;
+            height: 34px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: #ff8a80;
+            color: white;
+
+            font-size: 20px;
+            cursor: pointer;
+
+            transition: all 0.2s ease;
+        }
+
+        #close-chat-btn:hover {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        /* 聊天区 */
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #fffaf5;
+        }
+
+        /* 手机端 */
+        @media (max-width: 768px) {
+
+            .floating-chat-window {
+                width: calc(100vw - 24px);
+                height: 70vh;
+
+                right: 12px;
+                bottom: 95px;
+            }
+
+            .floating-chat-btn {
+                right: 18px;
+                bottom: 18px;
+                overflow: visible;
+            }
+        }
+        .floating-chat-btn::before {
+            content: '🐈';
+            position: absolute;
+
+            top: -18px;
+            right: -10px;
+
+            font-size: 22px;
+
+            animation: catTail 1.8s infinite ease-in-out;
+        }
+
+        @keyframes catTail {
+
+            0%,100% {
+                transform: rotate(-8deg);
+            }
+
+            50% {
+                transform: rotate(10deg);
+            }
+        }
+
+            
     </style>
 </head>
 <body>
-
+    
     <div class="container">
         <!-- 漫步的小猫 SVG -->
         <svg class="roaming-cat" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -358,11 +725,47 @@
                         <button class="btn-clear" id="clear-btn">清空输入</button>
                     </div>
             </div>
-        </div>
+        </div>            
 
         <!-- 输出区默认设置为 2 列样式 -->
         <div id="barcode-output" class="barcode-output cols-2"></div>
     </div>
+
+    <!-- 喵喵大厅悬浮按钮 -->
+    <div class="floating-chat-btn" id="floating-chat-btn">   🐾
+
+    </div>
+    <!-- 喵喵大厅悬浮窗 -->
+    <div class="floating-chat-window" id="floating-chat-window">
+
+        <div class="floating-chat-header" id="chat-header-drag">
+
+            <div class="chat-title-area">
+                <span class="chat-title">
+                    🐈 喵喵大厅
+                </span>
+                <span class="online-count" id="online-count">
+                    在线 1 只猫
+                </span>
+            </div>
+            <button id="close-chat-btn">×</button>
+        </div>
+
+        <div class="chat-messages" id="chat-box">
+            <div class="chat-loading">正在接入喵星信号...</div>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" id="chat-nick" placeholder="昵称: 随机猫咪" maxlength="10">
+
+            <div class="chat-input-row">
+                <input type="text" id="chat-msg" placeholder="说点什么吧..." maxlength="100">
+                <button id="chat-send-btn">发射</button>
+            </div>
+        </div>
+
+    </div>
+
 
     <script>
         const inputArea = document.getElementById('barcode-input');
@@ -522,6 +925,174 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+        <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chatBox = document.getElementById('chat-box');
+    const chatNickInput = document.getElementById('chat-nick');
+    const chatMsgInput = document.getElementById('chat-msg');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const floatingChatBtn = document.getElementById('floating-chat-btn');
+    const floatingChatWindow = document.getElementById('floating-chat-window');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const chatHeaderDrag = document.getElementById('chat-header-drag');
 
+    // 1. 随一个可爱的临时匿名账号
+    const catNames = ['奶橘喵', '起司大花', '傲娇布偶', '无敌三花', '熬夜黑猫', '打包大麦', '圆滚滚英短'];
+    const randomNick = catNames[Math.floor(Math.random() * catNames.length)] + '_' + Math.floor(Math.random() * 900 + 100);
+    chatNickInput.placeholder = `昵称: ${randomNick}`;
+
+    // 2. 核心：从云端拉取评论列表
+    function fetchChats() {
+        fetch('/.netlify/functions/chat')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.messages) return;
+                
+                // 清空旧数据
+                chatBox.innerHTML = '';
+                
+                if (data.messages.length === 0) {
+                    chatBox.innerHTML = '<div class="chat-loading">大厅空荡荡，快来抢沙发喵！</div>';
+                    return;
+                }
+
+                // 渲染消息泡沫
+                data.messages.forEach(msg => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'msg-bubble';
+                    
+                    // 安全过滤，防止恶搞脚本注入
+                    const safeNick = msg.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const safeContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+                    bubble.innerHTML = `
+                        <div class="msg-meta">
+                            <span>🐱 ${safeNick}</span>
+                            <span class="msg-time">${msg.time}</span>
+                        </div>
+                        <div class="msg-text">${safeContent}</div>
+                    `;
+                    chatBox.appendChild(bubble);
+                });
+            })
+            .catch(err => console.error('加载大厅消息失败', err));
+    }
+
+    // 3. 核心：发射发送留言
+    function sendChat() {
+        const content = chatMsgInput.value.trim();
+        if (!content) return;
+
+        // 如果用户没填名字，就用刚才随出来的可爱名字
+        const nickname = chatNickInput.value.trim() || randomNick;
+
+        chatSendBtn.disabled = true;
+        chatSendBtn.innerText = '喵..';
+
+        fetch('/.netlify/functions/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname, content })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                chatMsgInput.value = ''; // 清空输入框
+                fetchChats(); // 立刻刷新
+            }
+        })
+        .catch(err => console.error('发射失败', err))
+        .finally(() => {
+            chatSendBtn.disabled = false;
+            chatSendBtn.innerText = '发射';
+        });
+    }
+
+    // 4. 事件监听（点击按钮与回车发送）
+    chatSendBtn.addEventListener('click', sendChat);
+    chatMsgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendChat();
+    });
+
+    // 5. 立即执行并在后台每 3 秒悄悄刷新一次
+    fetchChats();
+    setInterval(fetchChats, 3000);
+
+        /* =========================
+    在线人数模拟
+    ========================= */
+
+    const onlineCount = document.getElementById('online-count');
+
+    let currentOnline = Math.floor(Math.random() * 15) + 8;
+
+    function updateOnlineCount() {
+
+        const fluctuation = Math.floor(Math.random() * 3) - 1;
+
+        currentOnline += fluctuation;
+
+        if (currentOnline < 5) currentOnline = 5;
+        if (currentOnline > 99) currentOnline = 99;
+
+        onlineCount.innerText = `在线 ${currentOnline} 只猫`;
+    }
+
+    updateOnlineCount();
+    setInterval(updateOnlineCount, 4000);
+
+    // 打开喵喵大厅
+    floatingChatBtn.addEventListener('click', () => {
+        floatingChatWindow.classList.add('show');
+    });
+
+    // 关闭喵喵大厅
+    closeChatBtn.addEventListener('click', () => {
+        floatingChatWindow.classList.remove('show');
+    });
+
+    /* =========================
+    悬浮窗拖动功能
+    ========================= */
+
+    let isDragging = false;
+
+    let offsetX = 0;
+    let offsetY = 0;
+
+    chatHeaderDrag.addEventListener('mousedown', (e) => {
+
+        isDragging = true;
+
+        const rect = floatingChatWindow.getBoundingClientRect();
+
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+
+        floatingChatWindow.style.transition = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+
+        if (!isDragging) return;
+
+        floatingChatWindow.style.left = `${e.clientX - offsetX}px`;
+        floatingChatWindow.style.top = `${e.clientY - offsetY}px`;
+
+        floatingChatWindow.style.right = 'auto';
+        floatingChatWindow.style.bottom = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+
+        isDragging = false;
+
+        floatingChatWindow.style.transition =
+            'all 0.35s cubic-bezier(.2,.8,.2,1)';
+    });
+});
+
+
+</script>
 </body>
 </html>
