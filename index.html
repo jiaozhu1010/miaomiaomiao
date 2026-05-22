@@ -273,9 +273,14 @@
         function renderBarcodes() {
             outputArea.innerHTML = '';
             
+            // 【修改】获取输入时，把多余的空格或连字符去掉，确保条形码生成和复制时都是纯数字
+            const rawValue = inputArea.value.replace(/[\s-]/g, '');
             const lines = inputArea.value.split('\n').map(line => line.trim()).filter(line => line.length > 0);
             
-            lines.forEach(text => {
+            lines.forEach(line => {
+                // 【修改】生成条形码时，剔除格式化空格，只保留 DPK+12位数字 纯文本
+                const cleanText = line.replace(/[\s-]/g, ''); 
+                
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'barcode-item';
                 
@@ -284,7 +289,7 @@
                 outputArea.appendChild(itemDiv);
 
                 try {
-                    JsBarcode(svgNode, text, {
+                    JsBarcode(svgNode, cleanText, {
                         format: "CODE128",
                         width: 2,
                         height: 60,
@@ -295,22 +300,39 @@
                         lineColor: "#333333"
                     });
                 } catch (error) {
-                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符 (${text})</span>`;
+                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符 (${cleanText})</span>`;
                 }
             });
         }
 
-        inputArea.addEventListener('input', renderBarcodes);
+        // 【新增/修改】监听输入事件，实时格式化 DPK+12位数字
+        inputArea.addEventListener('input', (e) => {
+            let cursorPosition = inputArea.selectionStart; // 记录光标位置
+            let originalLength = inputArea.value.length;
 
-        colSelect.addEventListener('change', (e) => {
-            const cols = e.target.value;
-            outputArea.className = `barcode-output cols-${cols}`;
-        });
+            // 针对每一行进行格式化
+            let lines = inputArea.value.split('\n');
+            let formattedLines = lines.map(line => {
+                // 判断是否以 DPK 开头（忽略大小写）
+                if (/^DPK/i.test(line)) {
+                    let prefix = line.substring(0, 3);
+                    let rest = line.substring(3).replace(/[\s-]/g, ''); // 去掉已有空格
+                    // 每 4 位数字之间加一个空格
+                    let formattedRest = rest.match(/.{1,4}/g)?.join(' ') || rest;
+                    return prefix + ' ' + formattedRest;
+                }
+                return line;
+            });
 
-        clearBtn.addEventListener('click', () => {
-            inputArea.value = '';
+            inputArea.value = formattedLines.join('\n');
+
+            // 修正因为自动加空格导致的光标错位
+            let newLength = inputArea.value.length;
+            cursorPosition += (newLength - originalLength);
+            inputArea.setSelectionRange(cursorPosition, cursorPosition);
+
+            // 执行条形码渲染
             renderBarcodes();
-            inputArea.focus();
         });
     </script>
 </body>
