@@ -343,7 +343,24 @@
             border-radius: 12px;
             max-width: 85%;
             align-self: flex-start;
-            animation: bubbleIn 0.25s ease-out;
+            transition: background 0.2s ease;
+        }
+
+            .msg-bubble.new-msg {
+            animation: newMsgIn 0.25s ease-out;
+        }
+
+        @keyframes newMsgIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .msg-meta { font-size: 11px; color: #ff8a80; font-weight: bold; margin-bottom: 3px; display: flex; justify-content: space-between; gap: 10px; }
@@ -388,10 +405,59 @@
 
         /* 窄屏手机适配：自动变成上下叠放 */
         @media (max-width: 768px) {
-            .main-split-layout { flex-direction: column; }
-            .chat-sidebar { max-width: 100%; width: 100%; height: 350px; position: static; }
-        }
 
+            /* 聊天窗口 */
+            .floating-chat-window {
+                width: calc(100vw - 16px);
+                height: 78vh;
+                right: 8px;
+                bottom: 82px;
+                border-radius: 20px;
+            }
+
+            /* 按钮 */
+            .floating-chat-btn {
+                width: 64px;
+                height: 64px;
+                right: 14px;
+                bottom: 14px;
+                font-size: 28px;
+            }
+
+            /* 消息区域 */
+            .chat-messages {
+                padding: 12px;
+            }
+
+            /* 消息泡泡 */
+            .msg-bubble {
+                max-width: 92%;
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+
+            /* 输入区域 */
+            .chat-footer {
+                padding: 10px;
+            }
+            /* 输入框 */
+            #chat-msg {
+                font-size: 16px;
+            }
+            #chat-nick {
+                font-size: 14px;
+            }
+            /* 防止iPhone自动放大 */
+            input,
+            textarea,
+            select,
+            button {
+                font-size: 16px;
+            }
+        }
+        .floating-chat-window {
+            max-height: 100vh;
+        }
         /* =========================
         喵喵大厅悬浮按钮
         ========================= */
@@ -931,6 +997,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatNickInput = document.getElementById('chat-nick');
     const chatMsgInput = document.getElementById('chat-msg');
     const chatSendBtn = document.getElementById('chat-send-btn');
+    let lastMessageSignature = '';
     const floatingChatBtn = document.getElementById('floating-chat-btn');
     const floatingChatWindow = document.getElementById('floating-chat-window');
     const closeChatBtn = document.getElementById('close-chat-btn');
@@ -943,41 +1010,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. 核心：从云端拉取评论列表
     function fetchChats() {
-        fetch('/.netlify/functions/chat')
-            .then(res => res.json())
-            .then(data => {
-                if (!data.messages) return;
-                
-                // 清空旧数据
-                chatBox.innerHTML = '';
-                
-                if (data.messages.length === 0) {
-                    chatBox.innerHTML = '<div class="chat-loading">大厅空荡荡，快来抢沙发喵！</div>';
-                    return;
-                }
 
-                // 渲染消息泡沫
-                data.messages.forEach(msg => {
-                    const bubble = document.createElement('div');
-                    bubble.className = 'msg-bubble';
-                    
-                    // 安全过滤，防止恶搞脚本注入
-                    const safeNick = msg.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    const safeContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    fetch('/.netlify/functions/chat')
+        .then(res => res.json())
+        .then(data => {
 
-                    bubble.innerHTML = `
-                        <div class="msg-meta">
-                            <span>🐱 ${safeNick}</span>
-                            <span class="msg-time">${msg.time}</span>
-                        </div>
-                        <div class="msg-text">${safeContent}</div>
-                    `;
-                    chatBox.appendChild(bubble);
+            if (!data.messages) return;
+
+            // 生成消息签名
+            const signature = JSON.stringify(data.messages);
+
+            // 如果消息没变化，直接跳过
+            if (signature === lastMessageSignature) {
+                return;
+            }
+
+            lastMessageSignature = signature;
+
+            // 记录滚动位置
+            const isNearBottom =
+                chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 80;
+
+            // 空状态
+            if (data.messages.length === 0) {
+
+                chatBox.innerHTML =
+                    '<div class="chat-loading">大厅空荡荡，快来抢沙发喵！</div>';
+
+                return;
+            }
+
+            // 使用 DocumentFragment 减少闪烁
+            const fragment = document.createDocumentFragment();
+
+            data.messages.forEach(msg => {
+
+                const bubble = document.createElement('div');
+                bubble.className = 'msg-bubble new-msg';
+
+                const safeNick = msg.nickname
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+
+                const safeContent = msg.content
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+
+                bubble.innerHTML = `
+                    <div class="msg-meta">
+                        <span>🐱 ${safeNick}</span>
+                        <span class="msg-time">${msg.time}</span>
+                    </div>
+
+                    <div class="msg-text">
+                        ${safeContent}
+                    </div>
+                `;
+
+                fragment.appendChild(bubble);
+            });
+
+            // 替换内容（一次性）
+            chatBox.innerHTML = '';
+            chatBox.appendChild(fragment);
+
+            // 自动滚动到底部
+            if (isNearBottom) {
+                requestAnimationFrame(() => {
+                    chatBox.scrollTop = chatBox.scrollHeight;
                 });
-            })
-            .catch(err => console.error('加载大厅消息失败', err));
-    }
-
+            }
+        })
+        .catch(err => console.error('加载大厅消息失败', err));
+}
     // 3. 核心：发射发送留言
     function sendChat() {
         const content = chatMsgInput.value.trim();
@@ -1059,13 +1164,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let offsetX = 0;
     let offsetY = 0;
-
+// 仅桌面端允许拖动
+if (window.innerWidth > 768) {
     chatHeaderDrag.addEventListener('mousedown', (e) => {
 
         isDragging = true;
-
         const rect = floatingChatWindow.getBoundingClientRect();
-
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
 
@@ -1090,9 +1194,27 @@ document.addEventListener('DOMContentLoaded', () => {
         floatingChatWindow.style.transition =
             'all 0.35s cubic-bezier(.2,.8,.2,1)';
     });
+}
+
+        // 手机输入时自动上移
+        chatMsgInput.addEventListener('focus', () => {
+
+            if (window.innerWidth <= 768) {
+
+                floatingChatWindow.style.bottom = '8px';
+                floatingChatWindow.style.height = '85vh';
+            }
+        });
+
+        chatMsgInput.addEventListener('blur', () => {
+
+            if (window.innerWidth <= 768) {
+
+                floatingChatWindow.style.bottom = '82px';
+                floatingChatWindow.style.height = '78vh';
+            }
+        });
 });
-
-
 </script>
 </body>
 </html>
