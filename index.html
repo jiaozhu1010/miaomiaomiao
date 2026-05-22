@@ -308,24 +308,26 @@
             outputArea.className = `barcode-output cols-${cols}`;
         });
 
-        // 新增：绑定复制按钮变量
+        // 1. 绑定新按钮的变量
         const copyBtn = document.getElementById('copy-btn');
-         // 新增：实现一键纯文本复制逻辑
+        // 2. 实现一键纯文本复制逻辑
         copyBtn.addEventListener('click', () => {
             if (!inputArea.value.trim()) {
                 alert('没有可复制的单号喵~');
                 return;
-            } 
-            // 使用现代剪贴板 API 复制文本
+            }
+            // 使用剪贴板 API 复制文本框内的纯文本
             navigator.clipboard.writeText(inputArea.value).then(() => {
                 const originalText = copyBtn.innerText;
+                const originalBg = copyBtn.style.backgroundColor;
+                // 变成绿色并提示成功
                 copyBtn.innerText = '已复制！';
-                copyBtn.style.backgroundColor = '#81c784'; // 变成绿色提示     
-                // 1.5秒后恢复原状
+                copyBtn.style.backgroundColor = '#81c784'; 
+                // 1.2 秒后恢复原状
                 setTimeout(() => {
                     copyBtn.innerText = originalText;
-                    copyBtn.style.backgroundColor = '#ffb74d'; 
-                }, 1500);
+                    copyBtn.style.backgroundColor = originalBg; 
+                }, 1200);
             }).catch(err => {
                 alert('复制失败，请手动选择复制');
             });
