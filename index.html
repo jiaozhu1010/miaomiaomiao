@@ -95,33 +95,34 @@
             gap: 15px;
         }
 
+        /* 极简舒适版输入框样式 */
         textarea {
             width: 100%;
             height: 120px;
-            padding: 15px;
+            padding: 16px; /* 增加内边距，让文字周围有足够的呼吸空间 */
             border: 2px solid #eef0f2;
             border-radius: var(--border-radius);
-           /* ======= 修改与新增的字体舒适度样式 ======= */
             font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            font-size: 16px;          /* 稍微放大字号，更易辨认 */
-            letter-spacing: 0.5px;    /* 增加轻微的字间距 */
-            color: #444444;           /* 舒适的深灰色，缓解视觉疲劳 */
-            /* ========================================= */
-            font-size: 15px;
-            font-family: monospace;
+            font-size: 16px; /* 字号放大，极其醒目 */
+            font-weight: 500; /* 字重微微加粗，清晰有力 */
+            letter-spacing: 1px; /* 舒适的字间距，不拥挤 */
+            color: #2c3e50; /* 使用高级的深蓝灰，比纯黑更护眼舒服 */
             resize: vertical;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.3s;
-            line-height: 1.5;
+            transition: all 0.3s ease; /* 丝滑的过渡动画 */
+            background-color: #fafbfc; /* 默认极浅的背景色，与纯白卡片区分层级 */
         }
 
+        /* 输入聚焦时的极简反馈 */
         textarea:focus {
             border-color: var(--primary-color);
+            background-color: #ffffff; /* 聚焦时变纯白，突出当前操作区 */
+            box-shadow: 0 0 0 4px rgba(255, 183, 77, 0.15); /* 简约柔和的焦点光环，不刺眼 */
         }
 
         textarea::placeholder {
-            color: #aaa;
+            color: #a0aec0; /* 柔和的占位符颜色 */
         }
 
         /* 快捷输入按钮样式 - 激萌版 */
@@ -347,10 +348,15 @@
                         width: 2,
                         height: 60,
                         displayValue: true,
-                        fontSize: 16,
+                        // === 护眼且美观的精致配置 ===
+                        fontSize: 16,         // 字号调小到 16，比例更精致秀气
+                        fontOptions: "bold",  // 保持微加粗，确保较小字号下的清晰度
+                        font: "monospace",    // 坚持使用等宽字体，数字排列严谨美观
+                        textMargin: 6,        // 配合小字号微调间距，整体视觉更紧凑
+                        lineColor: "#000000", // 换成柔和的高级板岩灰，彻底告别纯黑的刺眼感
+                        // ===========================
                         margin: 10,
-                        background: "transparent",
-                        lineColor: "#333333"
+                        background: "transparent"
                     });
                 } catch (error) {
                     itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符 (${text})</span>`;
