@@ -27,7 +27,7 @@
             zoom: 1.1;
         }
 
-        .container {
+        。container {
             background-color: var(--box-bg);
             width: 100%;
             max-width: 700px;
@@ -346,22 +346,6 @@
             transition: background 0.2s ease;
         }
 
-            .msg-bubble.new-msg {
-            animation: newMsgIn 0.25s ease-out;
-        }
-
-        @keyframes newMsgIn {
-
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
         @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .msg-meta { font-size: 11px; color: #ff8a80; font-weight: bold; margin-bottom: 3px; display: flex; justify-content: space-between; gap: 10px; }
         .msg-time { color: #b0bec5; font-weight: normal; }
@@ -1046,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.messages.forEach(msg => {
 
                 const bubble = document.createElement('div');
-                bubble.className = 'msg-bubble new-msg';
+                bubble。className = 'msg-bubble';
 
                 const safeNick = msg.nickname
                     .replace(/</g, "&lt;")
