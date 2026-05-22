@@ -211,71 +211,6 @@
             }
             .container { padding: 20px; margin-top: 15vh; }
         }
-
-          /* 顶部栏布局，让标题在左，木鱼在右 */
-          .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #eee;
-          }
-        
-          /* 摸鱼专区样式 */
-          .moyu-zone {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-          }
-        
-          .global-count-display {
-            font-size: 14px;
-            color: #666;
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-family: monospace;
-          }
-        
-          .muyu-wrapper {
-            position: relative;
-            cursor: pointer;
-            user-select: none; /* 防止快速点击时选中文本 */
-          }
-        
-          #muyu-btn {
-            width: 50px;
-            height: 50px;
-            transition: transform 0.05s ease; /* 极快的缩放动画，适合连续点击 */
-          }
-        
-          /* 鼠标按下时的按压缩放效果 */
-          #muyu-btn:active {
-            transform: scale(0.85);
-          }
-        
-          /* “功德 +1” 飘字的动画属性 */
-          .merit-plus {
-            position: absolute;
-            color: #ff9800;
-            font-weight: bold;
-            font-size: 16px;
-            pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
-          }
-        
-          @keyframes floatUp {
-            0% {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-            100% {
-              opacity: 0;
-              transform: translateY(-40px) scale(1.2);
-            }
-          }
-        
     </style>
 </head>
 <body>
@@ -306,15 +241,7 @@
         </svg>
 
         <div class="header">
-           <header class="header-container">
-              <h1 class="site-title">喵码生成器</h1>
-                <div class="moyu-zone">
-                <div class="global-count-display">全服功德: <span id="global-count">...</span></div>
-                <div class="muyu-wrapper" id="muyu-wrapper">
-                    <img src="https://api.iconify.design/noto:woodfish.svg" alt="敲木鱼" id="muyu-btn" draggable="false">
-                </div>
-            </div>
-            </header>
+            <h1>喵码生成器</h1>
         </div>
 
         <div class="input-group">
@@ -413,84 +340,6 @@
             renderBarcodes();
             inputArea.focus();
         });
-    
-          // 初始化变量
-        let globalTotal = 0;       // 全服总数
-        let pendingClicks = 0;     // 尚未发送给服务器的本地点击数
-        
-        const muyuBtn = document.getElementById('muyu-btn');
-        const muyuWrapper = document.getElementById('muyu-wrapper');
-        const countDisplay = document.getElementById('global-count');
-        
-        // 1. 初始化：向 Netlify Function 发送 GET 请求，获取全服初始功德
-        async function fetchInitialCount() {
-            try {
-            const res = await fetch('/.netlify/functions/muyu');
-            const data = await res.json();
-            globalTotal = data.total;
-            countDisplay.innerText = globalTotal;
-            } catch (error) {
-                console.error("获取全服功德失败喵~", error);
-            }
-          }
-          
-          // 页面加载时自动执行一次
-        fetchInitialCount();
-        
-          // 2. 点击事件处理 (纯前端视觉反馈)
-        muyuBtn.addEventListener('mousedown', (e) => {
-            // 增加待发送计数
-        pendingClicks++;
-            
-            // 本地乐观更新，让数字先动起来，不需要等服务器返回
-        globalTotal++; 
-        countDisplay.innerText = globalTotal;
-        
-            // 创建“+1”飘字元素
-        const plusOne = document.createElement('div');
-        plusOne.classList.add('merit-plus');
-        plusOne.innerText = '+1';
-            
-            // 随机偏移一点水平位置，让连续点击的飘字不会完全重叠
-        const randomX = (Math.random() - 0.5) * 20; 
-        plusOne.style.left = `calc(50% - 10px + ${randomX}px)`;
-        plusOne.style.top = '10px';
-        
-        muyuWrapper.appendChild(plusOne);
-        
-            // 动画结束后移除 DOM 元素，保持页面整洁不卡顿
-        setTimeout(() => {
-            plusOne.remove();
-            }, 800);
-        });
-        
-          // 3. 定时同步逻辑 (每 1.5 秒打包发送一次)
-        setInterval(async () => {
-            if (pendingClicks > 0) {
-            const clicksToSend = pendingClicks;
-                pendingClicks = 0; // 重置本地待发送计数
-        
-        try {
-                // 向 Netlify Function 发送 POST 请求，上传这段时间的总敲击数
-            const res = await fetch('/.netlify/functions/muyu', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ count: clicksToSend })
-                });
-            const data = await res.json();
-                
-                // 以服务器返回的最新全服总数为准，进行校准
-            globalTotal = data.latestTotal; 
-            countDisplay.innerText = globalTotal;
-            console.log(`向服务器发送了 ${clicksToSend} 次敲击，功德无量喵！`);
-              } catch (error) {
-                // 如果发送失败，把次数加回去，等待下次重新发送
-            pendingClicks += clicksToSend;
-            console.error("网络波动，功德上传失败喵~", error);
-            }
-        }
-    }, 1500);
-</script>
-    
+    </script>
 </body>
 </html>
