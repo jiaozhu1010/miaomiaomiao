@@ -407,6 +407,17 @@
                 right: 14px;
                 bottom: 14px;
                 font-size: 28px;
+                transform-origin: center;
+            }
+            /* 打开状态 */
+            .floating-chat-btn.active {
+
+                background:
+                    linear-gradient(145deg, #ffcc80, #ff9800);
+                box-shadow:
+                    0 10px 30px rgba(255,152,0,0.55),
+                    0 0 35px rgba(255,183,77,0.45);
+                transform: rotate(12deg) scale(1.08);
             }
 
             /* 消息区域 */
@@ -799,7 +810,6 @@
                     在线 1 只猫
                 </span>
             </div>
-            <button id="close-chat-btn">×</button>
         </div>
 
         <div class="chat-messages" id="chat-box">
@@ -985,7 +995,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMessageSignature = '';
     const floatingChatBtn = document.getElementById('floating-chat-btn');
     const floatingChatWindow = document.getElementById('floating-chat-window');
-    const closeChatBtn = document.getElementById('close-chat-btn');
     const chatHeaderDrag = document.getElementById('chat-header-drag');
 
     // 1. 随一个可爱的临时匿名账号
@@ -1131,14 +1140,20 @@ document.addEventListener('DOMContentLoaded', () => {
     updateOnlineCount();
     setInterval(updateOnlineCount, 4000);
 
-    // 打开喵喵大厅
     floatingChatBtn.addEventListener('click', () => {
-        floatingChatWindow.classList.add('show');
-    });
+        // 判断当前是否已经打开
+        const isOpen =
+            floatingChatWindow.classList.contains('show');
+        // 已打开 → 关闭
+        if (isOpen) {
 
-    // 关闭喵喵大厅
-    closeChatBtn.addEventListener('click', () => {
-        floatingChatWindow.classList.remove('show');
+            floatingChatWindow.classList.remove('show');
+            floatingChatBtn.classList.remove('active');
+
+        } else {
+            floatingChatWindow.classList.add('show');
+            floatingChatBtn.classList.add('active');
+        }
     });
 
     /* =========================
