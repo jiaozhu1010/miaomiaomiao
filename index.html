@@ -124,6 +124,39 @@
             color: #aaa;
         }
 
+        /* 快捷输入按钮样式 - 激萌版 */
+        .quick-input-tools {
+            align-items: center;
+        }
+        
+        .btn-quick {
+            background-color: #fff3e0; /* 温暖的奶橘色背景 */
+            color: #ff8a80;            /* 俏皮的猫爪粉文字 */
+            border: 2px solid #ffcc80; /* 圆润的橘色边框 */
+            padding: 6px 16px;
+            border-radius: 20px;       /* 软乎乎的圆角 */
+            font-size: 14px;
+            /* 使用自带的可爱圆体字族，如果没有则回退到手写体 */
+            font-family: "Comic Sans MS", "幼圆", "方正准圆简体", "TsukuARdGothic-Regular", cursive, sans-serif; 
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ffcc80; /* 立体按键的厚度阴影 */
+            transition: all 0.1s ease;   /* 动画过渡变得更清脆 */
+            outline: none;
+        }
+
+        .btn-quick:hover {
+            background-color: #ffe0b2;
+            transform: translateY(-2px); /* 悬浮时微微抬起 */
+            box-shadow: 0 6px 0 #ffcc80; /* 悬浮时阴影加深 */
+        }
+
+        .btn-quick:active {
+            transform: translateY(4px);  /* 按下时真实下陷 */
+            box-shadow: 0 0 0 #ffcc80;   /* 按下时阴影消失，产生物理按压感 */
+        }
+
         /* 工具栏：下拉框与按钮 */
         .toolbar {
             display: flex;
@@ -245,6 +278,10 @@
         </div>
 
         <div class="input-group">
+            <div class="quick-input-tools" style="display: flex; gap: 10px; margin-bottom: -5px;">
+                <button class="btn-quick" id="btn-dpk">DPK</button>
+                <button class="btn-quick" id="btn-dpl">DPL</button>
+            </div>
             <textarea id="barcode-input" placeholder="请输入快递单号...&#10;支持换行输入多个单号，实时生成，快捷好用！"></textarea>
             
             <div class="toolbar">
@@ -272,6 +309,24 @@
         const outputArea = document.getElementById('barcode-output');
         const colSelect = document.getElementById('col-select');
         const clearBtn = document.getElementById('clear-btn');
+        const btnDpk = document.getElementById('btn-dpk');
+        const btnDpl = document.getElementById('btn-dpl');
+
+        // 通用的快捷输入函数
+        function insertPrefix(prefix) {
+            // 如果文本框已经有内容，且最后不是换行符，则先加个换行再插入
+            if (inputArea.value.length > 0 && !inputArea.value.endsWith('\n')) {
+                inputArea.value += '\n' + prefix;
+            } else {
+                inputArea.value += prefix;
+            }
+            // 保持焦点并实时渲染条码
+            inputArea.focus();
+            renderBarcodes();
+        }
+        // 绑定点击事件
+        btnDpk.addEventListener('click', () => insertPrefix('DPK'));
+        btnDpl.addEventListener('click', () => insertPrefix('DPL'));
 
                 function renderBarcodes() {
             outputArea.innerHTML = '';
