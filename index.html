@@ -35,7 +35,7 @@
             border-radius: var(--border-radius);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
             align-self: flex-start;
-            margin-top: 5vh; /* 留出空间给在顶部走动的小猫 */
+            margin-top: 10vh; /* 留出空间给在顶部走动的小猫 */
             position: relative;
         }
         /* 适配手机端的关键媒体查询 */
@@ -434,6 +434,8 @@
             transition: all 0.05s;
         }
         #chat-send-btn:active { transform: translateY(3px); box-shadow: none; }
+
+            
 
         /* 窄屏手机适配：自动变成上下叠放 */
         @media (max-width: 768px) {
@@ -1293,7 +1295,49 @@ if (window.innerWidth > 768) {
             'all 0.35s cubic-bezier(.2,.8,.2,1)';
     });
 }
+        /* =========================
+        右下角喵喵大厅按钮 可拖动
+        ========================= */
+    const floatingBtn = document.getElementById('floating-chat-btn');
 
+    let isBtnDragging = false;
+    let btnOffsetX = 0;
+    let btnOffsetY = 0;
+
+    if (window.innerWidth > 768) {  // 仅桌面端允许拖动
+        floatingBtn.addEventListener('mousedown', (e) => {
+            isBtnDragging = true;
+            const rect = floatingBtn.getBoundingClientRect();
+            
+            btnOffsetX = e.clientX - rect.left;
+            btnOffsetY = e.clientY - rect.top;
+
+            floatingBtn.style.transition = 'none';  // 拖动时取消过渡动画
+            floatingBtn.style.right = 'auto';
+            floatingBtn.style.bottom = 'auto';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isBtnDragging) return;
+
+            let newLeft = e.clientX - btnOffsetX;
+            let newTop = e.clientY - btnOffsetY;
+
+            // 防止拖出屏幕
+            newLeft = Math.max(10, Math.min(newLeft, window.innerWidth - floatingBtn.offsetWidth - 10));
+            newTop = Math.max(10, Math.min(newTop, window.innerHeight - floatingBtn.offsetHeight - 10));
+
+            floatingBtn.style.left = `${newLeft}px`;
+            floatingBtn.style.top = `${newTop}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isBtnDragging) {
+                isBtnDragging = false;
+                floatingBtn.style.transition = 'all 0.25s ease';  // 恢复过渡效果
+            }
+        });
+    }
         // 手机输入时自动上移
         chatMsgInput.addEventListener('focus', () => {
 
