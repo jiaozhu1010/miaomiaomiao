@@ -885,8 +885,18 @@
             </div>
         </div>            
 
-        <!-- 输出区默认设置为 2 列样式 -->
+                <!-- 输出区默认设置为 2 列样式 -->
         <div id="barcode-output" class="barcode-output cols-2"></div>
+
+        <!-- 新增：历史记录面板 -->
+        <div style="margin-top: 25px; padding: 15px; background: #fffaf5; border-radius: 12px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong>📜 历史记录（仅DPK/DPL+12位数字，最多20条）</strong>
+                <button id="clear-history" style="font-size:12px; padding:4px 10px; background:#ff6b6b; color:white; border:none; border-radius:6px; cursor:pointer;">清空历史</button>
+            </div>
+            <div id="history-list" style="max-height: 240px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
     </div>
 
     <!-- 喵喵大厅悬浮按钮 -->
@@ -1295,6 +1305,106 @@ if (window.innerWidth > 768) {
             'all 0.35s cubic-bezier(.2,.8,.2,1)';
     });
 }
+
+        
+        
+        // ==================== 历史记录功能（输入后清空才保存版）====================
+    let history = JSON.parse(localStorage.getItem('barcodeHistory') || '[]');
+    let lastValidContent = '';      // 上一次有效的输入内容
+    let isCurrentlyEmpty = true;
+
+    function isValidDPKLine(line) {
+        const trimmed = line.trim();
+        if (!trimmed) return true;
+        return /^(DPK|DPL)\d{12}$/.test(trimmed);
+    }
+
+    function validateAllLines(text) {
+        if (!text.trim()) return false;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return false;
+        return lines.every(line => isValidDPKLine(line));
+    }
+
+    function saveToHistory() {
+        if (!lastValidContent) return;
+        if (!validateAllLines(lastValidContent)) return;
+
+        // 去重
+        if (history.length > 0 && history[0] === lastValidContent) return;
+
+        history.unshift(lastValidContent);
+        history = history.slice(0, 20);
+        localStorage.setItem('barcodeHistory', JSON.stringify(history));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const list = document.getElementById('history-list');
+        if (!list) return;
+
+        list.innerHTML = history.map((item, i) => `
+            <div style="padding:9px 12px; background:#fff; border-radius:8px; cursor:pointer; border:1px solid #ffe0b2; line-height:1.45;" 
+                onclick="loadHistory(${i})" title="点击恢复此记录">
+                ${item.replace(/\n/g, ' | ')}
+            </div>
+        `).join('');
+    }
+
+    window.loadHistory = function(index) {
+        if (history[index]) {
+            inputArea.value = history[index];
+            renderBarcodes();
+            document.getElementById('barcode-output').scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    // 清空历史
+    document.getElementById('clear-history').addEventListener('click', () => {
+        if (confirm('确定要清空所有历史记录吗？')) {
+            history = [];
+            localStorage.removeItem('barcodeHistory');
+            renderHistory();
+        }
+    });
+
+    // ==================== 核心监听逻辑：从有内容到清空时保存 ====================
+    inputArea.addEventListener('input', () => {
+        const currentText = inputArea.value.trim();
+        const nowEmpty = !currentText;
+
+        renderBarcodes();
+
+        // 如果当前有有效内容，记录下来
+        if (!nowEmpty && validateAllLines(currentText)) {
+            lastValidContent = currentText;
+        }
+
+        // 关键：检测「从有内容 → 清空」的动作
+        if (!isCurrentlyEmpty && nowEmpty && lastValidContent) {
+            saveToHistory();
+            lastValidContent = '';   // 保存后清空缓存
+        }
+
+        isCurrentlyEmpty = nowEmpty;
+    });
+
+    // 清空按钮也触发保存逻辑
+    document.getElementById('clear-btn').addEventListener('click', () => {
+        // 手动触发保存（如果有内容）
+        if (lastValidContent) {
+            saveToHistory();
+        }
+        lastValidContent = '';
+        isCurrentlyEmpty = true;
+    });
+
+    // 页面加载初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        renderHistory();
+        isCurrentlyEmpty = !inputArea.value.trim();
+    });
+
         /* =========================
         右下角喵喵大厅按钮 可拖动
         ========================= */
