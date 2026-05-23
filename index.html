@@ -39,41 +39,76 @@
             position: relative;
         }
 
-        /* 漫步的小猫：绝对定位在容器顶部边缘 */
+/* =========================
+        漫步的小猫：超动感·蹦跶猫动画喵
+        ========================= */
         .roaming-cat {
             position: absolute;
-            top: -49px; /* 站在容器上方 */
-            width: 50px;
-            height: 50px;
+            top: -65px; /* 调整高度，让猫咪脚踩在容器边缘喵 */
+            width: 70px;
+            height: 70px;
             z-index: 10;
-            animation: patrol 12s linear infinite;
+            cursor: pointer; /* 配合撸猫冒爱心功能喵 */
+            
+            /* 1. 核心动画：保持原有的“巡逻”逻辑喵 */
+            animation: patrol 16s linear infinite;
         }
 
-        /* 巡逻动画：从左走到右，转身，再走回来 */
+        /* 巡逻动画喵：从左走到右，平滑转身喵 */
         @keyframes patrol {
             0%   { left: 10px; transform: scaleX(1); }
-            45%  { left: calc(100% - 60px); transform: scaleX(1); }
-            50%  { left: calc(100% - 60px); transform: scaleX(-1); } /* 转身 */
+            45%  { left: calc(100% - 80px); transform: scaleX(1); }
+            50%  { left: calc(100% - 80px); transform: scaleX(-1); } /* 转身喵 */
             95%  { left: 10px; transform: scaleX(-1); }
-            100% { left: 10px; transform: scaleX(1); } /* 转回来 */
+            100% { left: 10px; transform: scaleX(1); } /* 转回来喵 */
         }
 
-        /* 身体与腿部动画，使其走动时更自然 */
-        .cat-body { animation: bodyBob 0.6s infinite alternate ease-in-out; }
-        @keyframes bodyBob {
-            0% { transform: translateY(0px); }
-            100% { transform: translateY(-3px); }
+        /* 2. 活力蹦跶喵：身体上下跳跃和弹性缩放喵 */
+        .cat-wrapper {
+            transform-origin: center bottom;
+            animation: catBounce 0.3s infinite alternate ease-in-out;
         }
-        @keyframes legWalk1 {
-            0%, 100% { transform: rotate(-20deg); }
-            50% { transform: rotate(20deg); }
+        @keyframes catBounce {
+            0% { transform: translateY(0px) scaleY(1); }
+            100% { transform: translateY(-6px) scaleY(0.95); } /* 活力跳跃，带弹性喵 */
         }
-        @keyframes legWalk2 {
-            0%, 100% { transform: rotate(20deg); }
-            50% { transform: rotate(-20deg); }
+
+        /* 3. 脑袋点头喵：微微点头，显眼又可爱喵 */
+        .cat-head {
+            transform-origin: 65px 42px; /* 设置在颈部喵 */
+            animation: catNod 0.6s infinite alternate ease-in-out;
         }
-        .leg-front { transform-origin: 30px 45px; animation: legWalk1 0.5s infinite linear; }
-        .leg-back { transform-origin: 50px 45px; animation: legWalk2 0.5s infinite linear; }
+        @keyframes catNod {
+            0% { transform: rotate(-3deg); }
+            100% { transform: rotate(5deg); }
+        }
+
+        /* 4. 尾巴摇摆喵：开心地甩来甩去喵 */
+        .cat-tail {
+            transform-origin: 20px 60px; /* 设置在尾巴根部喵 */
+            animation: catTailSwish 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes catTailSwish {
+            0% { transform: rotate(-10deg); }
+            100% { transform: rotate(25deg); }
+        }
+
+        /* 5. 动感短腿跑动喵：两条腿一组，交替抬起落下喵 */
+        .leg { stroke-linecap: round; }
+        .leg-bl { transform-origin: 33px 65px; animation: legCycle1 0.3s infinite alternate linear; }
+        .leg-fl { transform-origin: 61px 65px; animation: legCycle1 0.3s infinite alternate linear; }
+        .leg-br { transform-origin: 27px 65px; animation: legCycle2 0.3s infinite alternate linear; }
+        .leg-fr { transform-origin: 55px 65px; animation: legCycle2 0.3s infinite alternate linear; }
+
+        /* 大角度摆动，跑得飞快喵 */
+        @keyframes legCycle1 {
+            0% { transform: rotate(-35deg); }
+            100% { transform: rotate(40deg); }
+        }
+        @keyframes legCycle2 {
+            0% { transform: rotate(40deg); }
+            100% { transform: rotate(-35deg); }
+        }
 
         /* 顶部标题 */
         .header {
@@ -542,8 +577,26 @@
             right: 25px;
             bottom: 115px;
 
-            width: 360px;
-            height: 520px;
+            /* 使用 clamp 实现宽度自适应：最小300px，首选30vw，最大400px */
+            width: clamp(300px, 22vw, 400px);
+            /* 使用 clamp 实现高度自适应：最小400px，首选65vh，最大650px */
+            height: clamp(400px, 65vh, 650px);
+            /* 极限保护：防止在特别矮的浏览器窗口中溢出屏幕 */
+            max-height: calc(100vh - 140px);
+
+            background: #ffffff;
+            border: 3px solid #ffcc80;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15), 0 0 30px rgba(255,183,77,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(30px) scale(0.85);
+            transition: all 0.35s cubic-bezier(.2,.8,.2,1);
+        
 
             background: #ffffff;
 
@@ -727,34 +780,63 @@
                 transform: rotate(10deg);
             }
         }
+            /* 撸猫互动：让小猫鼠标悬浮时变成小手 */
+        .roaming-cat {
+            cursor: pointer;
+        }
+        
+        /* 飘出的爱心特效 */
+        .cat-heart {
+            position: absolute;
+            font-size: 22px;
+            color: #ff5252;
+            pointer-events: none;
+            z-index: 100;
+            animation: heartFloat 1s ease-out forwards;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
+        @keyframes heartFloat {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1); }
+        }
             
     </style>
 </head>
 <body>
     
     <div class="container">
-        <!-- 漫步的小猫 SVG -->
         <svg class="roaming-cat" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <g class="cat-body">
-                <!-- 尾巴 -->
-                <path d="M 25 65 Q 10 50 15 30" stroke="#ffb74d" stroke-width="6" stroke-linecap="round" fill="none"/>
-                <!-- 身体 -->
-                <rect x="25" y="45" width="40" height="22" rx="11" fill="#ffb74d" />
-                <!-- 腿部 (带走动动画) -->
-                <line class="leg-front" x1="35" y1="65" x2="35" y2="80" stroke="#ffb74d" stroke-width="6" stroke-linecap="round"/>
-                <line class="leg-back" x1="55" y1="65" x2="55" y2="80" stroke="#ffb74d" stroke-width="6" stroke-linecap="round"/>
-                <!-- 头部 -->
-                <circle cx="70" cy="45" r="16" fill="#ffb74d" />
-                <!-- 耳朵 -->
-                <polygon points="60,35 63,18 72,32" fill="#ffb74d" />
-                <polygon points="72,32 80,18 84,35" fill="#ffb74d" />
-                <!-- 脸部细节 -->
-                <circle cx="73" cy="43" r="2.5" fill="#333" />
-                <circle cx="83" cy="43" r="2.5" fill="#333" />
-                <!-- 腮红 -->
-                <circle cx="68" cy="48" r="3" fill="#ff8a80" opacity="0.8" />
-                <circle cx="86" cy="48" r="3" fill="#ff8a80" opacity="0.8" />
+            <g class="cat-wrapper">
+                <path class="cat-body-shape" d="M 25 55 Q 25 35 45 38 L 60 38 Q 75 35 75 50 Q 75 68 50 68 L 35 68 Q 25 68 25 55 Z" fill="#ffffff" stroke="#333" stroke-width="1.5" stroke-linejoin="round" />
+                
+                <path class="cat-tail" d="M 25 50 Q 10 40 18 25" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+                <line class="leg leg-br" x1="38" y1="65" x2="38" y2="82" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+                <line class="leg leg-fr" x1="66" y1="65" x2="66" y2="82" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+                
+                <line class="leg leg-bl" x1="28" y1="68" x2="28" y2="85" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+                <line class="leg leg-fl" x1="56" y1="68" x2="56" y2="85" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+
+                <g class="cat-head">
+                    <circle cx="70" cy="45" r="15" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
+                    <path d="M 60 35 L 58 20 L 70 30 Z" fill="#ffffff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M 72 30 L 84 20 L 82 35 Z" fill="#ffffff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/>
+                    
+                    <circle cx="61" cy="48" r="2.5" fill="#ff8a80" opacity="0.4" />
+                    <circle cx="79" cy="48" r="2.5" fill="#ff8a80" opacity="0.4" />
+                    
+                    <circle cx="66" cy="42" r="1.5" fill="#333" />
+                    <circle cx="78" cy="42" r="1.5" fill="#333" />
+                    
+                    <line x1="59" y1="46" x2="51" y2="47" stroke="#333" stroke-width="1" stroke-linecap="round"/>
+                    <line x1="59" y1="50" x2="51" y2="51" stroke="#333" stroke-width="1" stroke-linecap="round"/>
+                    <line x1="81" y1="46" x2="89" y2="47" stroke="#333" stroke-width="1" stroke-linecap="round"/>
+                    <line x1="81" y1="50" x2="89" y2="51" stroke="#333" stroke-width="1" stroke-linecap="round"/>
+                    
+                    <path d="M 69 49 Q 71 52 71 49 Q 71 52 73 49" stroke="#333" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                </g>
             </g>
         </svg>
 
@@ -805,9 +887,6 @@
             <div class="chat-title-area">
                 <span class="chat-title">
                     🐈 喵喵大厅
-                </span>
-                <span class="online-count" id="online-count">
-                    在线 1 只猫
                 </span>
             </div>
         </div>
@@ -1117,28 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchChats();
     setInterval(fetchChats, 3000);
 
-        /* =========================
-    在线人数模拟
-    ========================= */
 
-    const onlineCount = document.getElementById('online-count');
-
-    let currentOnline = Math.floor(Math.random() * 15) + 8;
-
-    function updateOnlineCount() {
-
-        const fluctuation = Math.floor(Math.random() * 3) - 1;
-
-        currentOnline += fluctuation;
-
-        if (currentOnline < 5) currentOnline = 5;
-        if (currentOnline > 99) currentOnline = 99;
-
-        onlineCount.innerText = `在线 ${currentOnline} 只猫`;
-    }
-
-    updateOnlineCount();
-    setInterval(updateOnlineCount, 4000);
 
     floatingChatBtn.addEventListener('click', () => {
         // 判断当前是否已经打开
@@ -1155,7 +1213,35 @@ document.addEventListener('DOMContentLoaded', () => {
             floatingChatBtn.classList.add('active');
         }
     });
+/* =========================
+        隐藏彩蛋：沉浸式云撸猫
+        ========================= */
+        const roamingCat = document.querySelector('.roaming-cat');
+        
+        roamingCat.addEventListener('click', (e) => {
+            // 1. 让小猫停下脚步享受抚摸 (暂停巡逻动画)
+            roamingCat.style.animationPlayState = 'paused';
+            
+            // 1.5 秒后小猫继续散步
+            setTimeout(() => {
+                roamingCat.style.animationPlayState = 'running';
+            }, 1500);
 
+            // 2. 生成爱心特效
+            const heart = document.createElement('div');
+            heart.className = 'cat-heart';
+            heart.innerText = '❤️';
+            
+            // 计算爱心出现的位置（在小猫头顶）
+            const rect = roamingCat.getBoundingClientRect();
+            heart.style.left = (rect.left + rect.width / 2 - 10) + 'px';
+            heart.style.top = (rect.top - 15) + 'px';
+            
+            document.body.appendChild(heart);
+
+            // 3. 动画结束后清理 DOM
+            setTimeout(() => heart.remove(), 1000);
+        });
     /* =========================
     悬浮窗拖动功能
     ========================= */
