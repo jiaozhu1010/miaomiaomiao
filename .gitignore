@@ -1,0 +1,26 @@
+node_modules/
+ecosystem.config.js
+logs/
+chat.json
+.env
+.DS_Store
+.codex-server.txt
+
+uploads/
+books/
+data/users.json
+
+# Codex local config (hooks are personal)
+.codex/
+# Claude local settings
+.claude/
+# Agent技能 (IDE配置)
+.agents/
+# Superpowers工作区
+.superpowers/
+# 生成的PDF/HTML报告
+德邦快递跨境产品详解.*
+# SSL证书
+.well-known/
+# Claude Code锁文件
+skills-lock.json

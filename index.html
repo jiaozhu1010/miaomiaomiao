@@ -1,0 +1,3492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <title>喵码生成器 — 极简快递单号条码生成</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+        <style>
+        /* =========================
+           喵码 Air · 柔和玻璃态
+           设计理念：轻盈 · 通透 · 有温度
+           ========================= */
+
+        :root {
+            --accent: #ff9f43;
+            --accent-2: #ee5a6f;
+            --accent-3: #0abde3;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --text-tertiary: #aeaeb2;
+            --glass-bg: rgba(255, 255, 255, 0.55);
+            --glass-bg-hover: rgba(255, 255, 255, 0.72);
+            --glass-bg-strong: rgba(255, 255, 255, 0.78);
+            --glass-border: rgba(255, 255, 255, 0.55);
+            --glass-border-strong: rgba(255, 255, 255, 0.7);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+            --glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+            --radius-sm: 12px;
+            --radius: 18px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --font-display: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            --font-body: "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Monaco, Consolas, monospace;
+            --transition-smooth: 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+            --transition-bounce: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        *,
+        *:focus,
+        *:focus-visible,
+        *:active {
+            outline: none !important;
+        }
+
+        /* =========================
+           动态柔光背景
+           ========================= */
+        body {
+            font-family: var(--font-body);
+            min-height: 100vh;
+            color: var(--text-primary);
+            background: #f5f0eb;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 背景光晕层 */
+        .bg-atmosphere {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.5;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+        }
+        .bg-orb--warm {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(255, 180, 130, 0.55) 0%, transparent 70%);
+            top: -15%;
+            left: -10%;
+            animation-name: orbDriftWarm;
+            animation-duration: 18s;
+        }
+        .bg-orb--pink {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255, 150, 150, 0.4) 0%, transparent 70%);
+            top: 50%;
+            right: -12%;
+            animation-name: orbDriftPink;
+            animation-duration: 22s;
+        }
+        .bg-orb--blue {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(130, 200, 240, 0.3) 0%, transparent 70%);
+            bottom: -10%;
+            left: 30%;
+            animation-name: orbDriftBlue;
+            animation-duration: 20s;
+        }
+        .bg-orb--cream {
+            width: 450px; height: 450px;
+            background: radial-gradient(circle, rgba(255, 240, 220, 0.5) 0%, transparent 70%);
+            top: 20%;
+            left: 50%;
+            animation-name: orbDriftCream;
+            animation-duration: 24s;
+        }
+
+        @keyframes orbDriftWarm {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(8%, 5%) scale(1.08); }
+            50% { transform: translate(3%, 10%) scale(0.95); }
+            75% { transform: translate(-3%, 3%) scale(1.05); }
+        }
+        @keyframes orbDriftPink {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-6%, -8%) scale(1.1); }
+            66% { transform: translate(-2%, 5%) scale(0.93); }
+        }
+        @keyframes orbDriftBlue {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(10%, -5%) scale(1.12); }
+        }
+        @keyframes orbDriftCream {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            30% { transform: translate(-5%, 4%) scale(1.06); }
+            70% { transform: translate(5%, -3%) scale(0.96); }
+        }
+
+        /* 网格纹理覆盖 */
+        .bg-grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+            background-size: 256px 256px;
+        }
+
+        /* =========================
+           主容器
+           ========================= */
+        .app-shell {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1500px;
+            padding: 28px 24px 40px;
+            margin-top: 3vh;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        /* =========================
+           顶部导航 · 毛玻璃
+           ========================= */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 22px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--glass-shadow);
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-logo {
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(255, 159, 67, 0.3);
+        }
+        .nav-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+        .nav-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .online-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 20px;
+            padding: 6px 14px;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .online-badge .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #34c759;
+            box-shadow: 0 0 8px rgba(52, 199, 89, 0.5);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.65); }
+        }
+
+        /* AI 聊天导航按钮 */
+        .ai-chat-btn {
+            position: relative;
+            width: 42px; height: 42px;
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff8a80, #ff5252);
+            color: #fff;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25);
+            transition: all var(--transition-bounce);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: aiGlow 3s ease-in-out infinite;
+        }
+        @keyframes aiGlow {
+            0%, 100% { box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25), 0 0 0 0 rgba(255,82,82,0.3); }
+            50% { box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25), 0 0 0 12px rgba(255,82,82,0); }
+        }
+        .ai-chat-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 8px 24px rgba(255, 82, 82, 0.4);
+            animation: none;
+        }
+        .ai-chat-btn:active {
+            transform: translateY(1px) scale(0.94);
+            box-shadow: 0 2px 8px rgba(255, 82, 82, 0.2);
+        }
+        .ai-chat-btn::after {
+            content: '找小橘聊天~';
+            position: absolute;
+            bottom: -36px;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: rgba(30,30,30,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+        .ai-chat-btn:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 知识库导航按钮 */
+        .wiki-btn {
+            position: relative;
+            width: 42px; height: 42px;
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff9f43, #ffb366);
+            color: #fff;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25);
+            transition: all var(--transition-bounce);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: wikiGlow 3.5s ease-in-out infinite;
+        }
+        @keyframes wikiGlow {
+            0%, 100% { box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25), 0 0 0 0 rgba(255,159,67,0.3); }
+            50% { box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25), 0 0 0 12px rgba(255,159,67,0); }
+        }
+        .wiki-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 8px 24px rgba(255, 159, 67, 0.4);
+            animation: none;
+        }
+        .wiki-btn:active {
+            transform: translateY(1px) scale(0.94);
+            box-shadow: 0 2px 8px rgba(255, 159, 67, 0.2);
+        }
+        .wiki-btn::after {
+            content: '知识库 Wiki';
+            position: absolute;
+            bottom: -36px;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: rgba(30,30,30,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+        .wiki-btn:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* =========================
+           主体三栏居中布局（类似原版）
+           ========================= */
+        .main-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(460px, 760px) minmax(260px, 340px);
+            gap: 22px;
+            align-items: flex-start;
+        }
+
+        /* 左侧透明占位列，用于居中 */
+        .left-spacer {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* =========================
+           毛玻璃卡片通用样式
+           ========================= */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--glass-shadow);
+            transition: all var(--transition-smooth);
+            padding: 24px;
+            position: relative;
+            z-index: 0;
+        }
+        .glass-card:hover {
+            box-shadow: var(--glass-shadow-hover);
+        }
+
+        /* =========================
+           主内容区
+           ========================= */
+        .content-primary {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 页面标题区 */
+        .hero-section {
+            text-align: left;
+            padding: 8px 0 4px;
+        }
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        .hero-title .emoji {
+            display: inline-block;
+            animation: heroBounce 2s ease-in-out infinite;
+        }
+        @keyframes heroBounce {
+            0%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px) rotate(5deg); }
+            60% { transform: translateY(0) rotate(-3deg); }
+        }
+
+        /* 输入卡片 */
+        .input-card {
+            padding: 22px;
+            overflow: visible;
+            position: relative;
+            z-index: 10;
+        }
+        .quick-tools {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .btn-prefix {
+            padding: 8px 20px;
+            border: 1px solid rgba(255, 159, 67, 0.35);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font-body);
+            letter-spacing: 0.5px;
+            transition: all var(--transition-bounce);
+            box-shadow: 0 2px 8px rgba(255, 159, 67, 0.1);
+        }
+        .btn-prefix:hover {
+            background: rgba(255, 159, 67, 0.12);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 159, 67, 0.2);
+        }
+        .btn-prefix:active {
+            transform: translateY(0) scale(0.96);
+            box-shadow: 0 1px 4px rgba(255, 159, 67, 0.1);
+        }
+
+        /* 输入框 */
+        .textarea-wrap {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        textarea#barcode-input {
+            width: 100%;
+            height: 140px;
+            padding: 18px 20px;
+            border: 2px solid rgba(0, 0, 0, 0.06);
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            color: var(--text-primary);
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            line-height: 1.7;
+            transition: all var(--transition-smooth);
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
+        }
+        textarea#barcode-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.75);
+            box-shadow:
+                inset 0 1px 4px rgba(0,0,0,0.04),
+                0 0 0 6px rgba(255, 159, 67, 0.08),
+                0 4px 20px rgba(255, 159, 67, 0.12);
+        }
+        textarea#barcode-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* 统计卡片行 */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            text-align: center;
+            transition: all var(--transition-smooth);
+        }
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.65);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+        .stat-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
+        }
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .stat-card:nth-child(1) .stat-value { color: var(--text-primary); }
+        .stat-card:nth-child(2) .stat-value { color: var(--accent); }
+        .stat-card:nth-child(3) .stat-value { color: var(--accent-3); }
+        .stat-card:nth-child(4) .stat-value { color: var(--accent-2); }
+
+        /* 反馈信息 */
+        .input-feedback {
+            min-height: 22px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 14px;
+            padding: 0 4px;
+        }
+
+        /* 操作工具栏 */
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            overflow: visible;
+        }
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 按钮系统 */
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font-body);
+            letter-spacing: 0.3px;
+            transition: all var(--transition-bounce);
+            white-space: nowrap;
+        }
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), #ffb366);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 159, 67, 0.3);
+        }
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(255, 159, 67, 0.45);
+        }
+        .btn-accent:active {
+            transform: translateY(1px) scale(0.96);
+            box-shadow: 0 2px 8px rgba(255, 159, 67, 0.2);
+        }
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.08);
+            color: var(--text-primary);
+        }
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+        }
+        .btn-ghost:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 107, 107, 0.25);
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(255, 107, 107, 0.4);
+        }
+        .btn-danger:active {
+            transform: translateY(1px) scale(0.96);
+        }
+        .btn-info {
+            background: linear-gradient(135deg, var(--accent-3), #48cae4);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(10, 189, 227, 0.3);
+        }
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(10, 189, 227, 0.45);
+        }
+        .btn-info:active {
+            transform: translateY(1px) scale(0.96);
+            box-shadow: 0 2px 8px rgba(10, 189, 227, 0.2);
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 16px;
+        }
+
+        /* 自定义 Select */
+        .select-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .native-select {
+            position: absolute;
+            width: 1px; height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .pretty-select {
+            position: relative;
+            min-width: 120px;
+            z-index: 50;
+        }
+        .pretty-select.open {
+            z-index: 200;
+        }
+        .select-trigger {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 20px;
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0 36px 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all var(--transition-fast);
+        }
+        .select-trigger:hover {
+            border-color: rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.75);
+            transform: translateY(-1px);
+        }
+        .select-chevron {
+            position: absolute;
+            right: 14px; top: 50%;
+            width: 7px; height: 7px;
+            border-right: 2px solid var(--text-tertiary);
+            border-bottom: 2px solid var(--text-tertiary);
+            transform: translateY(-65%) rotate(45deg);
+            transition: transform var(--transition-fast);
+        }
+        .pretty-select.open .select-chevron {
+            transform: translateY(-25%) rotate(225deg);
+        }
+        .select-menu {
+            position: absolute;
+            left: 0; top: calc(100% + 8px);
+            min-width: 100%;
+            padding: 6px;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+            transform-origin: top center;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+        }
+        .pretty-select.open .select-menu {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .select-option {
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 12px;
+            white-space: nowrap;
+            transition: background var(--transition-fast);
+        }
+        .select-option:hover {
+            background: rgba(255, 159, 67, 0.08);
+        }
+        .select-option.is-selected {
+            background: rgba(255, 159, 67, 0.12);
+            color: var(--accent);
+        }
+
+        /* =========================
+           条码输出区
+           ========================= */
+        .barcode-section {
+            padding: 20px;
+        }
+        .barcode-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .barcode-section-title {
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .barcode-output {
+            display: grid;
+            gap: 16px;
+            justify-items: center;
+        }
+        .cols-1 { grid-template-columns: 1fr; }
+        .cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+        .barcode-item {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius);
+            padding: 18px 14px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            min-height: 136px;
+            transition: all var(--transition-smooth);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .barcode-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.78);
+        }
+        .barcode-item svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .barcode-actions {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .barcode-mini-btn {
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            transition: all var(--transition-bounce);
+        }
+        .barcode-mini-btn:hover {
+            background: rgba(255,255,255,0.8);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .barcode-mini-btn:active {
+            transform: scale(0.94);
+        }
+        .error-msg {
+            color: var(--accent-2);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* =========================
+           历史记录面板
+           ========================= */
+        .history-card {
+            padding: 18px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .history-header strong {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .history-list {
+            max-height: 220px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .history-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.45);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+        .history-entry:hover {
+            background: rgba(255,255,255,0.72);
+            border-color: rgba(0,0,0,0.1);
+            transform: translateX(3px);
+        }
+        .history-entry-content {
+            flex: 1;
+            cursor: pointer;
+            word-break: break-all;
+            min-width: 0;
+            font-size: 13px;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .history-entry-time {
+            flex-shrink: 0;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+        .history-delete-btn {
+            flex-shrink: 0;
+            width: 26px; height: 26px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 107, 107, 0.12);
+            color: var(--accent-2);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        .history-delete-btn:hover {
+            background: rgba(255, 107, 107, 0.25);
+            transform: scale(1.1);
+        }
+        .btn-history-clear {
+            font-size: 12px;
+            padding: 5px 12px;
+            background: rgba(255,107,107,0.1);
+            color: var(--accent-2);
+            border: 1px solid rgba(255,107,107,0.2);
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+        .btn-history-clear:hover {
+            background: rgba(255,107,107,0.2);
+        }
+
+        /* =========================
+           侧边栏
+           ========================= */
+        .content-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            position: sticky;
+            top: 24px;
+        }
+
+        /* OCR 卡片 */
+        .ocr-card {
+            padding: 20px;
+        }
+        .ocr-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .ocr-card h2 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .ocr-dropzone {
+            min-height: 160px;
+            border: 2px dashed rgba(10, 189, 227, 0.3);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+        }
+        .ocr-dropzone:hover,
+        .ocr-dropzone.dragover {
+            border-color: var(--accent-3);
+            background: rgba(10, 189, 227, 0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(10, 189, 227, 0.12);
+        }
+        .ocr-target-mark {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: rgba(10, 189, 227, 0.08);
+            border: 1px solid rgba(10, 189, 227, 0.2);
+            color: var(--accent-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 0;
+            box-shadow: inset 0 0 0 4px #fff;
+        }
+        .ocr-dropzone strong {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .ocr-dropzone span {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .ocr-file-input { display: none; }
+        .ocr-progress {
+            height: 4px;
+            margin-top: 14px;
+            background: rgba(0,0,0,0.04);
+            border-radius: 99px;
+            overflow: hidden;
+            display: none;
+        }
+        .ocr-progress.active { display: block; }
+        .ocr-progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent-3), var(--accent));
+            border-radius: 99px;
+            transition: width 0.2s ease;
+        }
+        .ocr-preview-wrap {
+            margin-top: 14px;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.4);
+            overflow: hidden;
+        }
+        .ocr-preview-wrap img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            display: block;
+        }
+        .ocr-preview-wrap img[hidden] { display: none; }
+        .ocr-status {
+            margin-top: 14px;
+            min-height: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .ocr-status.success { color: #34c759; font-weight: 700; }
+        .ocr-status.error { color: var(--accent-2); font-weight: 700; }
+        .ocr-candidates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .ocr-candidate {
+            border: 1px solid rgba(10, 189, 227, 0.3);
+            border-radius: 20px;
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--accent-3);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            transition: all var(--transition-bounce);
+        }
+        .ocr-candidate:hover {
+            background: rgba(10, 189, 227, 0.1);
+            border-color: var(--accent-3);
+            transform: translateY(-1px);
+        }
+        .ocr-candidate:active { transform: scale(0.95); }
+
+        /* 条码识别结果标签 */
+        .ocr-source-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .ocr-source-badge.text-ocr {
+            background: rgba(10, 189, 227, 0.1);
+            color: var(--accent-3);
+            border: 1px solid rgba(10, 189, 227, 0.25);
+        }
+        .ocr-source-badge.barcode {
+            background: rgba(255, 159, 67, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(255, 159, 67, 0.25);
+        }
+
+        /* =========================
+           沉浸式灯箱
+           ========================= */
+        .lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .lightbox-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .lightbox-overlay.closing {
+            opacity: 0;
+        }
+        .lightbox-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            cursor: pointer;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all var(--transition-bounce);
+        }
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg) scale(1.1);
+        }
+        .lightbox-close:active {
+            transform: rotate(90deg) scale(0.9);
+        }
+        .lightbox-image-wrap {
+            position: relative;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow: hidden;
+            z-index: 5;
+            transition: box-shadow 0.3s ease;
+        }
+        .lightbox-image-wrap.scrollable {
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+        }
+        #lightbox-img {
+            display: block;
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            user-select: none;
+            -webkit-user-drag: none;
+            cursor: grab;
+            transform-origin: center center;
+            transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        #lightbox-img.zoomed {
+            cursor: grab;
+        }
+        #lightbox-img.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+        #lightbox-img.animating {
+            transition: all 0.45s cubic-bezier(0.18, 1.25, 0.4, 1);
+        }
+        .lightbox-codes-text {
+            color: #0abde3;
+            font-weight: 700;
+            font-size: 13px;
+            max-width: 40vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .lightbox-info {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            z-index: 10;
+            pointer-events: none;
+        }
+        .lightbox-info span {
+            white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+            .lightbox-close {
+                top: 16px;
+                right: 16px;
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .lightbox-image-wrap {
+                max-width: 95vw;
+                max-height: 80vh;
+            }
+        }
+
+        /* =========================
+           扩展拖放区
+           ========================= */
+        .ocr-card.drop-expanded .ocr-dropzone {
+            border-style: solid;
+            border-color: rgba(10, 189, 227, 0.12);
+            opacity: 0.65;
+        }
+        .ocr-card.drop-expanded.dragover {
+            border-color: var(--accent-3) !important;
+            transform: scale(1.02);
+            box-shadow:
+                0 0 0 10px rgba(10, 189, 227, 0.06),
+                0 16px 48px rgba(0, 0, 0, 0.1),
+                0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all var(--transition-bounce);
+        }
+        /* 侧边栏提示卡片 */
+        .tips-card {
+            padding: 18px;
+        }
+        .tips-card h3 {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .tips-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tip-item {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.35);
+            border-radius: 10px;
+            transition: all var(--transition-fast);
+        }
+        .tip-item:hover {
+            background: rgba(255,255,255,0.65);
+            color: var(--text-primary);
+        }
+
+        /* =========================
+           喵喵大厅悬浮元素（保留原样式逻辑）
+           ========================= */
+        .floating-chat-btn {
+            position: fixed;
+            right: 28px;
+            bottom: 28px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(145deg, #ffd180, #ffb74d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 9999;
+            border: 3px solid rgba(255,255,255,0.5);
+            box-shadow:
+                0 8px 24px rgba(255, 159, 67, 0.35),
+                0 0 20px rgba(255, 183, 77, 0.2);
+            animation: floatBreath 3s ease-in-out infinite;
+            transition: all var(--transition-bounce);
+        }
+        .floating-chat-btn::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 159, 67, 0.3);
+            animation: pulseRing 2.2s ease-out infinite;
+        }
+        @keyframes floatBreath {
+            0%, 100% { transform: translateY(0) scale(1); }
+            30% { transform: translateY(-8px) scale(1.04); }
+            60% { transform: translateY(-2px) scale(0.98); }
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+        .floating-chat-btn:hover {
+            transform: scale(1.15) rotate(8deg) !important;
+            box-shadow: 0 12px 36px rgba(255, 159, 67, 0.5) !important;
+            animation: none !important;
+        }
+        .floating-chat-btn:active {
+            transform: scale(0.9) !important;
+        }
+
+        .floating-chat-window {
+            position: fixed;
+            right: 28px;
+            bottom: 110px;
+            width: clamp(320px, 26vw, 420px);
+            height: clamp(420px, 62vh, 620px);
+            max-height: calc(100vh - 140px);
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(32px) saturate(180%);
+            -webkit-backdrop-filter: blur(32px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 40px rgba(255,159,67,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(30px) scale(0.85);
+            transition: all 0.4s cubic-bezier(.2,.8,.2,1);
+        }
+        .floating-chat-window.show {
+            opacity: 1;
+            pointer-events: auto;
+            animation: chatPopup 0.45s cubic-bezier(.18,1.25,.4,1);
+            transform: translateY(0) scale(1);
+        }
+        @keyframes chatPopup {
+            0% { opacity: 0; transform: translateY(60px) scale(0.6) rotate(-8deg); }
+            60% { opacity: 1; transform: translateY(-10px) scale(1.04) rotate(2deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+        }
+        @keyframes catSwatOut {
+            0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+            25%  { transform: translateY(-12px) rotate(-4deg) scale(1.02); opacity: 1; }
+            100% { transform: translateY(90px) rotate(10deg) scale(0.65); opacity: 0; }
+        }
+        .floating-chat-window.swatting {
+            animation: catSwatOut 0.38s cubic-bezier(.4,0,1,1) forwards !important;
+            pointer-events: none;
+        }
+        .floating-chat-header {
+            height: 56px;
+            background: rgba(255,255,255,0.5);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 15px;
+            cursor: move;
+            flex-shrink: 0;
+        }
+        .chat-title-area { display: flex; flex-direction: column; gap: 1px; }
+        .chat-title { font-size: 15px; font-weight: 700; }
+        #close-chat-btn {
+            width: 32px; height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 107, 107, 0.12);
+            color: var(--accent-2);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        #close-chat-btn:hover {
+            background: rgba(255, 107, 107, 0.25);
+            animation: pawWiggle 0.35s ease infinite;
+        }
+        #close-chat-btn:active {
+            transform: translateY(2px) scale(0.9) rotate(20deg) !important;
+            animation: none !important;
+        }
+        @keyframes pawWiggle {
+            0%,100% { transform: rotate(-12deg) scale(1.05); }
+            50% { transform: rotate(12deg) scale(1.05); }
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            background: rgba(255,255,255,0.25);
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+        }
+        .chat-loading {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            padding: 20px;
+        }
+        .msg-bubble {
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.06);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            max-width: 88%;
+            align-self: flex-start;
+            transition: all var(--transition-fast);
+        }
+        .msg-bubble:hover {
+            background: rgba(255,255,255,0.78);
+        }
+        .msg-meta {
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .msg-time { color: var(--text-tertiary); font-weight: 400; }
+        .msg-text {
+            font-size: 13px;
+            color: var(--text-primary);
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        .chat-footer {
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.4);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        #chat-nick {
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 14px;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.5);
+            color: var(--text-primary);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .chat-input-row { display: flex; gap: 6px; }
+        #chat-msg {
+            flex: 1;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 14px;
+            padding: 8px 12px;
+            font-size: 13px;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--text-primary);
+        }
+        .emoji-toggle-btn {
+            width: 34px; height: 34px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-bounce);
+        }
+        .emoji-toggle-btn:hover {
+            background: rgba(255,255,255,0.8);
+            transform: scale(1.1);
+        }
+        .emoji-panel {
+            display: none;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: var(--radius-sm);
+            max-height: 140px;
+            overflow-y: auto;
+        }
+        .emoji-panel.show { display: flex; }
+        .emoji-item {
+            width: 32px; height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform var(--transition-bounce);
+        }
+        .emoji-item:hover { transform: scale(1.25); }
+        .emoji-item:active { transform: scale(0.85); }
+
+        #chat-send-btn {
+            background: linear-gradient(135deg, var(--accent), #ffb366);
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 16px rgba(255, 159, 67, 0.3);
+            transition: all var(--transition-bounce);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #chat-send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 159, 67, 0.45);
+        }
+        #chat-send-btn:active {
+            transform: translateY(1px) scale(0.94);
+        }
+        #chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* =========================
+           Toast
+           ========================= */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 36px;
+            transform: translate(-50%, 16px);
+            background: rgba(30, 30, 30, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10000;
+            transition: all var(--transition-smooth);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* =========================
+           响应式
+           ========================= */
+        @media (max-width: 1100px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                max-width: 760px;
+                margin: 0 auto;
+            }
+            .left-spacer {
+                display: none;
+            }
+            .content-sidebar {
+                position: static;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .app-shell {
+                padding: 12px 14px 30px;
+                gap: 14px;
+            }
+            .nav-bar {
+                padding: 10px 16px;
+                border-radius: var(--radius);
+            }
+            .nav-title { font-size: 17px; }
+            .glass-card {
+                padding: 16px;
+                border-radius: var(--radius);
+            }
+            .hero-title { font-size: 24px; }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .stat-value { font-size: 22px; }
+            .barcode-output.cols-2,
+            .barcode-output.cols-3 {
+                grid-template-columns: 1fr;
+            }
+            .content-sidebar {
+                grid-template-columns: 1fr;
+            }
+            .toolbar-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .floating-chat-btn {
+                right: 16px;
+                bottom: 16px;
+                width: 56px; height: 56px;
+                font-size: 26px;
+            }
+            .floating-chat-window {
+                right: 8px;
+                left: 8px;
+                width: auto;
+                bottom: 90px;
+                border-radius: var(--radius-lg);
+            }
+            textarea#barcode-input {
+                height: 120px;
+                font-size: 15px;
+            }
+        }
+        @media (max-width: 480px) {
+            .app-shell {
+                padding: 8px 8px 24px;
+                gap: 10px;
+            }
+            .stats-row { gap: 6px; }
+            .stat-card { padding: 8px 6px; }
+            .stat-value { font-size: 18px; }
+            .stat-label { font-size: 10px; }
+            .btn { padding: 8px 14px; font-size: 12px; }
+            textarea#barcode-input {
+                height: 100px;
+                padding: 14px;
+                font-size: 14px;
+            }
+        }
+
+        /* =========================
+           View Transition
+           ========================= */
+        @view-transition { navigation: auto; }
+        ::view-transition-old(root) {
+            animation: vtFadeOut 0.35s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        ::view-transition-new(root) {
+            animation: vtFadeIn 0.35s cubic-bezier(0.4,0,0.2,1) 0.05s both;
+        }
+        @keyframes vtFadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to   { opacity: 0; transform: scale(0.98); }
+        }
+        @keyframes vtFadeIn {
+            from { opacity: 0; transform: scale(1.01); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== 沉浸式灯箱（body 直接子元素，确保置顶且先于脚本解析）========== -->
+    <div class="lightbox-overlay" id="lightbox-overlay" hidden>
+        <div class="lightbox-backdrop"></div>
+        <button class="lightbox-close" id="lightbox-close" aria-label="关闭灯箱" title="关闭 (Esc)">✕</button>
+        <div class="lightbox-image-wrap" id="lightbox-wrap">
+            <img id="lightbox-img" alt="快递面单大图预览" draggable="false">
+        </div>
+        <div class="lightbox-info">
+            <span id="lightbox-filename"></span>
+            <span id="lightbox-dimensions"></span>
+            <span id="lightbox-codes" class="lightbox-codes-text"></span>
+        </div>
+    </div>
+
+    <!-- ==================== 动态柔光背景 ==================== -->
+    <div class="bg-atmosphere" aria-hidden="true">
+        <div class="bg-orb bg-orb--warm"></div>
+        <div class="bg-orb bg-orb--pink"></div>
+        <div class="bg-orb bg-orb--blue"></div>
+        <div class="bg-orb bg-orb--cream"></div>
+    </div>
+    <div class="bg-grain" aria-hidden="true"></div>
+
+    <!-- ==================== 主布局 ==================== -->
+    <div class="app-shell">
+
+        <!-- 顶部导航 -->
+        <nav class="nav-bar">
+            <div class="nav-brand">
+                <div class="nav-logo">🐱</div>
+                <div>
+                    <div class="nav-title">喵码生成器</div>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <span class="online-badge" id="online-badge" title="全站在线人数">
+                    <span class="dot"></span>
+                    <span id="online-count">-</span> 喵在线
+                </span>
+                <button class="wiki-btn" onclick="goToWiki(event)" title="知识库 Wiki">
+                    📚
+                </button>
+                <button class="ai-chat-btn" onclick="goToChat(event)" title="和小橘AI聊天喵~">
+                    🐱
+                </button>
+            </div>
+        </nav>
+
+        <!-- 三栏主体（主内容居中） -->
+        <div class="main-layout">
+
+            <!-- 左侧占位列（透明，用于居中） -->
+            <div class="left-spacer"></div>
+
+            <!-- ========== 中栏：主内容 ========== -->
+            <div class="content-primary">
+
+                <!-- 标题 -->
+                <div class="hero-section">
+                    <h1 class="hero-title">
+                        <span class="emoji">🐱</span> 快速生成快递条码
+                    </h1>
+                </div>
+
+                <!-- 输入卡片 -->
+                <div class="glass-card input-card">
+                    <div class="quick-tools">
+                        <button class="btn-prefix" id="btn-dpk">+ DPK</button>
+                        <button class="btn-prefix" id="btn-dpl">+ DPL</button>
+                    </div>
+
+                    <div class="textarea-wrap">
+                        <textarea id="barcode-input" placeholder="输入快递单号...&#10;支持换行输入多个单号，实时生成条码，快捷好用！"></textarea>
+                    </div>
+
+                    <!-- 统计 -->
+                    <div class="stats-row" aria-live="polite">
+                        <div class="stat-card">
+                            <span class="stat-label">总行数</span>
+                            <span class="stat-value" id="stat-total">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">规范喵码</span>
+                            <span class="stat-value" id="stat-valid">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">重复</span>
+                            <span class="stat-value" id="stat-duplicate">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">异常</span>
+                            <span class="stat-value" id="stat-invalid">0</span>
+                        </div>
+                    </div>
+
+                    <div class="input-feedback" id="input-feedback">粘贴杂乱文本后点"智能整理"，可自动纠正常见 OCR 误读、去重并提取 DPK/DPL 单号。</div>
+
+                    <!-- 工具栏 -->
+                    <div class="toolbar-row">
+                        <div class="toolbar-left">
+                            <button class="btn btn-accent" id="format-btn">✨ 智能整理</button>
+                        </div>
+                        <div class="toolbar-right">
+                            <div class="select-group">
+                                <label>排列：</label>
+                                <div class="pretty-select" data-select-id="col-select">
+                                    <select id="col-select" class="native-select" tabindex="-1">
+                                        <option value="1">1 列</option>
+                                        <option value="2" selected>2 列</option>
+                                        <option value="3">3 列</option>
+                                    </select>
+                                    <button class="select-trigger" type="button" aria-haspopup="listbox">
+                                        <span class="select-value" id="col-select-value">2 列</span>
+                                        <span class="select-chevron" aria-hidden="true"></span>
+                                    </button>
+                                    <div class="select-menu" role="listbox"></div>
+                                </div>
+                            </div>
+                            <div class="select-group">
+                                <label>高度：</label>
+                                <div class="pretty-select" data-select-id="barcode-height-select">
+                                    <select id="barcode-height-select" class="native-select" tabindex="-1">
+                                        <option value="48">紧凑</option>
+                                        <option value="60" selected>标准</option>
+                                        <option value="78">加高</option>
+                                    </select>
+                                    <button class="select-trigger" type="button" aria-haspopup="listbox">
+                                        <span class="select-value" id="barcode-height-value">标准</span>
+                                        <span class="select-chevron" aria-hidden="true"></span>
+                                    </button>
+                                    <div class="select-menu" role="listbox"></div>
+                                </div>
+                            </div>
+                            <button class="btn btn-info" id="copy-btn">复制单号</button>
+                            <button class="btn btn-danger" id="clear-btn">清空</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 条码输出 -->
+                <div class="glass-card barcode-section">
+                    <div class="barcode-section-header">
+                        <span class="barcode-section-title">🏷️ 生成的条码</span>
+                    </div>
+                    <div id="barcode-output" class="barcode-output cols-2"></div>
+                </div>
+
+                <!-- 历史记录 -->
+                <div class="glass-card history-card">
+                    <div class="history-header">
+                        <strong>📜 历史记录 <span style="font-weight:400;font-size:12px;color:var(--text-tertiary);">（最近20条）</span></strong>
+                        <button id="clear-history" class="btn-history-clear">清空历史</button>
+                    </div>
+                    <div id="history-list" class="history-list"></div>
+                </div>
+            </div>
+
+            <!-- ========== 右栏：侧边工具 ========== -->
+            <aside class="content-sidebar">
+
+                <!-- OCR 面板 -->
+                <div class="glass-card ocr-card" aria-labelledby="ocr-title">
+                    <div class="ocr-card-header">
+                        <h2 id="ocr-title">🔍 图片识别单号</h2>
+                    </div>
+                    <label class="ocr-dropzone" id="ocr-dropzone" for="ocr-file-input">
+                        <input class="ocr-file-input" id="ocr-file-input" type="file" accept="image/*">
+                        <span class="ocr-target-mark" aria-hidden="true">DPK</span>
+                        <strong>拖入快递截图</strong>
+                        <span>文字识别 + 条码扫描，自动提取 DPK/DPL 单号</span>
+                        <span style="font-size:11px;">也支持 Ctrl+V 粘贴图片</span>
+                    </label>
+                    <div class="ocr-progress" id="ocr-progress" aria-hidden="true">
+                        <div class="ocr-progress-bar" id="ocr-progress-bar"></div>
+                    </div>
+                    <div class="ocr-preview-wrap">
+                        <img id="ocr-preview" alt="待识别图片预览" hidden>
+                    </div>
+                    <div class="ocr-status" id="ocr-status">等待图片上传</div>
+                    <div class="ocr-candidates" id="ocr-candidates"></div>
+                </div>
+
+                <!-- 使用提示 -->
+                <div class="glass-card tips-card">
+                    <h3>💡 使用小贴士</h3>
+                    <div class="tips-list">
+                        <div class="tip-item">📸 截图快递面单 → 拖入或粘贴到右侧 → 自动识别单号、提取文字</div>
+                        <div class="tip-item">📋 粘贴乱码文本 → 点击「智能整理」→ 一键纠正错别字、去重排序</div>
+                        <div class="tip-item">🔍 粘贴纯数字 → 自动生成条码图形，支持 JsBarcode 多种码制</div>
+                        <div class="tip-item">📚 点击左上角 📚 按钮 → 进入知识库 Wiki，浏览六类百科文章</div>
+                        <div class="tip-item">💬 点击右上角 💬 按钮 → 和小橘 AI 聊天，支持多模型切换</div>
+                        <div class="tip-item">🐱 点击右下角爪印 → 打开喵喵大厅悬浮聊天窗</div>
+                        <div class="tip-item">🖱️ 点击历史记录 → 快速恢复之前生成的条码和识别结果</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ==================== 喵喵大厅悬浮按钮 ==================== -->
+    <div class="floating-chat-btn" id="floating-chat-btn">🐾</div>
+
+    <!-- ==================== 喵喵大厅悬浮窗 ==================== -->
+    <div class="floating-chat-window" id="floating-chat-window">
+        <div class="floating-chat-header" id="chat-header-drag">
+            <div class="chat-title-area">
+                <span class="chat-title">🐈 喵喵大厅</span>
+            </div>
+            <button id="close-chat-btn" title="拍走大厅喵~">🐾</button>
+        </div>
+        <div class="chat-messages" id="chat-box">
+            <div class="chat-loading">正在接入喵星信号...</div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chat-nick" placeholder="昵称: 随机猫咪" maxlength="10">
+            <div class="chat-input-row">
+                <button class="emoji-toggle-btn" id="emoji-toggle-btn" title="表情包">😺</button>
+                <input type="text" id="chat-msg" placeholder="说点什么吧..." maxlength="100">
+                <button id="chat-send-btn">发射</button>
+            </div>
+            <div class="emoji-panel" id="emoji-panel"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- ==================== JavaScript（保留全部原有逻辑） ==================== -->
+    <script>
+        // Auth helpers
+        const Auth = {
+            getToken() { return localStorage.getItem('miaosite_token'); },
+            getUser() { try { return JSON.parse(localStorage.getItem('miaosite_user')); } catch { return null; } },
+            isLoggedIn() { return !!this.getToken(); },
+            async fetch(url, options = {}) {
+                const token = this.getToken();
+                const headers = { ...options.headers };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) {
+                    localStorage.removeItem('miaosite_token');
+                    localStorage.removeItem('miaosite_user');
+                }
+                return response;
+            }
+        };
+
+        const inputArea = document.getElementById('barcode-input');
+        const outputArea = document.getElementById('barcode-output');
+        const colSelect = document.getElementById('col-select');
+        const clearBtn = document.getElementById('clear-btn');
+        const btnDpk = document.getElementById('btn-dpk');
+        const btnDpl = document.getElementById('btn-dpl');
+        const copyBtn = document.getElementById('copy-btn');
+        const formatBtn = document.getElementById('format-btn');
+        const heightSelect = document.getElementById('barcode-height-select');
+        const toast = document.getElementById('toast');
+        const statTotal = document.getElementById('stat-total');
+        const statValid = document.getElementById('stat-valid');
+        const statDuplicate = document.getElementById('stat-duplicate');
+        const statInvalid = document.getElementById('stat-invalid');
+        const inputFeedback = document.getElementById('input-feedback');
+        const ocrDropzone = document.getElementById('ocr-dropzone');
+        const ocrFileInput = document.getElementById('ocr-file-input');
+        const ocrPreview = document.getElementById('ocr-preview');
+        const ocrStatus = document.getElementById('ocr-status');
+        const ocrProgress = document.getElementById('ocr-progress');
+        const ocrProgressBar = document.getElementById('ocr-progress-bar');
+        const ocrCandidates = document.getElementById('ocr-candidates');
+        const lightboxOverlay = document.getElementById('lightbox-overlay');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxWrap = document.getElementById('lightbox-wrap');
+        const lightboxClose = document.getElementById('lightbox-close');
+        const lightboxFilename = document.getElementById('lightbox-filename');
+        const lightboxDimensions = document.getElementById('lightbox-dimensions');
+        const lightboxBackdrop = document.querySelector('.lightbox-backdrop');
+
+        const STANDARD_CODE_RE = /^(DPK|DPL)\d{12}$/;
+        const OCR_DIGIT_MAP = {
+            O: '0', Q: '0', D: '0', U: '0',
+            I: '1', L: '1', '|': '1', l: '1',
+            S: '5', s: '5',
+            B: '8',
+            Z: '2', z: '2',
+            G: '6',
+            A: '4',
+            T: '7'
+        };
+        let currentOcrPreviewUrl = '';
+        let dropZoneExpanded = false;
+
+        // 页面卸载时清理 blob URL，防止内存泄漏
+        window.addEventListener('pagehide', () => {
+            if (currentOcrPreviewUrl && currentOcrPreviewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(currentOcrPreviewUrl);
+                currentOcrPreviewUrl = '';
+            }
+        });
+
+        // ===== Lightbox State =====
+        let lastDetectedCodes = []; // 最近识别到的单号列表，用于灯箱底部展示
+        let lightboxScale = 1;
+        let lightboxTranslateX = 0;
+        let lightboxTranslateY = 0;
+        let lightboxIsDragging = false;
+        let lightboxDragStartX = 0;
+        let lightboxDragStartY = 0;
+        let lightboxDragOrigX = 0;
+        let lightboxDragOrigY = 0;
+        let lightboxCurrentFile = null;
+
+        function showToast(message) {
+            toast.innerText = message;
+            toast.classList.add('show');
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 1800);
+        }
+
+        function getLines() {
+            return inputArea.value
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+        }
+
+        function setInputValue(value, keepFocus = true) {
+            inputArea.value = value;
+            inputArea.dispatchEvent(new Event('input', { bubbles: true }));
+            if (keepFocus) inputArea.focus();
+        }
+
+        function appendLines(lines) {
+            const current = inputArea.value.trim();
+            setInputValue(current ? `${current}\n${lines.join('\n')}` : lines.join('\n'));
+        }
+
+        function normalizeFullWidthText(text) {
+            return Array.from(text || '', char => {
+                const code = char.charCodeAt(0);
+                if (code === 0x3000) return ' ';
+                if (code >= 0xFF01 && code <= 0xFF5E) {
+                    return String.fromCharCode(code - 0xFEE0);
+                }
+                return char;
+            }).join('');
+        }
+
+        function normalizeOcrDigits(chunk) {
+            return chunk
+                .split('')
+                .map(char => {
+                    if (/\d/.test(char)) return char;
+                    // Try original char first (catches lowercase keys like 'l','s','z'),
+                    // then fall back to uppercase lookup
+                    return OCR_DIGIT_MAP[char] || OCR_DIGIT_MAP[char.toUpperCase()] || '';
+                })
+                .join('');
+        }
+
+        function getOcrPrefixAt(text, index) {
+            const chunk = text.slice(index, index + 3);
+            if (chunk === 'DPK') return 'DPK';
+            if (chunk === 'DPL' || chunk === 'DPI' || chunk === 'DP1') return 'DPL';
+            if (chunk === '0PK' || chunk === 'OPK') return 'DPK';
+            if (chunk === '0PL' || chunk === 'OPL') return 'DPL';
+            return '';
+        }
+
+        function extractSmartTrackingCodes(text) {
+            const compact = normalizeFullWidthText(text)
+                .toUpperCase()
+                .replace(/[^A-Z0-9|]/g, '');
+            const found = [];
+            const seen = new Set();
+            let duplicateCount = 0;
+            let correctedCount = 0;
+            for (let index = 0; index < compact.length - 2; index++) {
+                const rawPrefix = compact.slice(index, index + 3);
+                const prefix = getOcrPrefixAt(compact, index);
+                if (!prefix) continue;
+                const tail = compact.slice(index + 3, index + 31);
+                let digits = '';
+                let rawDigits = '';
+                for (let offset = 0; offset < tail.length; offset++) {
+                    const sourceIndex = index + 3 + offset;
+                    if (offset > 0 && getOcrPrefixAt(compact, sourceIndex)) break;
+                    const char = tail[offset];
+                    const normalizedDigit = normalizeOcrDigits(char);
+                    if (normalizedDigit) {
+                        digits += normalizedDigit;
+                        rawDigits += char;
+                    }
+                    if (digits.length === 12) {
+                        const code = `${prefix}${digits}`;
+                        if (!seen.has(code) && STANDARD_CODE_RE.test(code)) {
+                            seen.add(code);
+                            found.push(code);
+                            if (rawPrefix !== prefix || rawDigits !== digits) correctedCount++;
+                        } else if (seen.has(code)) {
+                            duplicateCount++;
+                        }
+                        break;
+                    }
+                }
+            }
+            return { codes: found, duplicateCount, correctedCount };
+        }
+
+        function extractOcrTrackingCodes(text) { return extractSmartTrackingCodes(text).codes; }
+        function extractMiaoCodes(text) { return extractSmartTrackingCodes(text).codes; }
+
+        function expandDropZone() {
+            if (dropZoneExpanded) return;
+            dropZoneExpanded = true;
+
+            const ocrCard = document.querySelector('.ocr-card');
+            if (!ocrCard) return;
+            ocrCard.classList.add('drop-expanded');
+
+            // Bind card-level drag events
+            ['dragenter', 'dragover'].forEach(eventName => {
+                ocrCard.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    if (e.target.closest('button') || e.target.closest('.ocr-candidate')) return;
+                    ocrCard.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                ocrCard.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    ocrCard.classList.remove('dragover');
+                });
+            });
+
+            ocrCard.addEventListener('drop', (e) => {
+                if (e.target.closest('button') || e.target.closest('.ocr-candidate')) return;
+                const file = Array.from(e.dataTransfer.files).find(item => item.type.startsWith('image/'));
+                if (file) processOcrFile(file);
+            });
+        }
+
+        function setOcrStatus(message, type = '') {
+            ocrStatus.innerText = message;
+            ocrStatus.className = `ocr-status ${type}`.trim();
+        }
+
+        function setOcrProgress(value) {
+            const progress = Math.max(0, Math.min(100, Math.round(value)));
+            ocrProgress.classList.add('active');
+            ocrProgressBar.style.width = `${progress}%`;
+        }
+
+        function hideOcrProgress() {
+            setTimeout(() => {
+                ocrProgress.classList.remove('active');
+                ocrProgressBar.style.width = '0';
+            }, 700);
+        }
+
+        function mergeOcrCodesIntoInput(codes) {
+            const lines = getLines();
+            const seen = new Set(lines.map(line => line.toUpperCase()));
+            const added = [];
+            codes.forEach(code => {
+                const normalizedCode = code.toUpperCase();
+                if (!seen.has(normalizedCode)) {
+                    seen.add(normalizedCode);
+                    added.push(normalizedCode);
+                }
+            });
+            if (added.length > 0) setInputValue([...lines, ...added].join('\n'));
+            return added.length;
+        }
+
+        function renderOcrCandidates(codes, codeSources = {}) {
+            ocrCandidates.innerHTML = '';
+            codes.forEach(code => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'ocr-candidate';
+                button.textContent = code;
+                button.title = '点击填入此单号';
+
+                button.addEventListener('click', () => {
+                    const added = mergeOcrCodesIntoInput([code]);
+                    setOcrStatus(added > 0 ? `${code} 已填入文本框` : `${code} 已在文本框中`, 'success');
+                    showToast(added > 0 ? '已填入识别单号喵~' : '单号已存在喵~');
+                });
+                ocrCandidates.appendChild(button);
+            });
+        }
+
+        function loadImageElement(file) {
+            return new Promise((resolve, reject) => {
+                const previewUrl = URL.createObjectURL(file);
+                const image = new Image();
+                image.onload = () => resolve({ image, previewUrl });
+                image.onerror = () => {
+                    URL.revokeObjectURL(previewUrl);
+                    reject(new Error('图片读取失败'));
+                };
+                image.src = previewUrl;
+            });
+        }
+
+        function openLightbox(file) {
+            if (!file) return;
+            lightboxCurrentFile = file;
+            const previewUrl = ocrPreview.src;
+            if (!previewUrl) return;
+            lightboxImg.src = previewUrl;
+            lightboxFilename.textContent = '📸 ' + (file.name || '图片');
+            lightboxScale = 1;
+            lightboxTranslateX = 0;
+            lightboxTranslateY = 0;
+            lightboxImg.style.transform = 'scale(1) translate(0px, 0px)';
+            lightboxWrap.classList.remove('scrollable');
+
+            const srcImg = document.getElementById('ocr-preview');
+            if (srcImg && srcImg.naturalWidth) {
+                lightboxDimensions.textContent = srcImg.naturalWidth + ' × ' + srcImg.naturalHeight;
+            } else {
+                lightboxDimensions.textContent = '';
+            }
+
+            // 显示识别到的单号
+            const codesEl = document.getElementById('lightbox-codes');
+            if (lastDetectedCodes.length > 0) {
+                codesEl.textContent = '📦 ' + lastDetectedCodes.join(' · ');
+                codesEl.style.display = '';
+            } else {
+                codesEl.style.display = 'none';
+            }
+
+            lightboxOverlay.hidden = false;
+            document.body.style.overflow = 'hidden';
+
+            // 从中心弹性放大展开（cubic-bezier 模拟回弹感）
+            lightboxImg.style.transform = 'scale(0.85)';
+            lightboxImg.style.opacity = '0.6';
+            lightboxOverlay.classList.add('active');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    lightboxImg.classList.add('animating');
+                    lightboxImg.style.transform = 'scale(1)';
+                    lightboxImg.style.opacity = '1';
+                    lightboxImg.addEventListener('transitionend', function onEnd() {
+                        lightboxImg.removeEventListener('transitionend', onEnd);
+                        lightboxImg.classList.remove('animating');
+                    }, { once: true });
+                });
+            });
+        }
+
+        function closeLightbox() {
+            lightboxOverlay.classList.remove('active');
+            lightboxOverlay.classList.add('closing');
+            document.body.style.overflow = '';
+
+            const onTransitionEnd = () => {
+                lightboxOverlay.removeEventListener('transitionend', onTransitionEnd);
+                lightboxOverlay.classList.remove('closing');
+                lightboxOverlay.hidden = true;
+                lightboxScale = 1;
+                lightboxTranslateX = 0;
+                lightboxTranslateY = 0;
+                lightboxImg.style.transform = 'scale(1) translate(0px, 0px)';
+            };
+            lightboxOverlay.addEventListener('transitionend', onTransitionEnd);
+        }
+
+        // ===== Lightbox Zoom & Pan =====
+        function applyLightboxTransform() {
+            lightboxImg.style.transform =
+                `scale(${lightboxScale}) translate(${lightboxTranslateX}px, ${lightboxTranslateY}px)`;
+            if (lightboxScale > 1.05) {
+                lightboxWrap.classList.add('scrollable');
+            } else {
+                lightboxWrap.classList.remove('scrollable');
+                lightboxTranslateX = 0;
+                lightboxTranslateY = 0;
+            }
+        }
+
+        lightboxImg.addEventListener('wheel', (e) => {
+            if (!lightboxOverlay.classList.contains('active')) return;
+            e.preventDefault();
+
+            const rect = lightboxImg.getBoundingClientRect();
+            const pointerX = e.clientX - rect.left;
+            const pointerY = e.clientY - rect.top;
+            const pointerRatioX = rect.width > 0 ? pointerX / rect.width : 0.5;
+            const pointerRatioY = rect.height > 0 ? pointerY / rect.height : 0.5;
+
+            const oldScale = lightboxScale;
+            let newScale = oldScale + (e.deltaY < 0 ? 0.25 : -0.25);
+            newScale = Math.max(1, Math.min(5, newScale));
+
+            if (newScale === oldScale) return;
+
+            const scaleRatio = newScale / oldScale;
+            lightboxTranslateX = pointerRatioX * (1 - scaleRatio) + scaleRatio * lightboxTranslateX;
+            lightboxTranslateY = pointerRatioY * (1 - scaleRatio) + scaleRatio * lightboxTranslateY;
+            lightboxScale = newScale;
+            applyLightboxTransform();
+        }, { passive: false });
+
+        lightboxImg.addEventListener('mousedown', (e) => {
+            if (!lightboxOverlay.classList.contains('active')) return;
+            if (lightboxScale <= 1.05) return;
+            e.preventDefault();
+            lightboxIsDragging = true;
+            lightboxImg.classList.add('dragging');
+            lightboxDragStartX = e.clientX;
+            lightboxDragStartY = e.clientY;
+            lightboxDragOrigX = lightboxTranslateX;
+            lightboxDragOrigY = lightboxTranslateY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!lightboxIsDragging) return;
+            const imgRect = lightboxImg.getBoundingClientRect();
+            const dx = imgRect.width > 0 ? (e.clientX - lightboxDragStartX) / imgRect.width : 0;
+            const dy = imgRect.height > 0 ? (e.clientY - lightboxDragStartY) / imgRect.height : 0;
+            lightboxTranslateX = lightboxDragOrigX + dx;
+            lightboxTranslateY = lightboxDragOrigY + dy;
+            applyLightboxTransform();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (lightboxIsDragging) {
+                lightboxIsDragging = false;
+                lightboxImg.classList.remove('dragging');
+            }
+        });
+
+        lightboxImg.addEventListener('dblclick', (e) => {
+            if (!lightboxOverlay.classList.contains('active')) return;
+            e.preventDefault();
+            if (lightboxScale > 1.05) {
+                lightboxScale = 1;
+                lightboxTranslateX = 0;
+                lightboxTranslateY = 0;
+            } else {
+                lightboxScale = 2.5;
+                const rect = lightboxImg.getBoundingClientRect();
+                const px = rect.width > 0 ? (e.clientX - rect.left) / rect.width : 0.5;
+                const py = rect.height > 0 ? (e.clientY - rect.top) / rect.height : 0.5;
+                lightboxTranslateX = px * (1 - 2.5) / 2.5;
+                lightboxTranslateY = py * (1 - 2.5) / 2.5;
+            }
+            applyLightboxTransform();
+        });
+
+        // Touch pinch-zoom and swipe pan
+        let touchInitialDistance = 0;
+        let touchInitialScale = 1;
+
+        lightboxImg.addEventListener('touchstart', (e) => {
+            if (!lightboxOverlay.classList.contains('active')) return;
+            if (e.touches.length === 1 && lightboxScale > 1.05) {
+                lightboxIsDragging = true;
+                lightboxImg.classList.add('dragging');
+                lightboxDragStartX = e.touches[0].clientX;
+                lightboxDragStartY = e.touches[0].clientY;
+                lightboxDragOrigX = lightboxTranslateX;
+                lightboxDragOrigY = lightboxTranslateY;
+            } else if (e.touches.length === 2) {
+                lightboxIsDragging = false;
+                touchInitialDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                touchInitialScale = lightboxScale;
+            }
+        }, { passive: false });
+
+        lightboxImg.addEventListener('touchmove', (e) => {
+            if (!lightboxOverlay.classList.contains('active')) return;
+            if (e.touches.length === 1 && lightboxIsDragging) {
+                e.preventDefault();
+                const imgRect = lightboxImg.getBoundingClientRect();
+                const dx = imgRect.width > 0 ? (e.touches[0].clientX - lightboxDragStartX) / imgRect.width : 0;
+                const dy = imgRect.height > 0 ? (e.touches[0].clientY - lightboxDragStartY) / imgRect.height : 0;
+                lightboxTranslateX = lightboxDragOrigX + dx;
+                lightboxTranslateY = lightboxDragOrigY + dy;
+                applyLightboxTransform();
+            } else if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                if (touchInitialDistance > 0) {
+                    const newScale = Math.max(1, Math.min(5, touchInitialScale * (currentDistance / touchInitialDistance)));
+                    lightboxScale = newScale;
+                    applyLightboxTransform();
+                }
+            }
+        }, { passive: false });
+
+        lightboxImg.addEventListener('touchend', () => {
+            lightboxIsDragging = false;
+            lightboxImg.classList.remove('dragging');
+        });
+
+        function enhanceCanvasForOcr(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const luminance = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                let value = (luminance - 128) * 1.38 + 128;
+                if (value > 218) value = 255;
+                if (value < 108) value = 0;
+                value = Math.max(0, Math.min(255, value));
+                data[i] = value; data[i + 1] = value; data[i + 2] = value;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        // 共享的旋转函数（用于 180° 翻转重试）
+        async function applyRotation(image, angleDeg) {
+            const srcW = image.naturalWidth || image.width;
+            const srcH = image.naturalHeight || image.height;
+            const rad = angleDeg * Math.PI / 180;
+            const cos = Math.abs(Math.cos(rad));
+            const sin = Math.abs(Math.sin(rad));
+            const newW = Math.round(srcW * cos + srcH * sin);
+            const newH = Math.round(srcW * sin + srcH * cos);
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = newW;
+            outCanvas.height = newH;
+            const octx = outCanvas.getContext('2d');
+
+            octx.fillStyle = '#ffffff';
+            octx.fillRect(0, 0, newW, newH);
+
+            octx.translate(newW / 2, newH / 2);
+            octx.rotate(-angleDeg * Math.PI / 180);
+            octx.drawImage(image, -srcW / 2, -srcH / 2);
+            octx.setTransform(1, 0, 0, 1, 0, 0);
+
+            return new Promise((resolve) => {
+                const resultImg = new Image();
+                resultImg.onload = () => resolve({ image: resultImg, angle: angleDeg, corrected: true });
+                resultImg.src = outCanvas.toDataURL('image/png');
+            });
+        }
+
+        function buildOcrCanvas(image) {
+            const sourceWidth = image.naturalWidth || image.width;
+            const sourceHeight = image.naturalHeight || image.height;
+            const targetWidth = Math.min(1500, Math.max(1100, sourceWidth));
+            const scale = targetWidth / sourceWidth;
+            const fullWidth = Math.round(sourceWidth * scale);
+            const fullHeight = Math.round(sourceHeight * scale);
+            const topSourceHeight = Math.max(1, Math.round(sourceHeight * 0.34));
+            const topHeight = Math.round(topSourceHeight * scale * 1.18);
+            // 底部 34% 放大区域：倒立图片的追踪号可能在这里
+            const bottomSourceHeight = Math.max(1, Math.round(sourceHeight * 0.34));
+            const bottomHeight = Math.round(bottomSourceHeight * scale * 1.18);
+            const spacer = 18;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = fullWidth;
+            canvas.height = topHeight + bottomHeight + spacer + fullHeight;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            // Section A: 顶部 34% 放大 1.18×（追踪号常在面单顶部）
+            ctx.drawImage(image, 0, 0, sourceWidth, topSourceHeight, 0, 0, fullWidth, topHeight);
+            // Section B: 底部 34% 放大 1.18×（倒立时追踪号可能在此区域）
+            ctx.drawImage(image, 0, sourceHeight - bottomSourceHeight, sourceWidth, bottomSourceHeight,
+                          0, topHeight, fullWidth, bottomHeight);
+            // Section C: 完整图片
+            ctx.drawImage(image, 0, 0, sourceWidth, sourceHeight,
+                          0, topHeight + bottomHeight + spacer, fullWidth, fullHeight);
+            enhanceCanvasForOcr(canvas);
+            return canvas;
+        }
+
+        function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        async function getTesseractEngine() {
+            // 动态加载 Tesseract.js（按需加载，节省首屏带宽）
+            if (!window.Tesseract) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            for (let i = 0; i < 30; i++) {
+                if (window.Tesseract && window.Tesseract.recognize) return window.Tesseract;
+                await wait(100);
+            }
+            return null;
+        }
+
+        async function runTesseractOcr(ocrCanvas) {
+            const engine = await getTesseractEngine();
+            if (!engine) throw new Error('Tesseract 引擎加载失败');
+            const result = await engine.recognize(ocrCanvas, 'eng', {
+                logger: message => {
+                    if (message.status === 'recognizing text' && typeof message.progress === 'number') {
+                        setOcrProgress(40 + message.progress * 56);
+                    }
+                }
+            });
+            return result && result.data ? result.data.text : '';
+        }
+
+        async function runApiOcr(ocrCanvas, signal = null) {
+            const maxDim = 800;
+            let w = ocrCanvas.width;
+            let h = ocrCanvas.height;
+            if (w > maxDim || h > maxDim) {
+                const ratio = Math.min(maxDim / w, maxDim / h);
+                w = Math.round(w * ratio);
+                h = Math.round(h * ratio);
+            }
+            // 优先用 JPEG（比 PNG 小 3-5×，OCR 精度几乎无损）
+            const mimeType = 'image/jpeg';
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(ocrCanvas, 0, 0, w, h);
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, mimeType, 0.85));
+            setOcrProgress(20);
+            const response = await fetch('/api/ocr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: blob,
+                signal: signal || undefined
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || '识别服务异常');
+            }
+            const data = await response.json();
+            setOcrProgress(80);
+            return data.text || '';
+        }
+
+        async function runServerBarcodeDecode(image) {
+            // 服务端 pyzbar + opencv 专业条码解码（主引擎）
+            let w = image.naturalWidth || image.width;
+            let h = image.naturalHeight || image.height;
+            const maxDim = 2000;
+            if (w > maxDim || h > maxDim) {
+                const ratio = Math.min(maxDim / w, maxDim / h);
+                w = Math.round(w * ratio); h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const response = await fetch('/api/barcode-decode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: blob
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || '条码解码服务异常');
+            }
+            const data = await response.json();
+            return data.codes || [];
+        }
+
+        async function runApiBarcodeDecode(image) {
+            // 把图缩放到合理尺寸转 PNG blob，发到服务端用 AI 解码条码
+            let w = image.naturalWidth || image.width;
+            let h = image.naturalHeight || image.height;
+            const maxDim = 1200;
+            if (w > maxDim || h > maxDim) {
+                const ratio = Math.min(maxDim / w, maxDim / h);
+                w = Math.round(w * ratio); h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const response = await fetch('/api/barcode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: blob
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || '条码解码服务异常');
+            }
+            const data = await response.json();
+            return data.codes || [];
+        }
+
+        async function processOcrFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                setOcrStatus('请拖入图片文件', 'error');
+                showToast('请拖入图片文件喵~');
+                return;
+            }
+            ocrCandidates.innerHTML = '';
+            setOcrStatus('🔍 正在准备图片...');
+            setOcrProgress(3);
+            try {
+                const { image, previewUrl } = await loadImageElement(file);
+                lightboxCurrentFile = file;
+                if (currentOcrPreviewUrl) URL.revokeObjectURL(currentOcrPreviewUrl);
+                currentOcrPreviewUrl = previewUrl;
+                ocrPreview.src = previewUrl;
+                ocrPreview.hidden = false;
+                setOcrProgress(8);
+
+                // ===== OCR 识别流水线（条码 + 文字同时跑，条码优先）=====
+                async function runFullOcrPipeline(targetImage, opts = {}) {
+                    const textOcrAbort = new AbortController();
+
+                    // ── 文字 OCR 后台启动（不阻塞，可被条码结果终止）──
+                    const textOcrP = (async () => {
+                        let text = '';
+                        let usedFallback = false;
+                        let apiErrorReason = '';
+                        try {
+                            text = await runApiOcr(targetImage, textOcrAbort.signal);
+                        } catch (apiError) {
+                            if (textOcrAbort.signal.aborted) {
+                                console.log('🛑 文字 OCR 被条码结果终止');
+                                return { codes: [], usedFallback: false, apiErrorReason: '', cancelled: true };
+                            }
+                            console.warn('云端 OCR 失败，降级到 Tesseract:', apiError.message);
+                            apiErrorReason = apiError.message || '云端识别不可用';
+                            setOcrStatus('💻 云端识别失败，本地引擎补位中...');
+                        }
+                        if (!textOcrAbort.signal.aborted && !extractOcrTrackingCodes(text).length) {
+                            try {
+                                if (!apiErrorReason) setOcrStatus('💻 云端未识别到文字，本地引擎补位中...');
+                                const tesseractCanvas = buildOcrCanvas(targetImage);
+                                text = await runTesseractOcr(tesseractCanvas);
+                                usedFallback = true;
+                            } catch (tessError) {
+                                console.error('Tesseract 失败:', tessError.message);
+                            }
+                        }
+                        return { codes: extractOcrTrackingCodes(text), usedFallback, apiErrorReason };
+                    })();
+
+                    // ── 条码检测（与文字 OCR 同时进行）──
+                    if (!opts.skipPyzbar) {
+                        let pyzbarCodes = [];
+                        try {
+                            pyzbarCodes = await runServerBarcodeDecode(targetImage);
+                            console.log('pyzbar 服务端条码:', pyzbarCodes.length ? pyzbarCodes.join(',') : '(empty)');
+                        } catch (e) {
+                            console.warn('服务端条码检测失败:', e.message);
+                        }
+
+                        if (pyzbarCodes.length > 0) {
+                            // 🎯 条码找到！立即终止文字 OCR，优先返回条码结果
+                            textOcrAbort.abort();
+                            const codeSources = {};
+                            pyzbarCodes.forEach(c => { codeSources[c] = ['barcode']; });
+
+                            // 仅后台跑 AI 视觉兜底
+                            (async () => {
+                                try {
+                                    const aiCodes = await runApiBarcodeDecode(targetImage);
+                                    const newCodes = aiCodes.filter(c => !codeSources[c]);
+                                    if (newCodes.length > 0) {
+                                        newCodes.forEach(c => { codeSources[c] = ['ai-barcode']; });
+                                        renderOcrCandidates(Object.keys(codeSources), codeSources);
+                                        setInputValue(Object.keys(codeSources).join('\n'));
+                                        setOcrStatus(`🎯 📊条码+🤖AI，共 ${Object.keys(codeSources).length} 个单号`, 'success');
+                                    }
+                                } catch (e) { console.warn('AI 条码解码(后台)失败:', e.message); }
+                            })();
+
+                            return {
+                                allCodes: pyzbarCodes, codeSources,
+                                textCodes: [], barcodeCodes: pyzbarCodes,
+                                pyzbarCodes, aiBarcodeCodes: [],
+                                usedFallback: false, apiErrorReason: '', pyzbarError: null,
+                                fromBarcode: true
+                            };
+                        }
+                    }
+
+                    // ── 无条码：等文字 OCR（早已在后台跑着了）──
+                    console.log('pyzbar 无条码，等待文字 OCR 结果...');
+                    let textCodes = [];
+                    let usedFallback = false;
+                    let apiErrorReason = '';
+                    try {
+                        const tr = await textOcrP;
+                        textCodes = tr.codes;
+                        usedFallback = tr.usedFallback;
+                        apiErrorReason = tr.apiErrorReason;
+                    } catch (e) {
+                        apiErrorReason = e.message || '文字识别失败';
+                    }
+                    const codeSources = {};
+                    textCodes.forEach(c => { codeSources[c] = ['text']; });
+
+                    return {
+                        allCodes: textCodes, codeSources,
+                        textCodes, barcodeCodes: [],
+                        pyzbarCodes: [], aiBarcodeCodes: [],
+                        usedFallback, apiErrorReason, pyzbarError: null,
+                        fromBarcode: false
+                    };
+                }
+
+                // ===== 第一轮：条码检测 =====
+                // 在 OCR 开始前先把输入框里的旧文本存下来，用于保存历史记录
+                const textBeforeOcr = inputArea.value.trim();
+                setOcrStatus('🔍 条码检测中...');
+                setOcrProgress(12);
+                let result = await runFullOcrPipeline(image);
+                setOcrProgress(80);
+                let wasFlipped = false;
+
+                // ===== 如果没识别到单号：翻转 180° 再试一次 =====
+                if (result.allCodes.length === 0) {
+                    console.log('processOcrFile: 第一轮无结果，翻转 180° 重试...');
+                    setOcrStatus('🔄 正面未识别到，翻转 180° 重试中...');
+                    setOcrProgress(50);
+                    // 翻转重试：pyzbar 第一轮也没找到条码，跳过直接用文字 OCR
+                    try {
+                        const flipResult = await applyRotation(image, 180);
+                        result = await runFullOcrPipeline(flipResult.image, { skipPyzbar: true });
+                        wasFlipped = true;
+                        if (result.allCodes.length > 0) {
+                            // 翻转后识别成功，更新预览为翻转后的图片
+                            if (currentOcrPreviewUrl) URL.revokeObjectURL(currentOcrPreviewUrl);
+                            const flippedUrl = flipResult.image.src;
+                            currentOcrPreviewUrl = flippedUrl;
+                            ocrPreview.src = flippedUrl;
+                            showToast('图片已自动翻转 180° 喵~');
+                        }
+                    } catch (flipErr) {
+                        console.warn('翻转重试失败:', flipErr.message);
+                    }
+                }
+                setOcrProgress(100);
+
+                const { allCodes, codeSources, textCodes, barcodeCodes, pyzbarCodes, aiBarcodeCodes, usedFallback, apiErrorReason, pyzbarError, fromBarcode } = result;
+
+                if (allCodes.length === 0) {
+                    // 都没找到 → 给出具体原因
+                    const scanDetails = [];
+                    if (apiErrorReason) scanDetails.push(`云端接口: ${apiErrorReason}`);
+                    if (pyzbarError) scanDetails.push('条码解码服务异常');
+                    setOcrStatus(
+                        '😿 未识别到 DPK/DPL 单号' + (scanDetails.length ? `（${scanDetails.join('，')}）` : '，请换更清晰的截图重试喵'),
+                        'error'
+                    );
+                    showToast('未识别到单号喵~');
+                    return;
+                }
+
+                // 记录识别单号（用于灯箱底部展示）
+                lastDetectedCodes = [...allCodes];
+
+                // 把 OCR 之前的旧文本保存到历史记录（通过全局函数确保数据同步）
+                if (textBeforeOcr && window.addHistoryEntry) {
+                    try { window.addHistoryEntry(textBeforeOcr); } catch (e) { console.warn('保存历史记录失败:', e); }
+                }
+
+                setInputValue(allCodes.join('\n'));
+                renderOcrCandidates(allCodes, codeSources);
+                if (allCodes.length > 0) {
+                    expandDropZone();
+                }
+
+                // 构建识别来源详情
+                const parts = [];
+                if (fromBarcode) {
+                    parts.push('📊条码');
+                } else {
+                    const hasCloudOcr = textCodes.length > 0 && !usedFallback;
+                    const hasLocalOcr = textCodes.length > 0 && usedFallback;
+                    if (hasCloudOcr) parts.push('☁️云端');
+                    if (hasLocalOcr) parts.push('💻本地');
+                }
+                const hasAi = aiBarcodeCodes && aiBarcodeCodes.length > 0;
+                if (hasAi) parts.push('🤖AI');
+                const sourceLabel = parts.length > 0 ? parts.join('+') + ' 识别，' : '';
+                setOcrStatus(`🎯 ${sourceLabel}共 ${allCodes.length} 个单号，已填入文本框`, 'success');
+                showToast(`已填入 ${allCodes.length} 个识别单号喵~`);
+                const codesText = allCodes.join('\n');
+                copyText(codesText, '单号已自动复制喵~').catch(() => {});
+            } catch (error) {
+                setOcrStatus(error.message || '识别失败，请重试', 'error');
+                showToast('图片识别失败喵~');
+            } finally {
+                hideOcrProgress();
+            }
+        }
+
+        function buildStats(lines) {
+            const seen = new Set();
+            let valid = 0;
+            let duplicate = 0;
+            lines.forEach(line => {
+                const key = line.toUpperCase();
+                if (STANDARD_CODE_RE.test(key)) valid++;
+                if (seen.has(key)) duplicate++;
+                seen.add(key);
+            });
+            return {
+                total: lines.length,
+                valid,
+                duplicate,
+                invalid: lines.length - valid
+            };
+        }
+
+        function updateStats(lines) {
+            const stats = buildStats(lines);
+            statTotal.innerText = stats.total;
+            statValid.innerText = stats.valid;
+            statDuplicate.innerText = stats.duplicate;
+            statInvalid.innerText = stats.invalid;
+            if (stats.total === 0) {
+                inputFeedback.innerText = '粘贴杂乱文本后点"智能整理"，可自动纠正常见 OCR 误读、去重并提取 DPK/DPL 单号。';
+            } else if (stats.invalid > 0) {
+                inputFeedback.innerText = `发现 ${stats.invalid} 行不是 DPK/DPL+12位数字，仍可生成 CODE128 条码；需要规范单号时可点"智能整理"。`;
+            } else if (stats.duplicate > 0) {
+                inputFeedback.innerText = `发现 ${stats.duplicate} 条重复单号，点"去重"可以保留首次出现的记录。`;
+            } else {
+                inputFeedback.innerText = `状态很好：${stats.valid} 条规范单号已准备好生成条码。`;
+            }
+        }
+
+        async function copyText(text, successMessage) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const helper = document.createElement('textarea');
+                    helper.value = text;
+                    helper.setAttribute('readonly', '');
+                    helper.style.position = 'fixed';
+                    helper.style.left = '-999px';
+                    document.body.appendChild(helper);
+                    helper.select();
+                    document.execCommand('copy');
+                    helper.remove();
+                }
+                showToast(successMessage);
+                return true;
+            } catch (err) {
+                showToast('复制失败，请手动选择复制喵~');
+                return false;
+            }
+        }
+
+        function removeLineAt(index) {
+            const lines = getLines();
+            lines.splice(index, 1);
+            setInputValue(lines.join('\n'), false);
+        }
+
+        function renderBarcodes() {
+            outputArea.innerHTML = '';
+            const lines = getLines();
+            const barcodeHeight = parseInt(heightSelect.value, 10) || 60;
+            updateStats(lines);
+            lines.forEach((text, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'barcode-item';
+                const svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                itemDiv.appendChild(svgNode);
+                try {
+                    JsBarcode(svgNode, text, {
+                        format: "CODE128",
+                        width: 2,
+                        height: barcodeHeight,
+                        displayValue: true,
+                        fontSize: 16,
+                        fontOptions: "bold",
+                        font: "monospace",
+                        textMargin: 6,
+                        lineColor: "#000000",
+                        margin: 10,
+                        background: "transparent"
+                    });
+                    const actions = document.createElement('div');
+                    actions.className = 'barcode-actions';
+                    const copySingle = document.createElement('button');
+                    copySingle.className = 'barcode-mini-btn';
+                    copySingle.type = 'button';
+                    copySingle.innerText = '复制';
+                    copySingle.addEventListener('click', () => copyText(text, `已复制 ${text} 喵~`));
+                    const removeSingle = document.createElement('button');
+                    removeSingle.className = 'barcode-mini-btn';
+                    removeSingle.type = 'button';
+                    removeSingle.innerText = '移除';
+                    removeSingle.addEventListener('click', () => {
+                        removeLineAt(index);
+                        showToast('已移除这一条喵~');
+                    });
+                    actions.appendChild(copySingle);
+                    actions.appendChild(removeSingle);
+                    itemDiv.appendChild(actions);
+                } catch (error) {
+                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符喵~ (${text})</span>`;
+                }
+                outputArea.appendChild(itemDiv);
+            });
+        }
+
+        function insertPrefix(prefix) { appendLines([prefix]); }
+
+        function setupPrettySelect(selectElement) {
+            const wrapper = selectElement.closest('.pretty-select');
+            const trigger = wrapper.querySelector('.select-trigger');
+            const valueText = wrapper.querySelector('.select-value');
+            const menu = wrapper.querySelector('.select-menu');
+            function closeSelect() {
+                wrapper.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+            function openSelect() {
+                document.querySelectorAll('.pretty-select.open').forEach(selectBox => {
+                    if (selectBox !== wrapper) {
+                        selectBox.classList.remove('open');
+                        selectBox.querySelector('.select-trigger').setAttribute('aria-expanded', 'false');
+                    }
+                });
+                wrapper.classList.add('open');
+                trigger.setAttribute('aria-expanded', 'true');
+            }
+            function refreshOptions() {
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                if (valueText) valueText.innerText = selectedOption ? selectedOption.text : '';
+                menu.querySelectorAll('.select-option').forEach(button => {
+                    const isSelected = button.dataset.value === selectElement.value;
+                    button.classList.toggle('is-selected', isSelected);
+                    button.setAttribute('aria-selected', String(isSelected));
+                });
+            }
+            Array.from(selectElement.options).forEach(option => {
+                const optionButton = document.createElement('button');
+                optionButton.type = 'button';
+                optionButton.className = 'select-option';
+                optionButton.dataset.value = option.value;
+                optionButton.setAttribute('role', 'option');
+                optionButton.tabIndex = -1;
+                optionButton.innerText = option.text;
+                optionButton.addEventListener('click', () => {
+                    if (selectElement.value !== option.value) {
+                        selectElement.value = option.value;
+                        selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    refreshOptions();
+                    closeSelect();
+                    trigger.focus();
+                });
+                menu.appendChild(optionButton);
+            });
+            trigger.addEventListener('click', event => {
+                event.stopPropagation();
+                wrapper.classList.contains('open') ? closeSelect() : openSelect();
+            });
+            trigger.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    openSelect();
+                    const selectedButton = menu.querySelector('.select-option.is-selected') || menu.querySelector('.select-option');
+                    if (selectedButton) selectedButton.focus();
+                }
+            });
+            menu.addEventListener('keydown', event => {
+                const buttons = Array.from(menu.querySelectorAll('.select-option'));
+                const currentIndex = buttons.indexOf(document.activeElement);
+                if (event.key === 'Escape') { event.preventDefault(); closeSelect(); trigger.focus(); }
+                else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    const direction = event.key === 'ArrowDown' ? 1 : -1;
+                    const nextIndex = (currentIndex + direction + buttons.length) % buttons.length;
+                    buttons[nextIndex].focus();
+                }
+            });
+            selectElement.addEventListener('change', refreshOptions);
+            refreshOptions();
+        }
+
+        document.querySelectorAll('.native-select').forEach(setupPrettySelect);
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.pretty-select')) {
+                document.querySelectorAll('.pretty-select.open').forEach(selectBox => {
+                    selectBox.classList.remove('open');
+                    selectBox.querySelector('.select-trigger').setAttribute('aria-expanded', 'false');
+                });
+            }
+        });
+
+        btnDpk.addEventListener('click', () => insertPrefix('DPK'));
+        btnDpl.addEventListener('click', () => insertPrefix('DPL'));
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            ocrDropzone.addEventListener(eventName, event => {
+                event.preventDefault();
+                ocrDropzone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            ocrDropzone.addEventListener(eventName, event => {
+                event.preventDefault();
+                ocrDropzone.classList.remove('dragover');
+            });
+        });
+        ocrDropzone.addEventListener('drop', event => {
+            const file = Array.from(event.dataTransfer.files).find(item => item.type.startsWith('image/'));
+            processOcrFile(file);
+        });
+        ocrFileInput.addEventListener('change', event => {
+            processOcrFile(event.target.files[0]);
+            event.target.value = '';
+        });
+
+        // Lightbox: click preview to open
+        ocrPreview.addEventListener('click', () => {
+            if (ocrProgress.classList.contains('active')) return;
+            if (lightboxCurrentFile && !lightboxOverlay.classList.contains('active')) {
+                openLightbox(lightboxCurrentFile);
+            }
+        });
+        ocrPreview.style.cursor = 'zoom-in';
+
+        // Lightbox: close triggers
+        lightboxClose.addEventListener('click', closeLightbox);
+        lightboxBackdrop.addEventListener('click', closeLightbox);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightboxOverlay.classList.contains('active')) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener('paste', event => {
+            const items = event.clipboardData && event.clipboardData.items;
+            let file = null;
+            if (items && items.length) {
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        file = items[i].getAsFile();
+                        break;
+                    }
+                }
+            }
+            if (file) processOcrFile(file);
+        });
+
+        inputArea.addEventListener('input', renderBarcodes);
+        colSelect.addEventListener('change', (e) => {
+            const cols = e.target.value;
+            outputArea.className = `barcode-output cols-${cols}`;
+        });
+        heightSelect.addEventListener('change', () => {
+            renderBarcodes();
+            showToast('条码高度已更新喵~');
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            if (!inputArea.value.trim()) { showToast('没有可复制的单号喵~'); return; }
+            const copied = await copyText(inputArea.value, '全部单号已复制喵~');
+            if (copied) {
+                const originalText = copyBtn.innerText;
+                copyBtn.innerText = '已复制！';
+                copyBtn.style.background = 'linear-gradient(135deg, #34c759, #30d158)';
+                setTimeout(() => {
+                    copyBtn.innerText = originalText;
+                    copyBtn.style.background = '';
+                }, 1200);
+            }
+        });
+
+        formatBtn.addEventListener('click', () => {
+            const result = extractSmartTrackingCodes(inputArea.value);
+            const codes = result.codes;
+            if (codes.length === 0) {
+                inputFeedback.innerText = '没有提取到 DPK/DPL+12位数字；可以检查截图文字是否清晰，或手动补上前缀。';
+                showToast('没有提取到 DPK/DPL 单号喵~');
+                return;
+            }
+            setInputValue(codes.join('\n'));
+            const details = [];
+            if (result.correctedCount > 0) details.push(`纠正 ${result.correctedCount} 条`);
+            if (result.duplicateCount > 0) details.push(`去重 ${result.duplicateCount} 条`);
+            inputFeedback.innerText = `智能整理完成：保留 ${codes.length} 条规范单号${details.length ? `，${details.join('，')}` : ''}。`;
+            showToast(`已整理出 ${codes.length} 条单号喵~`);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            inputArea.value = '';
+            renderBarcodes();
+            inputArea.focus();
+            showToast('输入已清空喵~');
+        });
+
+        renderBarcodes();
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatBox = document.getElementById('chat-box');
+            const chatNickInput = document.getElementById('chat-nick');
+            const chatMsgInput = document.getElementById('chat-msg');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            let lastMessageSignature = '';
+            const floatingChatBtn = document.getElementById('floating-chat-btn');
+            const floatingChatWindow = document.getElementById('floating-chat-window');
+            const chatHeaderDrag = document.getElementById('chat-header-drag');
+            const catNames = ['奶橘喵', '起司大花', '傲娇布偶', '无敌三花', '熬夜黑猫', '打包大麦', '圆滚滚英短'];
+            const randomNick = catNames[Math.floor(Math.random() * catNames.length)] + '_' + Math.floor(Math.random() * 900 + 100);
+            chatNickInput.placeholder = `昵称: ${randomNick}`;
+
+            function fetchChats() {
+                fetch('/api/chat')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.messages) return;
+                        const signature = JSON.stringify(data.messages);
+                        if (signature === lastMessageSignature) return;
+                        lastMessageSignature = signature;
+                        const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 80;
+                        if (data.messages.length === 0) {
+                            chatBox.innerHTML = '<div class="chat-loading">大厅空荡荡，快来抢沙发喵！</div>';
+                            return;
+                        }
+                        const fragment = document.createDocumentFragment();
+                        data.messages.forEach(msg => {
+                            const bubble = document.createElement('div');
+                            bubble.className = 'msg-bubble';
+                            const safeNick = msg.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            const safeContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            bubble.innerHTML = `<div class="msg-meta"><span>🐱 ${safeNick}</span><span class="msg-time">${msg.time}</span></div><div class="msg-text">${safeContent}</div>`;
+                            fragment.appendChild(bubble);
+                        });
+                        chatBox.innerHTML = '';
+                        chatBox.appendChild(fragment);
+                        if (isNearBottom) {
+                            requestAnimationFrame(() => { chatBox.scrollTop = chatBox.scrollHeight; });
+                        }
+                    })
+                    .catch(err => console.error('加载大厅消息失败', err));
+            }
+
+            function sendChat() {
+                const content = chatMsgInput.value.trim();
+                if (!content) return;
+                const nickname = chatNickInput.value.trim() || randomNick;
+                chatSendBtn.disabled = true;
+                chatSendBtn.innerText = '喵..';
+                fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname, content })
+                })
+                .then(res => res.json())
+                .then(data => { if (data.success) { chatMsgInput.value = ''; fetchChats(); } })
+                .catch(err => console.error('发射失败', err))
+                .finally(() => { chatSendBtn.disabled = false; chatSendBtn.innerText = '发射'; });
+            }
+
+            chatSendBtn.addEventListener('click', sendChat);
+            chatMsgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+
+            const emojiToggleBtn = document.getElementById('emoji-toggle-btn');
+            const emojiPanel = document.getElementById('emoji-panel');
+            const EMOJI_LIST = [
+                '😺','😸','😹','😻','😼','😽','🙀','😿','😾','🐱','🐈','🐾','🐟','🐠','🐡','🦐','🦑',
+                '❤️','🧡','💛','💚','💙','💜','🩷','✨','🌟','💫','⭐','🔥','💥','🌈',
+                '🎉','🎊','🎀','💝','💖','💗','💘','🥰','😍','😘','😋','🤩','😎','🤗',
+                '👍','👏','🙌','💪','🤝','✌️','👋','🍰','🧁','🍩','🍪','🍬','🍭','🍫',
+                '🐣','🦊','🐰','🐻','🐼','🐨','🐯','🌸','🌺','🌻','🌷','💐','🍀','🌿',
+                '💤','💢','💦','💨','🫧','🎵','🎶','🐾','🦴','🎾','🧶','🎣','🫧',
+            ];
+
+            function buildEmojiPanel() {
+                emojiPanel.innerHTML = '';
+                EMOJI_LIST.forEach(emoji => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'emoji-item';
+                    btn.textContent = emoji;
+                    btn.title = emoji;
+                    btn.addEventListener('click', () => { chatMsgInput.value += emoji; chatMsgInput.focus(); });
+                    emojiPanel.appendChild(btn);
+                });
+            }
+            emojiToggleBtn.addEventListener('click', (e) => { e.stopPropagation(); emojiPanel.classList.toggle('show'); });
+            document.addEventListener('click', (e) => {
+                if (!emojiPanel.contains(e.target) && e.target !== emojiToggleBtn) emojiPanel.classList.remove('show');
+            });
+            buildEmojiPanel();
+            fetchChats();
+            setInterval(fetchChats, 3000);
+
+            floatingChatBtn.addEventListener('click', () => {
+                floatingChatWindow.classList.add('show');
+                floatingChatBtn.style.opacity = '0';
+                floatingChatBtn.style.pointerEvents = 'none';
+                floatingChatBtn.style.transform = 'scale(0.5)';
+                floatingChatBtn.style.transition = 'all 0.25s ease';
+            });
+
+            const closeChatBtn = document.getElementById('close-chat-btn');
+            closeChatBtn.addEventListener('click', () => {
+                floatingChatWindow.classList.add('swatting');
+                setTimeout(() => {
+                    floatingChatWindow.classList.remove('show');
+                    floatingChatWindow.classList.remove('swatting');
+                    floatingChatBtn.style.opacity = '1';
+                    floatingChatBtn.style.pointerEvents = 'auto';
+                    floatingChatBtn.style.transform = '';
+                    floatingChatBtn.style.transition = 'all 0.35s cubic-bezier(.2,.8,.2,1)';
+                }, 360);
+            });
+
+            let isDragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+            if (window.innerWidth > 768) {
+                chatHeaderDrag.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    const rect = floatingChatWindow.getBoundingClientRect();
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+                    floatingChatWindow.style.transition = 'none';
+                });
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    floatingChatWindow.style.left = `${e.clientX - offsetX}px`;
+                    floatingChatWindow.style.top = `${e.clientY - offsetY}px`;
+                    floatingChatWindow.style.right = 'auto';
+                    floatingChatWindow.style.bottom = 'auto';
+                });
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    floatingChatWindow.style.transition = 'all 0.35s cubic-bezier(.2,.8,.2,1)';
+                });
+            }
+
+            // ==================== 历史记录功能 ====================
+            let history = [];
+
+            async function loadHistoryFromServer() {
+                if (!Auth.isLoggedIn()) return false;
+                try {
+                    const response = await Auth.fetch('/api/barcode-history');
+                    const items = await response.json();
+                    history = items.map(item => ({ content: item.numbers, time: item.createdAt, id: item.id }));
+                } catch {
+                    // 服务器不可达时，保留 localStorage 数据并继续渲染（Bug 修复）
+                }
+                renderHistory();
+                return true;
+            }
+
+            (function initHistory() {
+                const localRaw = JSON.parse(localStorage.getItem('barcodeHistory') || '[]');
+                history = localRaw.map(item => {
+                    if (typeof item === 'string') return { content: item, time: '' };
+                    return item;
+                });
+                if (Auth.isLoggedIn()) { loadHistoryFromServer(); }
+                else { renderHistory(); }
+            })();
+
+            let lastValidContent = '';
+            let isCurrentlyEmpty = true;
+            let pendingSaveContent = '';  // 防止异步保存期间的重复提交（Bug 修复）
+
+            function isValidDPKLine(line) {
+                const trimmed = line.trim();
+                if (!trimmed) return true;
+                return /^(DPK|DPL)\d{12}$/.test(trimmed);
+            }
+
+            function validateAllLines(text) {
+                if (!text.trim()) return false;
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                if (lines.length === 0) return false;
+                return lines.every(line => isValidDPKLine(line));
+            }
+
+            function getBeijingTime() {
+                const now = new Date();
+                const beijing = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+                return beijing.toISOString().replace('T', ' ').slice(0, 19);
+            }
+
+            function saveToHistory() {
+                if (!lastValidContent) return;
+                if (!validateAllLines(lastValidContent)) return;
+                // 立即捕获值，防止异步回调中读取到被后续输入覆盖的变量（Bug 修复）
+                const capturedContent = lastValidContent;
+                if (history.length > 0 && history[0].content === capturedContent) return;
+                // 防止快速重复清空导致同一内容被保存多次（Bug 修复）
+                if (pendingSaveContent === capturedContent) return;
+                const entry = { content: capturedContent, time: getBeijingTime() };
+                if (Auth.isLoggedIn()) {
+                    pendingSaveContent = capturedContent;
+                    Auth.fetch('/api/barcode-history', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ numbers: capturedContent })
+                    }).then(res => res.json()).then(data => {
+                        pendingSaveContent = '';
+                        if (data.id) {
+                            history.unshift({ content: capturedContent, time: data.createdAt, id: data.id });
+                            history = history.slice(0, 20);
+                            localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                            renderHistory();
+                        }
+                    }).catch(() => {
+                        pendingSaveContent = '';
+                        history.unshift(entry);
+                        history = history.slice(0, 20);
+                        localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                        renderHistory();
+                    });
+                } else {
+                    history.unshift(entry);
+                    history = history.slice(0, 20);
+                    localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                    renderHistory();
+                }
+            }
+
+            function renderHistory() {
+                const list = document.getElementById('history-list');
+                if (!list) return;
+                list.innerHTML = history.map((item, i) => `
+                    <div class="history-entry">
+                        <span class="history-entry-content" onclick="loadHistory(${i})" title="点击恢复此记录">${item.content.replace(/\n/g, ' | ')}</span>
+                        <span class="history-entry-time">${item.time}</span>
+                        <button class="history-delete-btn" onclick="deleteHistory(${i})" title="删除此记录">✕</button>
+                    </div>
+                `).join('');
+            }
+
+            window.loadHistory = function(index) {
+                if (history[index]) {
+                    inputArea.value = history[index].content;
+                    renderBarcodes();
+                    document.getElementById('barcode-output').scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+
+            // 暴露给其他脚本使用
+            window.renderHistoryList = function() {
+                // 先从 localStorage 同步数据
+                try {
+                    const stored = JSON.parse(localStorage.getItem('barcodeHistory') || '[]');
+                    history = stored.map(item => {
+                        if (typeof item === 'string') return { content: item, time: '' };
+                        return item;
+                    });
+                } catch(e) { /* ignore */ }
+                renderHistory();
+            };
+
+            window.addHistoryEntry = function(content) {
+                if (!content || !content.trim()) return;
+                const beijingNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+                const timeStr = beijingNow.toISOString().replace('T', ' ').slice(0, 19);
+                // 同步 history 数组
+                try {
+                    const stored = JSON.parse(localStorage.getItem('barcodeHistory') || '[]');
+                    stored.unshift({ content: content.trim(), time: timeStr });
+                    localStorage.setItem('barcodeHistory', JSON.stringify(stored.slice(0, 20)));
+                    history = stored.slice(0, 20).map(item => {
+                        if (typeof item === 'string') return { content: item, time: '' };
+                        return item;
+                    });
+                    renderHistory();
+                } catch(e) { console.warn('addHistoryEntry 失败:', e); }
+            };
+
+            window.deleteHistory = function(index) {
+                const item = history[index];
+                if (item && item.id && Auth.isLoggedIn()) {
+                    Auth.fetch('/api/barcode-history/' + item.id, { method: 'DELETE' })
+                        .then(() => { history.splice(index, 1); localStorage.setItem('barcodeHistory', JSON.stringify(history)); renderHistory(); showToast('已删除该记录喵~'); })
+                        .catch(() => { history.splice(index, 1); localStorage.setItem('barcodeHistory', JSON.stringify(history)); renderHistory(); showToast('已删除该记录喵~'); });
+                } else {
+                    history.splice(index, 1);
+                    localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                    renderHistory();
+                    showToast('已删除该记录喵~');
+                }
+            };
+
+            document.getElementById('clear-history').addEventListener('click', () => {
+                if (!confirm('确定要清空所有历史记录喵？')) return;
+                if (Auth.isLoggedIn()) {
+                    Auth.fetch('/api/barcode-history', { method: 'DELETE' })
+                        .then(() => { history = []; localStorage.removeItem('barcodeHistory'); renderHistory(); })
+                        .catch(() => { history = []; localStorage.removeItem('barcodeHistory'); renderHistory(); });
+                } else {
+                    history = [];
+                    localStorage.removeItem('barcodeHistory');
+                    renderHistory();
+                }
+            });
+
+            inputArea.addEventListener('input', () => {
+                const currentText = inputArea.value.trim();
+                const nowEmpty = !currentText;
+                renderBarcodes();
+                if (!nowEmpty && validateAllLines(currentText)) lastValidContent = currentText;
+                if (!isCurrentlyEmpty && nowEmpty && lastValidContent) { saveToHistory(); lastValidContent = ''; }
+                isCurrentlyEmpty = nowEmpty;
+            });
+
+            document.getElementById('clear-btn').addEventListener('click', () => {
+                if (lastValidContent) saveToHistory();
+                lastValidContent = '';
+                isCurrentlyEmpty = true;
+            });
+
+            renderHistory();
+            isCurrentlyEmpty = !inputArea.value.trim();
+
+            chatMsgInput.addEventListener('focus', () => {
+                if (window.innerWidth <= 768) { floatingChatWindow.style.bottom = '8px'; floatingChatWindow.style.height = '85vh'; }
+            });
+            chatMsgInput.addEventListener('blur', () => {
+                if (window.innerWidth <= 768) { floatingChatWindow.style.bottom = '82px'; floatingChatWindow.style.height = '78vh'; }
+            });
+        });
+
+        function goToWiki(e) {
+            if (e && e.currentTarget) {
+                e.preventDefault();
+                var btnRect = e.currentTarget.getBoundingClientRect();
+                var x = btnRect.left + btnRect.width / 2;
+                var y = btnRect.top + btnRect.height / 2;
+                var icon = document.createElement('span');
+                icon.textContent = '📚';
+                icon.style.cssText = 'position:fixed;z-index:99999;pointer-events:none;font-size:28px;left:' + x + 'px;top:' + y + 'px;transform:translate(-50%,-50%) scale(0);opacity:0;transition:transform 0.18s cubic-bezier(0.4,0,0.2,1),opacity 0.18s ease;';
+                document.body.appendChild(icon);
+                requestAnimationFrame(function() {
+                    icon.style.transform = 'translate(-50%,-50%) scale(1)';
+                    icon.style.opacity = '0.85';
+                });
+                setTimeout(function() {
+                    icon.style.transform = 'translate(-50%,-50%) scale(1.8)';
+                    icon.style.opacity = '0';
+                }, 140);
+                setTimeout(function() {
+                    icon.remove();
+                    window.location.href = '/knowledge.html';
+                }, 300);
+            } else {
+                window.location.href = '/knowledge.html';
+            }
+        }
+
+        function goToChat(e) {
+            if (e && e.currentTarget) {
+                e.preventDefault();
+                var btnRect = e.currentTarget.getBoundingClientRect();
+                var x = btnRect.left + btnRect.width / 2;
+                var y = btnRect.top + btnRect.height / 2;
+                var cat = document.createElement('span');
+                cat.textContent = '🐱';
+                cat.style.cssText = 'position:fixed;z-index:99999;pointer-events:none;font-size:28px;left:' + x + 'px;top:' + y + 'px;transform:translate(-50%,-50%) scale(0);opacity:0;transition:transform 0.18s cubic-bezier(0.4,0,0.2,1),opacity 0.18s ease;';
+                document.body.appendChild(cat);
+                requestAnimationFrame(function() {
+                    cat.style.transform = 'translate(-50%,-50%) scale(1)';
+                    cat.style.opacity = '0.85';
+                });
+                setTimeout(function() { window.location.href = '/chat.html'; }, 200);
+            } else {
+                window.location.href = '/chat.html';
+            }
+        }
+    </script>
+
+    <!-- 全站在线人数 -->
+    <script>
+    (function() {
+        var countEl = document.getElementById('online-count');
+        if (!countEl) return;
+        function fetchOnline() {
+            fetch('/api/online-count')
+                .then(function(r) { return r.json(); })
+                .then(function(d) { countEl.textContent = d.onlineCount; })
+                .catch(function() { countEl.textContent = '?'; });
+        }
+        fetchOnline();
+        setInterval(fetchOnline, 30000);
+    })();
+    </script>
+
+</body>
+</html>
