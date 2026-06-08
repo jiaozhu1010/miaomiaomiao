@@ -9,6 +9,8 @@ chat.json
 uploads/
 books/
 data/users.json
+data/barcode_history.json
+data/conversations.json
 
 # Codex local config (hooks are personal)
 .codex/
@@ -22,6 +24,9 @@ data/users.json
 德邦快递跨境产品详解.*
 # SSL证书
 .well-known/
+# 服务器配置文件
+.user.ini
+.htaccess
 # Claude Code锁文件
 skills-lock.json
 # Claude Flow 运行时
@@ -30,5 +35,9 @@ skills-lock.json
 .swarm/
 # RuVector 数据库
 ruvector.db
+# IDE/Agent 配置（CLAUDE.md 是唯一的项目文档）
+AGENTS.md
 # 角色文件
 m.role
+# 旧版设计文档（已迁移到 superpowers）
+docs/superpowers/*/2026-06-02-*
