@@ -2791,8 +2791,8 @@ app.post('/api/wiki', authMiddleware, (req, res) => {
         if ((!content || !content.trim()) && !bookFile) {
             return res.status(400).json({ error: '内容或书籍文件至少填一个喵~' });
         }
-        if (content && content.length > 50000) {
-            return res.status(400).json({ error: '内容不能超过 50000 个字符喵~' });
+        if (content && content.length > 200000) {
+            return res.status(400).json({ error: '内容不能超过 200000 个字符喵~' });
         }
         if (!category || !WIKI_CATEGORIES.includes(category)) {
             return res.status(400).json({ error: '请选择有效的分类喵~' });
@@ -2861,8 +2861,8 @@ app.put('/api/wiki/:id', authMiddleware, (req, res) => {
             articles[index].title = title.trim();
         }
         if (content !== undefined) {
-            if (content.length > 50000) {
-                return res.status(400).json({ error: '内容不能超过 50000 个字符喵~' });
+            if (content.length > 200000) {
+                return res.status(400).json({ error: '内容不能超过 200000 个字符喵~' });
             }
             articles[index].content = content.trim();
         }
