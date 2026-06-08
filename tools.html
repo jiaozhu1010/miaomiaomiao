@@ -434,10 +434,7 @@
                 </div>
             </a>
             <div class="nav-actions">
-                <span class="nav-user" id="userInfo" style="display:none">
-                    <span class="dot"></span><span id="userName"></span>
-                </span>
-                <button class="nav-pill login-pill" id="btnLogin" onclick="showAuthOverlay()">🔑 登录</button>
+                <button class="nav-pill login-pill" id="btnLogin" onclick="handleUserClick()">🔑 登录</button>
 
                 <a href="/" class="nav-pill home-pill">🏠 首页</a>
                 <a href="/knowledge.html" class="nav-pill home-pill" style="background:var(--glass-bg);color:var(--text-secondary);border:1px solid var(--glass-border)">📚 知识库</a>
@@ -628,20 +625,20 @@
 
     function updateAuthUI() {
         const user = Auth.getUser();
-        const info = document.getElementById('userInfo');
         const btn = document.getElementById('btnLogin');
         if (user) {
-            info.style.display = 'flex';
-            document.getElementById('userName').textContent = user.username;
-            btn.textContent = '🚪 退出'; btn.title = '退出登录';
+            btn.innerHTML = '<span class="dot"></span>' + user.username + ' <span style="opacity:0.4">×</span>';
             btn.className = 'nav-pill logout-pill';
-            btn.onclick = () => confirmLogout();
+            btn.title = '点击退出登录';
         } else {
-            info.style.display = 'none';
-            btn.textContent = '🔑 登录'; btn.title = '登录';
+            btn.innerHTML = '🔑 登录';
             btn.className = 'nav-pill login-pill';
-            btn.onclick = () => showAuthOverlay();
+            btn.title = '登录';
         }
+    }
+    function handleUserClick() {
+        if (Auth.isLoggedIn()) confirmLogout();
+        else showAuthOverlay();
     }
 
     function confirmLogout() {
