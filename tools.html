@@ -470,7 +470,7 @@
     <div class="app-shell">
         <!-- 顶栏 -->
         <nav class="nav-bar">
-            <a href="/" class="nav-brand">
+            <a href="/" class="nav-brand" target="_blank"
                 <span class="nav-logo">🐱</span>
                 <div>
                     <div class="nav-title">喵码 · AI 工具箱</div>
@@ -483,7 +483,8 @@
                 </span>
                 <button class="nav-pill login-pill" id="btnLogin" onclick="showAuthOverlay()">🔑 登录</button>
                 <button class="nav-pill" id="themeToggle" onclick="toggleTheme()" style="background:var(--glass-bg);color:var(--text-secondary);border:1px solid var(--glass-border)">🌙</button>
-                <a href="/" class="nav-pill home-pill">🏠 首页</a>
+                <a href="/" class="nav-pill home-pill" target="_blank">🏠 首页</a>
+                <a href="/knowledge.html" class="nav-pill home-pill" target="_blank" style="background:var(--glass-bg);color:var(--text-secondary);border:1px solid var(--glass-border)">📚 知识库</a>
             </div>
         </nav>
 
