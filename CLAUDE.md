@@ -8,7 +8,7 @@
 
 | 项目 | 详情 |
 |------|------|
-| **域名** | www.miaojiaozhu.com |
+| **域名** | miaojiaozhu.com |
 | **服务器 IP** | 124.221.144.237 |
 | **面板** | 宝塔 (Baota) |
 | **部署目录** | /www/wwwroot/miaosite |

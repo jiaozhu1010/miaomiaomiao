@@ -24,3 +24,11 @@ data/users.json
 .well-known/
 # Claude Code锁文件
 skills-lock.json
+# Claude Flow 运行时
+.claude-flow/
+# Swarm 运行时
+.swarm/
+# RuVector 数据库
+ruvector.db
+# 角色文件
+m.role

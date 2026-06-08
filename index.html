@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
     <title>喵码生成器 — 极简快递单号条码生成</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
@@ -65,6 +66,7 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
         }
 
@@ -351,16 +353,95 @@
            ========================= */
         .main-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(460px, 760px) minmax(260px, 340px);
+            grid-template-columns: 240px minmax(460px, 760px) minmax(260px, 340px);
             gap: 22px;
             align-items: flex-start;
+            justify-content: center;
         }
 
-        /* 左侧透明占位列，用于居中 */
-        .left-spacer {
-            visibility: hidden;
-            pointer-events: none;
+        /* 左侧趣味栏 — 「此刻」+「今天吃什么」 */
+        .left-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            transition: all 0.45s cubic-bezier(0.34,1.56,0.64,1);
         }
+        .left-sidebar.collapsed {
+            flex: 0 0 0;
+            min-width: 0;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-30px);
+            margin-right: -22px; /* 抵消 grid gap */
+        }
+        .left-sidebar.collapsed .moment-card,
+        .left-sidebar.collapsed .recipe-card {
+            position: absolute;
+            opacity: 0;
+            transform: translateY(-12px);
+            pointer-events: none;
+            transition: all 0.35s ease;
+        }
+
+        /* 收起按钮 — 玻璃药丸 */
+        .left-collapse-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            align-self: flex-end;
+            padding: 4px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-body);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.25s var(--transition-bounce);
+            white-space: nowrap;
+        }
+        .left-collapse-btn:hover {
+            background: rgba(255,255,255,0.8);
+            color: var(--text-secondary);
+            padding-right: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        /* 折叠后的浮动展开按钮 */
+        .left-float-paw {
+            display: none;
+            position: absolute;
+            left: 8px;
+            top: 20px;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(135deg, rgba(255,159,67,0.85), rgba(255,180,110,0.85));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            cursor: pointer;
+            font-size: 18px;
+            color: #fff;
+            z-index: 20;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(255,159,67,0.25);
+            transition: all 0.3s var(--transition-bounce);
+            animation: floatBounce 2.5s ease-in-out infinite;
+        }
+        @keyframes floatBounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(4px); }
+        }
+        .left-float-paw:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 24px rgba(255,159,67,0.4);
+            animation: none;
+        }
+        .left-float-paw.show { display: flex; }
 
         /* =========================
            毛玻璃卡片通用样式
@@ -388,6 +469,154 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+        }
+
+        /* =========================
+           左栏卡片 — 「此刻」诗意卡片
+           ========================= */
+        .moment-card {
+            /* glass-card 基础上仅微调内边距和布局 */
+            padding: 16px 18px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .moment-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #b86840;
+            letter-spacing: 1.5px;
+        }
+        .moment-text {
+            font-size: 13px;
+            font-style: italic;
+            color: #5d3a1a;
+            line-height: 1.7;
+            transition: opacity 0.5s ease;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        .moment-text.fade-out { opacity: 0; }
+        .moment-dots {
+            display: flex; gap: 5px; justify-content: center;
+        }
+        .moment-dots span {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: #d4b088; transition: all 0.3s ease;
+        }
+        .moment-dots span.active {
+            background: #d49478; transform: scale(1.4);
+        }
+
+        /* =========================
+           左栏卡片 — 「今天吃什么」食谱卡片
+           ========================= */
+        .recipe-card {
+            /* glass-card 基础上仅微调内边距 */
+            padding: 16px;
+        }
+        .recipe-card h3 {
+            text-align: center;
+            color: var(--accent);
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+        .recipe-card .ingredient-input {
+            width: 100%; padding: 8px 10px;
+            border: 1px solid #e8d5c0;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.6);
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            transition: border-color 0.3s;
+        }
+        .recipe-card .ingredient-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,159,67,0.08);
+        }
+        .recipe-card .ingredient-input::placeholder {
+            color: #c4b5a8;
+        }
+        .recipe-card .mood-chips,
+        .recipe-card .diet-chips {
+            display: flex; flex-wrap: wrap;
+            gap: 4px; margin-bottom: 6px;
+        }
+        .recipe-card .diet-chips {
+            margin-bottom: 10px;
+        }
+        .recipe-card .chip {
+            padding: 3px 10px; border-radius: 14px;
+            font-size: 11px; cursor: pointer;
+            background: #f5f0eb; border: 1px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .recipe-card .chip:hover {
+            background: #fdf3e4;
+        }
+        .recipe-card .chip.active {
+            background: #fdf3e4;
+            border-color: var(--accent);
+            color: #b86840; font-weight: 600;
+        }
+        .recipe-card .decide-btn {
+            width: 100%; padding: 10px;
+            background: linear-gradient(135deg, #ff9f43, #ffb88c);
+            color: #fff; border: none;
+            border-radius: 12px;
+            font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            font-family: var(--font-body);
+        }
+        .recipe-card .decide-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(255,159,67,0.3);
+        }
+        .recipe-card .decide-btn:active {
+            transform: scale(0.96);
+        }
+        .recipe-card .decide-btn:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none;
+        }
+
+        /* 食谱结果展示 */
+        .recipe-result {
+            margin-top: 10px; padding: 12px;
+            background: linear-gradient(135deg, #fff8f0, #fff3e6);
+            border-radius: 12px; border: 1px solid #f0d8c0;
+            animation: resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            display: none;
+        }
+        .recipe-result.show { display: block; }
+        .recipe-result .dish-name {
+            font-size: 18px; font-weight: 800; color: #b86840;
+            text-align: center; margin-bottom: 4px;
+        }
+        .recipe-result .dish-meta {
+            text-align: center; font-size: 11px; color: #a08c7a; margin-bottom: 8px;
+        }
+        .recipe-result .dish-steps {
+            font-size: 12px; color: #5d3a1a; line-height: 1.6;
+            padding-left: 16px; margin-bottom: 8px;
+        }
+        .recipe-result .cat-comment {
+            font-size: 11px; font-style: italic; color: #d49478;
+            text-align: center; border-top: 1px dashed #e8c8b0;
+            padding-top: 8px;
+        }
+        @keyframes resultPop {
+            from { opacity:0; transform: translateY(10px) scale(0.95); }
+            to { opacity:1; transform: translateY(0) scale(1); }
         }
 
         /* 页面标题区 */
@@ -637,6 +866,19 @@
             font-size: 12px;
             border-radius: 16px;
         }
+        .btn-comma {
+            background: linear-gradient(135deg, #f7a978, #f5c09e);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(247, 169, 120, 0.3);
+        }
+        .btn-comma:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(247, 169, 120, 0.45);
+        }
+        .btn-comma:active {
+            transform: translateY(1px) scale(0.96);
+            box-shadow: 0 2px 8px rgba(247, 169, 120, 0.2);
+        }
 
         /* 自定义 Select */
         .select-group {
@@ -655,7 +897,7 @@
         }
         .pretty-select {
             position: relative;
-            min-width: 120px;
+            min-width: 90px;
             z-index: 50;
         }
         .pretty-select.open {
@@ -1231,6 +1473,102 @@
                 0 2px 8px rgba(0, 0, 0, 0.05);
             transition: all var(--transition-bounce);
         }
+        /* =========================
+           AI 智能数据处理卡片
+           ========================= */
+        .data-tools-card {
+            padding: 20px;
+        }
+        .data-tools-card h3 {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 12px;
+        }
+        .data-tools-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px 14px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-size: 12px;
+            color: var(--text-primary);
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            line-height: 1.6;
+            transition: all var(--transition-smooth);
+            box-sizing: border-box;
+        }
+        .data-tools-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.07);
+        }
+        .data-tools-input::placeholder {
+            color: var(--text-tertiary);
+            font-size: 11px;
+        }
+        .data-tools-actions {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .data-tools-actions .btn {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        .data-tools-output {
+            margin-top: 12px;
+            min-height: 40px;
+            max-height: 200px;
+            overflow: auto;
+        }
+        .data-tools-empty {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            padding: 12px 0;
+            background: rgba(255,255,255,0.25);
+            border-radius: 10px;
+        }
+        .data-tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        .data-tools-table th {
+            background: rgba(255, 159, 67, 0.1);
+            color: var(--accent);
+            font-weight: 700;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 2px solid rgba(255, 159, 67, 0.2);
+            white-space: nowrap;
+        }
+        .data-tools-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+        .data-tools-table tr:hover td {
+            background: rgba(255, 159, 67, 0.04);
+        }
+        .data-tools-status {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            min-height: 18px;
+            line-height: 1.4;
+        }
+        .data-tools-status.success { color: #34c759; font-weight: 600; }
+        .data-tools-status.error { color: var(--accent-2); font-weight: 600; }
+
         /* 侧边栏提示卡片 */
         .tips-card {
             padding: 18px;
@@ -1262,290 +1600,6 @@
         }
 
         /* =========================
-           喵喵大厅悬浮元素（保留原样式逻辑）
-           ========================= */
-        .floating-chat-btn {
-            position: fixed;
-            right: 28px;
-            bottom: 28px;
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(145deg, #ffd180, #ffb74d);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            cursor: pointer;
-            z-index: 9999;
-            border: 3px solid rgba(255,255,255,0.5);
-            box-shadow:
-                0 8px 24px rgba(255, 159, 67, 0.35),
-                0 0 20px rgba(255, 183, 77, 0.2);
-            animation: floatBreath 3s ease-in-out infinite;
-            transition: all var(--transition-bounce);
-        }
-        .floating-chat-btn::after {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 159, 67, 0.3);
-            animation: pulseRing 2.2s ease-out infinite;
-        }
-        @keyframes floatBreath {
-            0%, 100% { transform: translateY(0) scale(1); }
-            30% { transform: translateY(-8px) scale(1.04); }
-            60% { transform: translateY(-2px) scale(0.98); }
-        }
-        @keyframes pulseRing {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
-        .floating-chat-btn:hover {
-            transform: scale(1.15) rotate(8deg) !important;
-            box-shadow: 0 12px 36px rgba(255, 159, 67, 0.5) !important;
-            animation: none !important;
-        }
-        .floating-chat-btn:active {
-            transform: scale(0.9) !important;
-        }
-
-        .floating-chat-window {
-            position: fixed;
-            right: 28px;
-            bottom: 110px;
-            width: clamp(320px, 26vw, 420px);
-            height: clamp(420px, 62vh, 620px);
-            max-height: calc(100vh - 140px);
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(32px) saturate(180%);
-            -webkit-backdrop-filter: blur(32px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: var(--radius-lg);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 40px rgba(255,159,67,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            z-index: 9998;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(30px) scale(0.85);
-            transition: all 0.4s cubic-bezier(.2,.8,.2,1);
-        }
-        .floating-chat-window.show {
-            opacity: 1;
-            pointer-events: auto;
-            animation: chatPopup 0.45s cubic-bezier(.18,1.25,.4,1);
-            transform: translateY(0) scale(1);
-        }
-        @keyframes chatPopup {
-            0% { opacity: 0; transform: translateY(60px) scale(0.6) rotate(-8deg); }
-            60% { opacity: 1; transform: translateY(-10px) scale(1.04) rotate(2deg); }
-            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
-        }
-        @keyframes catSwatOut {
-            0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-            25%  { transform: translateY(-12px) rotate(-4deg) scale(1.02); opacity: 1; }
-            100% { transform: translateY(90px) rotate(10deg) scale(0.65); opacity: 0; }
-        }
-        .floating-chat-window.swatting {
-            animation: catSwatOut 0.38s cubic-bezier(.4,0,1,1) forwards !important;
-            pointer-events: none;
-        }
-        .floating-chat-header {
-            height: 56px;
-            background: rgba(255,255,255,0.5);
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 18px;
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 15px;
-            cursor: move;
-            flex-shrink: 0;
-        }
-        .chat-title-area { display: flex; flex-direction: column; gap: 1px; }
-        .chat-title { font-size: 15px; font-weight: 700; }
-        #close-chat-btn {
-            width: 32px; height: 32px;
-            border: none;
-            border-radius: 50%;
-            background: rgba(255, 107, 107, 0.12);
-            color: var(--accent-2);
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
-        }
-        #close-chat-btn:hover {
-            background: rgba(255, 107, 107, 0.25);
-            animation: pawWiggle 0.35s ease infinite;
-        }
-        #close-chat-btn:active {
-            transform: translateY(2px) scale(0.9) rotate(20deg) !important;
-            animation: none !important;
-        }
-        @keyframes pawWiggle {
-            0%,100% { transform: rotate(-12deg) scale(1.05); }
-            50% { transform: rotate(12deg) scale(1.05); }
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 14px;
-            overflow-y: auto;
-            background: rgba(255,255,255,0.25);
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 8px;
-        }
-        .chat-loading {
-            text-align: center;
-            color: var(--text-tertiary);
-            font-size: 13px;
-            padding: 20px;
-        }
-        .msg-bubble {
-            background: rgba(255,255,255,0.55);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0,0,0,0.06);
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            max-width: 88%;
-            align-self: flex-start;
-            transition: all var(--transition-fast);
-        }
-        .msg-bubble:hover {
-            background: rgba(255,255,255,0.78);
-        }
-        .msg-meta {
-            font-size: 11px;
-            color: var(--accent);
-            font-weight: 700;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-        }
-        .msg-time { color: var(--text-tertiary); font-weight: 400; }
-        .msg-text {
-            font-size: 13px;
-            color: var(--text-primary);
-            word-break: break-all;
-            line-height: 1.5;
-        }
-        .chat-footer {
-            padding: 12px 14px;
-            background: rgba(255,255,255,0.4);
-            border-top: 1px solid rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        #chat-nick {
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 14px;
-            padding: 6px 12px;
-            font-size: 12px;
-            background: rgba(255,255,255,0.5);
-            color: var(--text-primary);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-        .chat-input-row { display: flex; gap: 6px; }
-        #chat-msg {
-            flex: 1;
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 14px;
-            padding: 8px 12px;
-            font-size: 13px;
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: var(--text-primary);
-        }
-        .emoji-toggle-btn {
-            width: 34px; height: 34px;
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 50%;
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-bounce);
-        }
-        .emoji-toggle-btn:hover {
-            background: rgba(255,255,255,0.8);
-            transform: scale(1.1);
-        }
-        .emoji-panel {
-            display: none;
-            flex-wrap: wrap;
-            gap: 5px;
-            padding: 10px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: var(--radius-sm);
-            max-height: 140px;
-            overflow-y: auto;
-        }
-        .emoji-panel.show { display: flex; }
-        .emoji-item {
-            width: 32px; height: 32px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform var(--transition-bounce);
-        }
-        .emoji-item:hover { transform: scale(1.25); }
-        .emoji-item:active { transform: scale(0.85); }
-
-        #chat-send-btn {
-            background: linear-gradient(135deg, var(--accent), #ffb366);
-            color: #fff;
-            border: none;
-            border-radius: 16px;
-            padding: 6px 16px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 16px rgba(255, 159, 67, 0.3);
-            transition: all var(--transition-bounce);
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        #chat-send-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(255, 159, 67, 0.45);
-        }
-        #chat-send-btn:active {
-            transform: translateY(1px) scale(0.94);
-        }
-        #chat-send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* =========================
            Toast
            ========================= */
         .toast {
@@ -1573,16 +1627,213 @@
         }
 
         /* =========================
+           回到顶部按钮 — 日落余晖渐变
+           ========================= */
+        .back-to-top-wrap {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            width: 56px;
+            height: 56px;
+            z-index: 9997;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(16px) scale(0.7);
+            transition: all 0.45s cubic-bezier(.18,1.25,.4,1);
+        }
+        .back-to-top-wrap.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        /* SVG 进度环 */
+        .back-to-top-ring {
+            position: absolute;
+            inset: 0;
+            width: 56px;
+            height: 56px;
+            transform: rotate(-90deg);
+            pointer-events: none;
+            filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.45));
+        }
+        .ring-track {
+            fill: none;
+            stroke: rgba(200, 180, 170, 0.25);
+            stroke-width: 3;
+        }
+        .ring-fill {
+            fill: none;
+            stroke: url(#ringGradient);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 157.08;
+            stroke-dashoffset: 157.08;
+            transition: stroke-dashoffset 0.2s ease-out;
+        }
+
+        .back-to-top {
+            position: absolute;
+            inset: 4px;
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px) saturate(140%);
+            -webkit-backdrop-filter: blur(16px) saturate(140%);
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 2;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                0 3px 16px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+            animation: topBtnFloat 3.5s ease-in-out infinite;
+        }
+        @keyframes topBtnFloat {
+            0%, 100% { transform: translateY(0); }
+            50%  { transform: translateY(-2px); }
+        }
+        .back-to-top:hover {
+            background: rgba(255, 255, 255, 0.88);
+            border-color: rgba(255, 255, 255, 0.9);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.95),
+                0 8px 30px rgba(251, 146, 60, 0.25),
+                0 0 0 1px rgba(251, 146, 60, 0.15);
+            transform: translateY(-2px) scale(1.05);
+            animation: none;
+        }
+        .back-to-top:hover + .back-to-top-ripple {
+            opacity: 0; /* 悬停时隐藏波纹准备 */
+        }
+        .back-to-top:active {
+            transform: scale(0.92) !important;
+            transition: transform 0.1s cubic-bezier(.2,0,.8,1) !important;
+            animation: none;
+            box-shadow:
+                inset 0 2px 8px rgba(0, 0, 0, 0.08),
+                0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 点击波纹 — 日落爆发 */
+        .back-to-top-ripple {
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+        }
+        .back-to-top-ripple.burst {
+            animation: sunsetRipple 0.65s ease-out forwards;
+        }
+        @keyframes sunsetRipple {
+            0%   {
+                transform: scale(0.8); opacity: 1;
+                box-shadow:
+                    0 0 0 2px rgba(248, 113, 113, 0.7),
+                    0 0 14px 4px rgba(251, 146, 60, 0.45),
+                    0 0 22px 8px rgba(251, 191, 36, 0.25);
+            }
+            100% {
+                transform: scale(2.2); opacity: 0;
+                box-shadow:
+                    0 0 0 1px rgba(248, 113, 113, 0),
+                    0 0 0 6px rgba(251, 146, 60, 0),
+                    0 0 0 12px rgba(251, 191, 36, 0);
+            }
+        }
+
+        /* 回到顶部后的弹跳反馈 */
+        .back-to-top-wrap.boing .back-to-top {
+            animation: boingBounce 0.5s cubic-bezier(.2,.8,.2,1) !important;
+        }
+        @keyframes boingBounce {
+            0%   { transform: scale(0.88); }
+            35%  { transform: scale(1.08); }
+            55%  { transform: scale(0.95); }
+            75%  { transform: scale(1.02); }
+            100% { transform: scale(1); animation: topBtnFloat 3.5s ease-in-out infinite; }
+        }
+
+        /* =========================
+           火箭发射动画
+           ========================= */
+        .launch-rocket {
+            position: fixed;
+            z-index: 99999;
+            font-size: 28px;
+            pointer-events: none;
+            animation: rocketFly 0.8s cubic-bezier(.3,0,.6,1) forwards;
+            filter: drop-shadow(0 0 10px rgba(251, 146, 60, 0.6));
+        }
+        @keyframes rocketFly {
+            0%   { transform: translateY(0) scale(1) rotate(-45deg); opacity: 1; }
+            15%  { transform: translateY(-30px) scale(1.1) rotate(-48deg); opacity: 1; }
+            30%  { transform: translateY(-80px) scale(0.95) rotate(-42deg); opacity: 1; }
+            60%  { transform: translateY(-300px) scale(0.7) rotate(-46deg); opacity: 0.8; }
+            100% { transform: translateY(-800px) scale(0.2) rotate(-45deg); opacity: 0; }
+        }
+
+        /* 火焰粒子 */
+        .launch-spark {
+            position: fixed;
+            z-index: 99998;
+            pointer-events: none;
+        }
+        .launch-spark.s1 { animation: sparkDrift1 0.7s ease-out forwards; }
+        .launch-spark.s2 { animation: sparkDrift2 0.8s ease-out forwards; }
+        .launch-spark.s3 { animation: sparkDrift3 0.6s ease-out forwards; }
+        @keyframes sparkDrift1 {
+            0%   { transform: translateY(0) translateX(0); opacity: 1; font-size: 14px; }
+            100% { transform: translateY(-250px) translateX(-20px); opacity: 0; font-size: 6px; }
+        }
+        @keyframes sparkDrift2 {
+            0%   { transform: translateY(0) translateX(0); opacity: 1; font-size: 12px; }
+            100% { transform: translateY(-200px) translateX(18px); opacity: 0; font-size: 4px; }
+        }
+        @keyframes sparkDrift3 {
+            0%   { transform: translateY(0) translateX(0); opacity: 1; font-size: 16px; }
+            100% { transform: translateY(-300px) translateX(-8px); opacity: 0; font-size: 5px; }
+        }
+
+        /* =========================
+           页脚
+           ========================= */
+        .site-footer {
+            text-align: center;
+            padding: 30px 0 16px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            position: relative;
+            z-index: 2;
+        }
+        .site-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .site-footer a:hover {
+            color: var(--accent);
+        }
+
+        /* =========================
            响应式
            ========================= */
         @media (max-width: 1100px) {
             .main-layout {
-                grid-template-columns: 1fr;
-                max-width: 760px;
-                margin: 0 auto;
+                grid-template-columns: minmax(460px, 760px) minmax(260px, 340px);
+                justify-content: center;
             }
-            .left-spacer {
+            .left-sidebar {
                 display: none;
+            }
+            .left-float-paw {
+                display: none !important;
             }
             .content-sidebar {
                 position: static;
@@ -1625,22 +1876,13 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .floating-chat-btn {
-                right: 16px;
-                bottom: 16px;
-                width: 56px; height: 56px;
-                font-size: 26px;
-            }
-            .floating-chat-window {
-                right: 8px;
-                left: 8px;
-                width: auto;
-                bottom: 90px;
-                border-radius: var(--radius-lg);
-            }
             textarea#barcode-input {
                 height: 120px;
                 font-size: 15px;
+            }
+            .back-to-top-wrap {
+                right: 16px;
+                bottom: 16px;
             }
         }
         @media (max-width: 480px) {
@@ -1714,6 +1956,7 @@
                 <div class="nav-logo">🐱</div>
                 <div>
                     <div class="nav-title">喵码生成器</div>
+                    <div class="nav-subtitle">🏠 miaojiaozhu.com　💬 京me群 10229406786</div>
                 </div>
             </div>
             <div class="nav-actions">
@@ -1733,8 +1976,57 @@
         <!-- 三栏主体（主内容居中） -->
         <div class="main-layout">
 
-            <!-- 左侧占位列（透明，用于居中） -->
-            <div class="left-spacer"></div>
+            <!-- ========== 左栏：生活趣味 ========== -->
+            <aside class="left-sidebar" id="left-sidebar">
+                <button class="left-collapse-btn" id="left-collapse-btn">◀ 收起</button>
+
+                <!-- 🕰️ 此刻卡片 -->
+                <div class="glass-card moment-card" id="moment-card">
+                    <div class="moment-label">🕰️ 此刻</div>
+                    <div class="moment-text" id="moment-text">此刻，有一只小橘猫正在窗边等你回家喵~</div>
+                    <div class="moment-dots" id="moment-dots">
+                        <span class="active"></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- 🍜 今天吃什么卡片 -->
+                <div class="glass-card recipe-card" id="recipe-card">
+                    <h3>🍜 今天吃什么</h3>
+
+                    <input class="ingredient-input" id="recipe-ingredients"
+                           placeholder="🥬 冰箱里有啥？（可不填）"
+                           maxlength="100">
+
+                    <div class="mood-chips" id="mood-chips">
+                        <span class="chip" data-mood="happy">😊 开心</span>
+                        <span class="chip" data-mood="lazy">😴 懒散</span>
+                        <span class="chip" data-mood="sick">🤒 不舒服</span>
+                        <span class="chip" data-mood="treat">🎉 犒劳自己</span>
+                    </div>
+
+                    <div class="diet-chips" id="diet-chips">
+                        <span class="chip" data-diet="nospicy">🌶️ 不吃辣</span>
+                        <span class="chip" data-diet="noseafood">🐟 不吃海鲜</span>
+                        <span class="chip" data-diet="veggie">🥬 素食</span>
+                        <span class="chip" data-diet="lactose">🥛 乳糖不耐</span>
+                        <span class="chip" data-diet="lowsugar">🍬 控糖</span>
+                    </div>
+
+                    <button class="decide-btn" id="recipe-btn">
+                        🎲 帮我决定！
+                    </button>
+
+                    <div class="recipe-result" id="recipe-result">
+                        <div class="dish-name" id="dish-name"></div>
+                        <div class="dish-meta" id="dish-meta"></div>
+                        <div class="dish-steps" id="dish-steps"></div>
+                        <div class="cat-comment" id="cat-comment"></div>
+                    </div>
+                </div>
+
+            </aside>
 
             <!-- ========== 中栏：主内容 ========== -->
             <div class="content-primary">
@@ -1816,6 +2108,7 @@
                                 </div>
                             </div>
                             <button class="btn btn-info" id="copy-btn">复制单号</button>
+                            <button class="btn btn-comma" id="comma-copy-btn">逗号拼接</button>
                             <button class="btn btn-danger" id="clear-btn">清空</button>
                         </div>
                     </div>
@@ -1864,50 +2157,61 @@
                     <div class="ocr-candidates" id="ocr-candidates"></div>
                 </div>
 
+                <!-- AI 智能数据处理 -->
+                <div class="glass-card data-tools-card">
+                    <h3>🤖 AI 智能数据处理</h3>
+                    <textarea class="data-tools-input" id="data-tools-input" placeholder="粘贴任意格式的杂乱文本...&#10;例如：聊天记录、复制内容、邮件正文&#10;AI 会自动识别并转为整齐的表格"></textarea>
+                    <div class="data-tools-actions">
+                        <button class="btn btn-accent btn-sm" id="data-parse-btn">🤖 智能解析</button>
+                        <button class="btn btn-ghost btn-sm" id="data-copy-btn" disabled>📋 复制表格</button>
+                        <button class="btn btn-ghost btn-sm" id="data-clear-btn">🗑️ 清空</button>
+                    </div>
+                    <div class="data-tools-status" id="data-tools-status"></div>
+                    <div class="data-tools-output" id="data-tools-output">
+                        <div class="data-tools-empty">👆 粘贴文本后点击「AI 智能解析」，DeepSeek 自动识别并转为表格</div>
+                    </div>
+                </div>
+
                 <!-- 使用提示 -->
                 <div class="glass-card tips-card">
                     <h3>💡 使用小贴士</h3>
                     <div class="tips-list">
-                        <div class="tip-item">📸 截图快递面单 → 拖入或粘贴到右侧 → 自动识别单号、提取文字</div>
-                        <div class="tip-item">📋 粘贴乱码文本 → 点击「智能整理」→ 一键纠正错别字、去重排序</div>
-                        <div class="tip-item">🔍 粘贴纯数字 → 自动生成条码图形，支持 JsBarcode 多种码制</div>
-                        <div class="tip-item">📚 点击左上角 📚 按钮 → 进入知识库 Wiki，浏览六类百科文章</div>
-                        <div class="tip-item">💬 点击右上角 💬 按钮 → 和小橘 AI 聊天，支持多模型切换</div>
-                        <div class="tip-item">🐱 点击右下角爪印 → 打开喵喵大厅悬浮聊天窗</div>
-                        <div class="tip-item">🖱️ 点击历史记录 → 快速恢复之前生成的条码和识别结果</div>
+                        <div class="tip-item">📦 粘贴快递单号 → 自动生成 CODE128 条码，支持批量输入、一键复制</div>
+                        <div class="tip-item">📸 上传快递面单截图 → AI 自动识别单号、收件人、地址等关键信息</div>
+                        <div class="tip-item">📋 粘贴乱码文本 → 点击「智能整理」→ 一键纠错、去重排序、格式化</div>
+                        <div class="tip-item">🤖 点击顶部导航「🧰 AI 工具箱」→ 8 大技能卡片环绕对话，DeepSeek V4 Pro 驱动</div>
+                        <div class="tip-item">📚 点击顶部「📚 知识库」→ 六类快递物流百科，支持搜索和分类浏览</div>
+                        <div class="tip-item">🌙 点击导航栏右侧月亮图标 → 切换暗色模式，夜间使用更护眼</div>
+                        <div class="tip-item">🖱️ 点击单号历史记录 → 快速恢复之前生成的条码，支持批量删除</div>
                     </div>
                 </div>
             </aside>
         </div>
     </div>
 
-    <!-- ==================== 喵喵大厅悬浮按钮 ==================== -->
-    <div class="floating-chat-btn" id="floating-chat-btn">🐾</div>
 
-    <!-- ==================== 喵喵大厅悬浮窗 ==================== -->
-    <div class="floating-chat-window" id="floating-chat-window">
-        <div class="floating-chat-header" id="chat-header-drag">
-            <div class="chat-title-area">
-                <span class="chat-title">🐈 喵喵大厅</span>
-            </div>
-            <button id="close-chat-btn" title="拍走大厅喵~">🐾</button>
-        </div>
-        <div class="chat-messages" id="chat-box">
-            <div class="chat-loading">正在接入喵星信号...</div>
-        </div>
-        <div class="chat-footer">
-            <input type="text" id="chat-nick" placeholder="昵称: 随机猫咪" maxlength="10">
-            <div class="chat-input-row">
-                <button class="emoji-toggle-btn" id="emoji-toggle-btn" title="表情包">😺</button>
-                <input type="text" id="chat-msg" placeholder="说点什么吧..." maxlength="100">
-                <button id="chat-send-btn">发射</button>
-            </div>
-            <div class="emoji-panel" id="emoji-panel"></div>
-        </div>
-    </div>
 
     <!-- Toast -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- 回到顶部 -->
+    <div class="back-to-top-wrap" id="back-to-top-wrap">
+        <svg class="back-to-top-ring" viewBox="0 0 56 56">
+            <defs>
+                <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%"   stop-color="#f87171" />
+                    <stop offset="25%"  stop-color="#fb923c" />
+                    <stop offset="50%"  stop-color="#fbbf24" />
+                    <stop offset="75%"  stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#f87171" />
+                </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="28" cy="28" r="25" />
+            <circle class="ring-fill" id="ring-fill" cx="28" cy="28" r="25" />
+        </svg>
+        <button class="back-to-top" id="back-to-top" title="回到顶部喵~">🚀</button>
+        <span class="back-to-top-ripple" id="back-to-top-ripple"></span>
+    </div>
 
     <!-- ==================== JavaScript（保留全部原有逻辑） ==================== -->
     <script>
@@ -1936,6 +2240,7 @@
         const btnDpk = document.getElementById('btn-dpk');
         const btnDpl = document.getElementById('btn-dpl');
         const copyBtn = document.getElementById('copy-btn');
+        const commaCopyBtn = document.getElementById('comma-copy-btn');
         const formatBtn = document.getElementById('format-btn');
         const heightSelect = document.getElementById('barcode-height-select');
         const toast = document.getElementById('toast');
@@ -3067,6 +3372,23 @@
             }
         });
 
+        commaCopyBtn.addEventListener('click', async () => {
+            const lines = getLines().filter(l => l.trim() !== '');
+            if (lines.length === 0) { showToast('没有可拼接的单号喵~'); return; }
+            const commaText = lines.map(l => l.trim()).join(',');
+            const preview = commaText.length > 50 ? commaText.slice(0, 50) + '…' : commaText;
+            const copied = await copyText(commaText, `已拼接 ${lines.length} 条喵~：${preview}`);
+            if (copied) {
+                const originalText = commaCopyBtn.innerText;
+                commaCopyBtn.innerText = '已复制！';
+                commaCopyBtn.style.background = 'linear-gradient(135deg, #34c759, #30d158)';
+                setTimeout(() => {
+                    commaCopyBtn.innerText = originalText;
+                    commaCopyBtn.style.background = '';
+                }, 1200);
+            }
+        });
+
         formatBtn.addEventListener('click', () => {
             const result = extractSmartTrackingCodes(inputArea.value);
             const codes = result.codes;
@@ -3091,149 +3413,129 @@
         });
 
         renderBarcodes();
+
+        // ==================== AI 智能数据处理 ====================
+        const dataToolsInput = document.getElementById('data-tools-input');
+        const dataParseBtn = document.getElementById('data-parse-btn');
+        const dataCopyBtn = document.getElementById('data-copy-btn');
+        const dataClearBtn = document.getElementById('data-clear-btn');
+        const dataToolsOutput = document.getElementById('data-tools-output');
+        const dataToolsStatus = document.getElementById('data-tools-status');
+
+        let lastParsedTableData = null;
+
+        // Client-side smart parser for common Chinese data patterns
+        function renderDataTable(data) {
+            if (!data || !data.rows.length) {
+                dataToolsOutput.innerHTML = '<div class="data-tools-empty">未识别到结构化数据，请尝试调整文本格式</div>';
+                dataCopyBtn.disabled = true;
+                return;
+            }
+
+            let html = '<table class="data-tools-table"><thead><tr>';
+            data.headers.forEach(h => { html += `<th>${escapeHtml(h)}</th>`; });
+            html += '</tr></thead><tbody>';
+            data.rows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => { html += `<td>${escapeHtml(cell)}</td>`; });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            dataToolsOutput.innerHTML = html;
+            dataCopyBtn.disabled = false;
+            lastParsedTableData = data;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function doDataParse() {
+            const text = dataToolsInput.value.trim();
+            if (!text) {
+                dataToolsStatus.textContent = '请先粘贴文本喵~';
+                dataToolsStatus.className = 'data-tools-status error';
+                return;
+            }
+
+            dataToolsOutput.innerHTML = '<div class="data-tools-empty">🤖 AI 正在分析数据...</div>';
+            dataToolsStatus.textContent = '正在调用 AI 智能识别数据...';
+            dataToolsStatus.className = 'data-tools-status';
+            dataParseBtn.disabled = true;
+            dataParseBtn.textContent = '⏳ 解析中...';
+
+            try {
+                const response = await Auth.fetch('/api/data-parse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.rows || data.rows.length === 0) {
+                    throw new Error('AI 未识别到结构化数据');
+                }
+
+                renderDataTable(data);
+                dataToolsStatus.textContent = `🤖 AI 解析完成 — 识别到 ${data.rows.length} 行 ${data.headers.length} 列数据`;
+                dataToolsStatus.className = 'data-tools-status success';
+                lastParsedTableData = data;
+            } catch (err) {
+                console.error('AI 数据解析失败:', err);
+                dataToolsStatus.textContent = `⚠️ 解析失败：${err.message}`;
+                dataToolsStatus.className = 'data-tools-status error';
+            } finally {
+                dataParseBtn.disabled = false;
+                dataParseBtn.textContent = '🤖 智能解析';
+            }
+        }
+
+        function copyTableToClipboard() {
+            if (!lastParsedTableData) return;
+            const lines = [];
+            lines.push(lastParsedTableData.headers.join('\t'));
+            lastParsedTableData.rows.forEach(row => {
+                lines.push(row.join('\t'));
+            });
+            const text = lines.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('表格已复制喵~ 可直接粘贴到 Excel');
+            }).catch(() => {
+                showToast('复制失败，请手动选择表格内容');
+            });
+        }
+
+        dataParseBtn.addEventListener('click', doDataParse);
+        dataCopyBtn.addEventListener('click', copyTableToClipboard);
+        dataClearBtn.addEventListener('click', () => {
+            dataToolsInput.value = '';
+            dataToolsOutput.innerHTML = '<div class="data-tools-empty">👆 粘贴文本后点击「AI 智能解析」，DeepSeek 自动识别并转为表格</div>';
+            dataToolsStatus.textContent = '';
+            dataToolsStatus.className = 'data-tools-status';
+            dataCopyBtn.disabled = true;
+            lastParsedTableData = null;
+            dataParseBtn.disabled = false;
+            dataParseBtn.textContent = '🤖 智能解析';
+        });
+
+        // Auto-parse on Ctrl+Enter in the data input
+        dataToolsInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                doDataParse();
+            }
+        });
     </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const chatBox = document.getElementById('chat-box');
-            const chatNickInput = document.getElementById('chat-nick');
-            const chatMsgInput = document.getElementById('chat-msg');
-            const chatSendBtn = document.getElementById('chat-send-btn');
-            let lastMessageSignature = '';
-            const floatingChatBtn = document.getElementById('floating-chat-btn');
-            const floatingChatWindow = document.getElementById('floating-chat-window');
-            const chatHeaderDrag = document.getElementById('chat-header-drag');
-            const catNames = ['奶橘喵', '起司大花', '傲娇布偶', '无敌三花', '熬夜黑猫', '打包大麦', '圆滚滚英短'];
-            const randomNick = catNames[Math.floor(Math.random() * catNames.length)] + '_' + Math.floor(Math.random() * 900 + 100);
-            chatNickInput.placeholder = `昵称: ${randomNick}`;
-
-            function fetchChats() {
-                fetch('/api/chat')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.messages) return;
-                        const signature = JSON.stringify(data.messages);
-                        if (signature === lastMessageSignature) return;
-                        lastMessageSignature = signature;
-                        const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 80;
-                        if (data.messages.length === 0) {
-                            chatBox.innerHTML = '<div class="chat-loading">大厅空荡荡，快来抢沙发喵！</div>';
-                            return;
-                        }
-                        const fragment = document.createDocumentFragment();
-                        data.messages.forEach(msg => {
-                            const bubble = document.createElement('div');
-                            bubble.className = 'msg-bubble';
-                            const safeNick = msg.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                            const safeContent = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                            bubble.innerHTML = `<div class="msg-meta"><span>🐱 ${safeNick}</span><span class="msg-time">${msg.time}</span></div><div class="msg-text">${safeContent}</div>`;
-                            fragment.appendChild(bubble);
-                        });
-                        chatBox.innerHTML = '';
-                        chatBox.appendChild(fragment);
-                        if (isNearBottom) {
-                            requestAnimationFrame(() => { chatBox.scrollTop = chatBox.scrollHeight; });
-                        }
-                    })
-                    .catch(err => console.error('加载大厅消息失败', err));
-            }
-
-            function sendChat() {
-                const content = chatMsgInput.value.trim();
-                if (!content) return;
-                const nickname = chatNickInput.value.trim() || randomNick;
-                chatSendBtn.disabled = true;
-                chatSendBtn.innerText = '喵..';
-                fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nickname, content })
-                })
-                .then(res => res.json())
-                .then(data => { if (data.success) { chatMsgInput.value = ''; fetchChats(); } })
-                .catch(err => console.error('发射失败', err))
-                .finally(() => { chatSendBtn.disabled = false; chatSendBtn.innerText = '发射'; });
-            }
-
-            chatSendBtn.addEventListener('click', sendChat);
-            chatMsgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
-
-            const emojiToggleBtn = document.getElementById('emoji-toggle-btn');
-            const emojiPanel = document.getElementById('emoji-panel');
-            const EMOJI_LIST = [
-                '😺','😸','😹','😻','😼','😽','🙀','😿','😾','🐱','🐈','🐾','🐟','🐠','🐡','🦐','🦑',
-                '❤️','🧡','💛','💚','💙','💜','🩷','✨','🌟','💫','⭐','🔥','💥','🌈',
-                '🎉','🎊','🎀','💝','💖','💗','💘','🥰','😍','😘','😋','🤩','😎','🤗',
-                '👍','👏','🙌','💪','🤝','✌️','👋','🍰','🧁','🍩','🍪','🍬','🍭','🍫',
-                '🐣','🦊','🐰','🐻','🐼','🐨','🐯','🌸','🌺','🌻','🌷','💐','🍀','🌿',
-                '💤','💢','💦','💨','🫧','🎵','🎶','🐾','🦴','🎾','🧶','🎣','🫧',
-            ];
-
-            function buildEmojiPanel() {
-                emojiPanel.innerHTML = '';
-                EMOJI_LIST.forEach(emoji => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'emoji-item';
-                    btn.textContent = emoji;
-                    btn.title = emoji;
-                    btn.addEventListener('click', () => { chatMsgInput.value += emoji; chatMsgInput.focus(); });
-                    emojiPanel.appendChild(btn);
-                });
-            }
-            emojiToggleBtn.addEventListener('click', (e) => { e.stopPropagation(); emojiPanel.classList.toggle('show'); });
-            document.addEventListener('click', (e) => {
-                if (!emojiPanel.contains(e.target) && e.target !== emojiToggleBtn) emojiPanel.classList.remove('show');
-            });
-            buildEmojiPanel();
-            fetchChats();
-            setInterval(fetchChats, 3000);
-
-            floatingChatBtn.addEventListener('click', () => {
-                floatingChatWindow.classList.add('show');
-                floatingChatBtn.style.opacity = '0';
-                floatingChatBtn.style.pointerEvents = 'none';
-                floatingChatBtn.style.transform = 'scale(0.5)';
-                floatingChatBtn.style.transition = 'all 0.25s ease';
-            });
-
-            const closeChatBtn = document.getElementById('close-chat-btn');
-            closeChatBtn.addEventListener('click', () => {
-                floatingChatWindow.classList.add('swatting');
-                setTimeout(() => {
-                    floatingChatWindow.classList.remove('show');
-                    floatingChatWindow.classList.remove('swatting');
-                    floatingChatBtn.style.opacity = '1';
-                    floatingChatBtn.style.pointerEvents = 'auto';
-                    floatingChatBtn.style.transform = '';
-                    floatingChatBtn.style.transition = 'all 0.35s cubic-bezier(.2,.8,.2,1)';
-                }, 360);
-            });
-
-            let isDragging = false;
-            let offsetX = 0;
-            let offsetY = 0;
-            if (window.innerWidth > 768) {
-                chatHeaderDrag.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    const rect = floatingChatWindow.getBoundingClientRect();
-                    offsetX = e.clientX - rect.left;
-                    offsetY = e.clientY - rect.top;
-                    floatingChatWindow.style.transition = 'none';
-                });
-                document.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    floatingChatWindow.style.left = `${e.clientX - offsetX}px`;
-                    floatingChatWindow.style.top = `${e.clientY - offsetY}px`;
-                    floatingChatWindow.style.right = 'auto';
-                    floatingChatWindow.style.bottom = 'auto';
-                });
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
-                    floatingChatWindow.style.transition = 'all 0.35s cubic-bezier(.2,.8,.2,1)';
-                });
-            }
-
             // ==================== 历史记录功能 ====================
             let history = [];
 
@@ -3416,60 +3718,221 @@
             renderHistory();
             isCurrentlyEmpty = !inputArea.value.trim();
 
-            chatMsgInput.addEventListener('focus', () => {
-                if (window.innerWidth <= 768) { floatingChatWindow.style.bottom = '8px'; floatingChatWindow.style.height = '85vh'; }
-            });
-            chatMsgInput.addEventListener('blur', () => {
-                if (window.innerWidth <= 768) { floatingChatWindow.style.bottom = '82px'; floatingChatWindow.style.height = '78vh'; }
-            });
         });
 
         function goToWiki(e) {
-            if (e && e.currentTarget) {
-                e.preventDefault();
-                var btnRect = e.currentTarget.getBoundingClientRect();
-                var x = btnRect.left + btnRect.width / 2;
-                var y = btnRect.top + btnRect.height / 2;
-                var icon = document.createElement('span');
-                icon.textContent = '📚';
-                icon.style.cssText = 'position:fixed;z-index:99999;pointer-events:none;font-size:28px;left:' + x + 'px;top:' + y + 'px;transform:translate(-50%,-50%) scale(0);opacity:0;transition:transform 0.18s cubic-bezier(0.4,0,0.2,1),opacity 0.18s ease;';
-                document.body.appendChild(icon);
-                requestAnimationFrame(function() {
-                    icon.style.transform = 'translate(-50%,-50%) scale(1)';
-                    icon.style.opacity = '0.85';
-                });
-                setTimeout(function() {
-                    icon.style.transform = 'translate(-50%,-50%) scale(1.8)';
-                    icon.style.opacity = '0';
-                }, 140);
-                setTimeout(function() {
-                    icon.remove();
-                    window.location.href = '/knowledge.html';
-                }, 300);
-            } else {
-                window.location.href = '/knowledge.html';
-            }
+            window.location.href = '/knowledge.html';
         }
 
         function goToChat(e) {
-            if (e && e.currentTarget) {
-                e.preventDefault();
-                var btnRect = e.currentTarget.getBoundingClientRect();
-                var x = btnRect.left + btnRect.width / 2;
-                var y = btnRect.top + btnRect.height / 2;
-                var cat = document.createElement('span');
-                cat.textContent = '🐱';
-                cat.style.cssText = 'position:fixed;z-index:99999;pointer-events:none;font-size:28px;left:' + x + 'px;top:' + y + 'px;transform:translate(-50%,-50%) scale(0);opacity:0;transition:transform 0.18s cubic-bezier(0.4,0,0.2,1),opacity 0.18s ease;';
-                document.body.appendChild(cat);
-                requestAnimationFrame(function() {
-                    cat.style.transform = 'translate(-50%,-50%) scale(1)';
-                    cat.style.opacity = '0.85';
-                });
-                setTimeout(function() { window.location.href = '/chat.html'; }, 200);
-            } else {
-                window.location.href = '/chat.html';
+            window.location.href = '/tools.html';
+        }
+    </script>
+
+    <!-- 折叠后浮动展开按钮 -->
+    <button class="left-float-paw" id="left-float-paw" title="展开">🌟</button>
+
+    <!-- ==================== 左栏折叠开关 ==================== -->
+    <script>
+    (function() {
+        var sidebar = document.getElementById('left-sidebar');
+        var collapseBtn = document.getElementById('left-collapse-btn');
+        var floatPaw = document.getElementById('left-float-paw');
+        if (!sidebar) return;
+
+        function alignPawToTitle() {
+            var title = document.querySelector('.hero-title');
+            if (!title) return;
+            var rect = title.getBoundingClientRect();
+            // position:absolute 需加上 scrollY 转换为文档坐标
+            floatPaw.style.top = (rect.top + window.scrollY + rect.height / 2 - 18) + 'px';
+        }
+
+        collapseBtn.addEventListener('click', function() {
+            sidebar.classList.add('collapsed');
+            alignPawToTitle();
+            floatPaw.classList.add('show');
+        });
+        floatPaw.addEventListener('click', function() {
+            sidebar.classList.remove('collapsed');
+            floatPaw.classList.remove('show');
+        });
+        window.addEventListener('resize', function() {
+            if (floatPaw.classList.contains('show')) alignPawToTitle();
+        });
+        window.addEventListener('scroll', function() {
+            if (floatPaw.classList.contains('show')) alignPawToTitle();
+        });
+    })();
+    </script>
+
+    <!-- ==================== 「此刻」诗意卡片 ==================== -->
+    <script>
+    (function() {
+        var momentText = document.getElementById('moment-text');
+        var momentDots = document.getElementById('moment-dots');
+        if (!momentText) return;
+
+        var dots = momentDots ? momentDots.querySelectorAll('span') : [];
+        var dotIndex = 0;
+
+        function updateDots() {
+            dots.forEach(function(d, i) {
+                d.classList.toggle('active', i === dotIndex);
+            });
+            dotIndex = (dotIndex + 1) % dots.length;
+        }
+
+        async function refreshMoment() {
+            try {
+                var res = await fetch('/api/this-moment');
+                var data = await res.json();
+                momentText.classList.add('fade-out');
+                await new Promise(function(r) { setTimeout(r, 400); });
+                momentText.textContent = data.text;
+                updateDots();
+                momentText.classList.remove('fade-out');
+            } catch (e) {
+                // 静默失败，保留当前文字
             }
         }
+
+        // 首次加载：失败则重试，一直等到真实数据
+        async function initMoment() {
+            try {
+                await refreshMoment();
+            } catch (e) {
+                // 5秒后重试
+                setTimeout(function() { initMoment(); }, 5000);
+            }
+        }
+
+        initMoment();
+        setInterval(refreshMoment, 1200000); // 20分钟刷新
+    })();
+    </script>
+
+    <!-- ==================== 「今天吃什么」食谱推荐 ==================== -->
+    <script>
+    (function() {
+        var moodChips = document.getElementById('mood-chips');
+        var dietChips = document.getElementById('diet-chips');
+        var recipeBtn = document.getElementById('recipe-btn');
+        var ingredientsInput = document.getElementById('recipe-ingredients');
+        var recipeResult = document.getElementById('recipe-result');
+
+        if (!recipeBtn) return;
+
+        // 心情单选
+        if (moodChips) {
+            moodChips.querySelectorAll('.chip').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    moodChips.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
+                    chip.classList.add('active');
+                });
+            });
+        }
+
+        // 忌口多选
+        if (dietChips) {
+            dietChips.querySelectorAll('.chip').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    chip.classList.toggle('active');
+                });
+            });
+        }
+
+        // 回车快捷触发
+        if (ingredientsInput) {
+            ingredientsInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    recipeBtn.click();
+                }
+            });
+        }
+
+        // 点击决策
+        recipeBtn.addEventListener('click', async function() {
+            var ingredients = ingredientsInput ? ingredientsInput.value.trim() : '';
+            var moodEl = moodChips ? moodChips.querySelector('.chip.active') : null;
+            var mood = moodEl ? moodEl.dataset.mood : '';
+            var dietEls = dietChips ? dietChips.querySelectorAll('.chip.active') : [];
+            var diets = Array.from(dietEls).map(function(c) { return c.dataset.diet; });
+
+            if (!ingredients && !mood && diets.length === 0) {
+                if (typeof showToast === 'function') {
+                    var emptyTips = [
+                        '啥都没选？小橘帮你盲选喵~ 🎲',
+                        '交给命运吧！小橘随便做一道~ 🐱',
+                        '今天让小橘替你决定！✨',
+                        '盲盒模式启动！看看今天吃啥~ 🎁',
+                        '不挑食的好孩子，小橘来安排！🍜'
+                    ];
+                    showToast(emptyTips[Math.floor(Math.random() * emptyTips.length)]);
+                }
+                // 不return，允许空食材盲推
+            }
+
+            var btn = recipeBtn;
+            var origText = btn.textContent;
+            btn.disabled = true;
+            var loadingTexts = [
+                '🐱 小橘翻菜谱中...',
+                '🍳 小橘在翻冰箱...',
+                '🥘 小橘在尝味道...',
+                '🔥 小橘在颠勺中...',
+                '📖 小橘翻祖传菜谱...',
+                '🥢 小橘偷吃了一口...',
+                '🧑‍🍳 小橘戴上厨师帽...',
+                '🍜 小橘正在试菜...'
+            ];
+            btn.textContent = loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
+
+            try {
+                var res = await fetch('/api/recipe-suggest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredients: ingredients, mood: mood, diets: diets })
+                });
+                if (!res.ok) {
+                    var errData = await res.json();
+                    throw new Error(errData.error || '请求失败');
+                }
+                var data = await res.json();
+
+                document.getElementById('dish-name').textContent = data.dish || '';
+
+                document.getElementById('dish-meta').textContent = '⏱️ ' + (data.difficulty || '⭐简单') + ' · ' + (data.time || '15分钟');
+
+                // 安全构建步骤列表（避免 XSS）
+                var stepsContainer = document.getElementById('dish-steps');
+                stepsContainer.innerHTML = '';
+                (data.steps || []).forEach(function(s, i) {
+                    var span = document.createElement('span');
+                    span.textContent = (i + 1) + '. ' + s;
+                    stepsContainer.appendChild(span);
+                    stepsContainer.appendChild(document.createElement('br'));
+                });
+
+                document.getElementById('cat-comment').textContent = data.catComment || '小橘觉得这道菜很不错喵~';
+                recipeResult.classList.add('show');
+                // 首次成功后按钮变「换一个」
+                recipeBtn.textContent = '🔄 换一个';
+            } catch (e) {
+                console.error('Recipe error:', e);
+                if (typeof showToast === 'function') {
+                    showToast('小橘翻菜谱翻到猫砂盆里了，再试试喵~');
+                }
+                btn.disabled = false;
+                btn.textContent = origText;
+                return;
+            }
+
+            btn.disabled = false;
+            // 成功后按钮保持「换一个」（已在上面设置）
+        });
+    })();
     </script>
 
     <!-- 全站在线人数 -->
@@ -3488,5 +3951,106 @@
     })();
     </script>
 
+<footer class="site-footer">
+    © 2026 喵码 miaojiaozhu.com ·
+    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">湘ICP备2026021704号-1</a>
+</footer>
+
+<script>
+(function() {
+    var wrap = document.getElementById('back-to-top-wrap');
+    var btn = document.getElementById('back-to-top');
+    var ring = document.getElementById('ring-fill');
+    var ripple = document.getElementById('back-to-top-ripple');
+    var ticking = false;
+    var CIRCUMFERENCE = 2 * Math.PI * 25; // ~157.08
+
+    function updateRing() {
+        var scrollTop = window.scrollY;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (docHeight <= 0) { ring.style.strokeDashoffset = CIRCUMFERENCE; return; }
+        var progress = Math.min(scrollTop / docHeight, 1);
+        ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+    }
+
+    function onScroll() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                var scrolled = window.scrollY > 400;
+                wrap.classList.toggle('visible', scrolled);
+                updateRing();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
+    btn.addEventListener('click', function() {
+        // 波纹爆发
+        ripple.classList.remove('burst');
+        void ripple.offsetWidth;
+        ripple.classList.add('burst');
+
+        // 获取按钮位置
+        var btnRect = btn.getBoundingClientRect();
+        var rocketX = btnRect.left + btnRect.width / 2;
+        var rocketY = btnRect.top + btnRect.height / 2;
+
+        // 隐藏按钮
+        btn.style.opacity = '0';
+        btn.style.transform = 'scale(0.3)';
+
+        // 发射火焰粒子 ✨💨🔥
+        var sparks = ['✨','💨','🔥','💫','⭐','✨'];
+        for (var i = 0; i < 6; i++) {
+            (function(idx) {
+                setTimeout(function() {
+                    var spark = document.createElement('span');
+                    spark.className = 'launch-spark s' + ((idx % 3) + 1);
+                    spark.textContent = sparks[idx];
+                    spark.style.left = (rocketX - 8 + (Math.random() - 0.5) * 30) + 'px';
+                    spark.style.top = (rocketY + 10 + idx * 8) + 'px';
+                    document.body.appendChild(spark);
+                    setTimeout(function() { spark.remove(); }, 800);
+                }, idx * 60);
+            })(i);
+        }
+
+        // 发射火箭 🚀
+        var rocket = document.createElement('span');
+        rocket.className = 'launch-rocket';
+        rocket.textContent = '🚀';
+        rocket.style.left = (rocketX - 14) + 'px';
+        rocket.style.top = (rocketY - 14) + 'px';
+        document.body.appendChild(rocket);
+
+        // 立即滚回顶部，发射动画同时进行
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // 清理火箭 + 按钮恢复 + 弹跳
+        setTimeout(function() {
+            rocket.remove();
+            btn.style.opacity = '';
+            btn.style.transform = '';
+            wrap.classList.add('boing');
+            setTimeout(function() { wrap.classList.remove('boing'); }, 600);
+        }, 850);
+    });
+
+    // 悬浮时取消浮动动画，让 hover 效果更直接
+    btn.addEventListener('mouseenter', function() {
+        btn.style.animation = 'none';
+    });
+    btn.addEventListener('mouseleave', function() {
+        if (wrap.classList.contains('visible') && !wrap.classList.contains('boing')) {
+            btn.style.animation = '';
+        }
+    });
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    // 初始检查（页面可能已滚动）
+    updateRing();
+})();
+</script>
 </body>
 </html>
