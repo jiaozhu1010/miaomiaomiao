@@ -627,7 +627,7 @@
         const user = Auth.getUser();
         const btn = document.getElementById('btnLogin');
         if (user) {
-            btn.innerHTML = '<span class="dot"></span>' + user.username + ' <span style="opacity:0.4">×</span>';
+            btn.innerHTML = '<span class="dot"></span>' + escHtml(user.username) + ' <span style="opacity:0.4">×</span>';
             btn.className = 'nav-pill logout-pill';
             btn.title = '点击退出登录';
         } else {
