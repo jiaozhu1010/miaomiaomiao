@@ -2105,17 +2105,27 @@ app.post('/api/ai-chat', authMiddleware, upload.array('files', 5), async (req, r
         // 清理历史消息中的临时标记，只保留 role 和 content
         let cleanHistory = historyMessages.map(({ role, content }) => ({ role, content }));
 
+        // 🔒 XML 转义 — 防止文件名/内容破坏标签结构
+        const escapeXml = (s) => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&apos;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const cdataWrap = (s) => {
+            // CDATA 不能包含 ]]> — 如果包含则拆分为多个 CDATA 段
+            if (!s.includes(']]>')) return `<![CDATA[${s}]]>`;
+            const parts = s.split(']]>');
+            return parts.map((p, i) => i === 0 ? `<![CDATA[${p}]]>` : `]]&gt;<![CDATA[${p}]]>`).join('');
+        };
+
         // 处理上传文件：图片先 OCR 识别文字再发给 AI，文本文件直接读取
         const filesContent = [];
         const fileNames = [];
         for (const file of files) {
+            const safeName = escapeXml(file.originalname);
             if (isImageFile(file.mimetype)) {
                 fileNames.push(`🖼️ ${file.originalname}`);
                 try {
                     const ocrText = await performOCR(file.buffer, file.mimetype);
                     filesContent.push({
                         type: 'text',
-                        text: `\n<user_file name="${file.originalname}" type="ocr_image">\n${ocrText}\n</user_file>`
+                        text: `\n<user_file name="${safeName}" type="ocr_image">\n${cdataWrap(ocrText)}\n</user_file>`
                     });
                 } catch (err) {
                     console.error(`图片 OCR 失败 (${file.originalname}):`, err.message);
@@ -2129,8 +2139,8 @@ app.post('/api/ai-chat', authMiddleware, upload.array('files', 5), async (req, r
                 const truncated = text.length > 8000 ? text.slice(0, 8000) + '\n... (文件过长，已截断)' : text;
                 filesContent.push({
                     type: 'text',
-                    // 🔒 XML 标记包裹文件内容，防止 Prompt Injection — 文件内容只是数据，不是指令
-                    text: `\n<user_file name="${file.originalname}">\n${truncated}\n</user_file>`
+                    // 🔒 XML + CDATA 包裹，防止 Prompt Injection
+                    text: `\n<user_file name="${safeName}">\n${cdataWrap(truncated)}\n</user_file>`
                 });
                 fileNames.push(`📄 ${file.originalname}`);
             } else {
