@@ -3,7 +3,19 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 5 } });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024, files: 5 },
+    fileFilter: (req, file, cb) => {
+        // 初始白名单：仅允许图片和文档类型，拒绝明显恶意文件
+        const allowed = /^(image\/(png|jpeg|gif|webp|bmp)|application\/(pdf|epub\+zip|msword|vnd\.openxmlformats)|text\/(plain|markdown|x-markdown))$/i;
+        if (allowed.test(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('不支持的文件类型喵~'), false);
+        }
+    }
+});
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -69,6 +81,18 @@ const PROMPTS_FILE = path.join(DATA_DIR, 'prompts.json');
 const BARCODE_HISTORY_FILE = path.join(DATA_DIR, 'barcode_history.json');
 const CONVERSATIONS_FILE = path.join(DATA_DIR, 'conversations.json');
 const KNOWLEDGE_FILE = path.join(DATA_DIR, 'knowledge.json');
+const USER_PREFS_FILE = path.join(DATA_DIR, 'user_preferences.json');
+
+// 用户偏好读写（按 userId 存储置顶/阅读进度）
+function getUserPrefs(userId) {
+    const all = readJSON(USER_PREFS_FILE, {});
+    return all[userId] || { pinnedArticles: [], readingProgress: {} };
+}
+function setUserPrefs(userId, prefs) {
+    const all = readJSON(USER_PREFS_FILE, {});
+    all[userId] = prefs;
+    return writeJSON(USER_PREFS_FILE, all);
+}
 
 // Wiki 知识库分类
 const WIKI_CATEGORIES = ['logistics', 'tech', 'literature', 'humanities', 'lifestyle', 'business'];
@@ -90,7 +114,19 @@ app.set('trust proxy', 1);  // 信任 nginx 这一层代理（宝塔反代）
 
 // HTTP 安全头（允许 SSE 流式传输）
 app.use(helmet({
-    contentSecurityPolicy: false,   // 允许内联脚本和 CDN 资源
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            scriptSrcAttr: ["'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            connectSrc: ["'self'", "https://api.deepseek.com", "https://api.siliconflow.cn"],
+            fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+            objectSrc: ["'none'"],
+            frameAncestors: ["'self'"],
+        },
+    },
     crossOriginEmbedderPolicy: false,
 }));
 
@@ -108,7 +144,7 @@ app.use('/api', apiLimiter);
 // AI 聊天专用限流（更宽松，因为是长连接 SSE）
 const chatLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: 15,
+    max: 8,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: '聊天太频繁了喵~ 请稍后再试' },
@@ -191,6 +227,19 @@ function detectImageMimeType(buffer, fallback = 'image/png') {
         buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) return 'image/webp';
     if (buffer[0] === 0x42 && buffer[1] === 0x4D) return 'image/bmp';
     return /^image\/(png|jpeg|jpg|gif|webp|bmp)$/i.test(fallback) ? fallback.replace('image/jpg', 'image/jpeg') : 'image/png';
+}
+
+// Magic bytes 检测书籍文件类型（防御 MIME spoofing）
+function detectBookMimeType(buffer) {
+    if (!buffer || buffer.length < 4) return null;
+    // PDF: %PDF
+    if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) return 'application/pdf';
+    // EPUB: PK.. (ZIP-based)
+    if (buffer[0] === 0x50 && buffer[1] === 0x4B) return 'application/epub+zip';
+    // DOCX: PK.. (ZIP-based) — 与 EPUB 共用 PK 头，后续由 ext 区分
+    // DOC (OLE2): D0CF11E0
+    if (buffer[0] === 0xD0 && buffer[1] === 0xCF && buffer[2] === 0x11 && buffer[3] === 0xE0) return 'application/msword';
+    return null;
 }
 
 function extractTrackingCodes(text) {
@@ -381,7 +430,7 @@ app.post('/api/barcode', rawImageBody, async (req, res) => {
             return res.status(504).json({ error: '条码解码超时' });
         }
         console.error('条码解码失败:', error.message);
-        res.status(500).json({ error: '条码解码服务异常: ' + error.message });
+        res.status(500).json({ error: '条码解码服务异常，请稍后重试喵~' });
     }
 });
 
@@ -392,7 +441,7 @@ app.post('/api/barcode', rawImageBody, async (req, res) => {
 const { execFile } = require('child_process');
 const BarcodeDecoderScript = path.join(__dirname, 'barcode_decoder.py');
 
-app.post('/api/barcode-decode', rawImageBody, (req, res) => {
+app.post('/api/barcode-decode', rawImageBody, async (req, res) => {
     if (!req.body || req.body.length === 0) {
         return res.status(400).json({ error: '缺少图片数据' });
     }
@@ -416,7 +465,7 @@ app.post('/api/barcode-decode', rawImageBody, (req, res) => {
             if (execErr) {
                 console.error('条码解码: Python 脚本执行失败', execErr.message);
                 if (stderr) console.error('stderr:', stderr);
-                return res.status(500).json({ error: '条码解码服务异常: ' + (execErr.message || 'unknown') });
+                return res.status(500).json({ error: '条码解码服务异常喵~' });
             }
 
             try {
@@ -425,7 +474,7 @@ app.post('/api/barcode-decode', rawImageBody, (req, res) => {
                 res.json(result);
             } catch (parseErr) {
                 console.error('条码解码: JSON 解析失败', parseErr.message, 'stdout:', stdout);
-                res.status(500).json({ error: '条码解码结果解析失败', raw: stdout });
+                res.status(500).json({ error: '条码解码结果解析失败喵~' });
             }
         });
     });
@@ -495,26 +544,26 @@ function getOnlineCount() {
 function readJSON(file, defaultValue) {
     try {
         return JSON.parse(fs.readFileSync(file, 'utf8'));
-    } catch {
+    } catch (err) {
+        // 区分"文件不存在"和"读取/解析失败"
+        if (err.code === 'ENOENT') return defaultValue;
+        const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+        console.error(`[${now}] readJSON 失败 (${file}):`, err.message);
         return defaultValue;
     }
 }
 
-// 简单的写锁：防止同一文件被并发写入导致损坏
-const _writeLocks = new Map();
+// 异步写锁：防止同一文件被并发写入导致损坏
+const _writeQueues = new Map();
 function writeJSON(file, data) {
-    // 如果有锁在等待，先等 100ms 再重试（最多等 10 次）
-    for (let retry = 0; _writeLocks.has(file) && retry < 10; retry++) {
-        const waitUntil = Date.now() + 100;
-        while (Date.now() < waitUntil) { /* spin-wait */ }
-    }
-    _writeLocks.set(file, true);
-    try {
+    // 将写操作串行化到该文件的 Promise 队列中
+    const prev = _writeQueues.get(file) || Promise.resolve();
+    const task = prev.then(async () => {
         // 先写临时文件，再原子重命名（避免写一半崩溃导致文件损坏）
         const tmpFile = file + '.tmp.' + Date.now();
-        fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
-        fs.renameSync(tmpFile, file);
-    } catch (err) {
+        await fs.promises.writeFile(tmpFile, JSON.stringify(data, null, 2), 'utf8');
+        await fs.promises.rename(tmpFile, file);
+    }).catch(err => {
         const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
         console.error(`[${now}] writeJSON 失败 (${file}):`, err.message);
         try {
@@ -522,9 +571,14 @@ function writeJSON(file, data) {
                 `${now}: writeJSON 失败 (${file}) — ${err.message}\n`);
         } catch (_) {}
         throw err;  // 让调用方 try/catch 处理
-    } finally {
-        _writeLocks.delete(file);
-    }
+    }).finally(() => {
+        // 清理已完成的任务引用，防止内存泄漏
+        if (_writeQueues.get(file) === task) {
+            _writeQueues.delete(file);
+        }
+    });
+    _writeQueues.set(file, task);
+    return task;
 }
 
 // =========================
@@ -562,7 +616,7 @@ function optionalAuth(req, res, next) {
 function adminTokenMiddleware(req, res, next) {
     const configuredToken = process.env.ADMIN_RESET_TOKEN;
     if (!configuredToken) {
-        return res.status(404).json({ error: '管理员接口未启用' });
+        return res.status(403).json({ error: '管理员接口未启用' });
     }
 
     const authHeader = req.headers.authorization || '';
@@ -669,7 +723,7 @@ app.post('/api/data-parse', async (req, res) => {
 // =========================
 
 // 注册
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
     const { username, email, password } = req.body;
 
     // 校验
@@ -693,7 +747,7 @@ app.post('/api/auth/register', (req, res) => {
         return res.status(400).json({ error: '邮箱已被注册喵~' });
     }
 
-    const hashedPassword = bcrypt.hashSync(password, BCRYPT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
     const newUser = {
         id: generateId('u_'),
         username,
@@ -708,7 +762,7 @@ app.post('/api/auth/register', (req, res) => {
     };
 
     users.push(newUser);
-    writeJSON(USERS_FILE, users);
+    await writeJSON(USERS_FILE, users);
 
     const token = jwt.sign(
         { id: newUser.id, username: newUser.username, email: newUser.email },
@@ -723,7 +777,7 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 // 登录（支持用户名或邮箱）
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -737,7 +791,7 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(401).json({ error: '用户名或密码错误喵~' });
     }
 
-    if (!bcrypt.compareSync(password, user.password)) {
+    if (!(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ error: '用户名或密码错误喵~' });
     }
 
@@ -754,7 +808,7 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // 获取当前用户信息
-app.get('/api/auth/me', authMiddleware, (req, res) => {
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
     const users = readJSON(USERS_FILE, []);
     const user = users.find(u => u.id === req.user.id);
     if (!user) {
@@ -773,7 +827,7 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
 // =========================
 
 // 获取我的提示词列表
-app.get('/api/prompts', authMiddleware, (req, res) => {
+app.get('/api/prompts', authMiddleware, async (req, res) => {
     const prompts = readJSON(PROMPTS_FILE, []);
     const myPrompts = prompts
         .filter(p => p.userId === req.user.id)
@@ -786,7 +840,7 @@ app.get('/api/prompts', authMiddleware, (req, res) => {
 });
 
 // 创建提示词
-app.post('/api/prompts', authMiddleware, (req, res) => {
+app.post('/api/prompts', authMiddleware, async (req, res) => {
     const { title, content, seedVersion } = req.body;
 
     if (!title || !title.trim()) {
@@ -822,12 +876,12 @@ app.post('/api/prompts', authMiddleware, (req, res) => {
     }
 
     prompts.push(newPrompt);
-    writeJSON(PROMPTS_FILE, prompts);
+    await writeJSON(PROMPTS_FILE, prompts);
     res.json(newPrompt);
 });
 
 // 清理旧版种子提示词（保留用户自己创建的）
-app.delete('/api/prompts/seed-cleanup', authMiddleware, (req, res) => {
+app.delete('/api/prompts/seed-cleanup', authMiddleware, async (req, res) => {
     const { keepVersion } = req.query;
     const prompts = readJSON(PROMPTS_FILE, []);
     const before = prompts.length;
@@ -838,21 +892,21 @@ app.delete('/api/prompts/seed-cleanup', authMiddleware, (req, res) => {
         if (keepVersion && p.seedVersion === keepVersion) return true; // 当前版本的保留
         return false;                                       // 旧版种子 → 删除
     });
-    writeJSON(PROMPTS_FILE, cleaned);
+    await writeJSON(PROMPTS_FILE, cleaned);
     const removed = before - cleaned.length;
     res.json({ success: true, removed });
 });
 
 // 管理员：一键重置所有用户的提示词（全部清空，下次访问时重播最新种子）
-app.post('/api/admin/reset-all-seeds', adminTokenMiddleware, (req, res) => {
+app.post('/api/admin/reset-all-seeds', adminTokenMiddleware, async (req, res) => {
     const prompts = readJSON(PROMPTS_FILE, []);
     const before = prompts.length;
-    writeJSON(PROMPTS_FILE, []);
+    await writeJSON(PROMPTS_FILE, []);
     res.json({ success: true, removed: before, message: `已清空全部 ${before} 条提示词` });
 });
 
 // 更新提示词
-app.put('/api/prompts/:id', authMiddleware, (req, res) => {
+app.put('/api/prompts/:id', authMiddleware, async (req, res) => {
     const prompts = readJSON(PROMPTS_FILE, []);
     const index = prompts.findIndex(p => p.id === req.params.id);
 
@@ -888,12 +942,12 @@ app.put('/api/prompts/:id', authMiddleware, (req, res) => {
         }
     }
 
-    writeJSON(PROMPTS_FILE, prompts);
+    await writeJSON(PROMPTS_FILE, prompts);
     res.json(prompts[index]);
 });
 
 // 删除提示词
-app.delete('/api/prompts/:id', authMiddleware, (req, res) => {
+app.delete('/api/prompts/:id', authMiddleware, async (req, res) => {
     const prompts = readJSON(PROMPTS_FILE, []);
     const index = prompts.findIndex(p => p.id === req.params.id);
 
@@ -905,7 +959,7 @@ app.delete('/api/prompts/:id', authMiddleware, (req, res) => {
     }
 
     prompts.splice(index, 1);
-    writeJSON(PROMPTS_FILE, prompts);
+    await writeJSON(PROMPTS_FILE, prompts);
     res.json({ success: true });
 });
 
@@ -914,7 +968,7 @@ app.delete('/api/prompts/:id', authMiddleware, (req, res) => {
 // =========================
 
 // 获取所有对话（支持按 mode 过滤：cat / code）
-app.get('/api/conversations', authMiddleware, (req, res) => {
+app.get('/api/conversations', authMiddleware, async (req, res) => {
     const { mode } = req.query;
     const items = readJSON(CONVERSATIONS_FILE, []);
     let myItems = items.filter(c => c.userId === req.user.id);
@@ -928,7 +982,7 @@ app.get('/api/conversations', authMiddleware, (req, res) => {
 });
 
 // 创建对话
-app.post('/api/conversations', authMiddleware, (req, res) => {
+app.post('/api/conversations', authMiddleware, async (req, res) => {
     const { title, messages, mode } = req.body;
     const items = readJSON(CONVERSATIONS_FILE, []);
     const now = Date.now();
@@ -946,13 +1000,13 @@ app.post('/api/conversations', authMiddleware, (req, res) => {
     const myConvs = items.filter(c => c.userId === req.user.id && c.mode === newConv.mode);
     const otherConvs = items.filter(c => !(c.userId === req.user.id && c.mode === newConv.mode));
     const trimmed = myConvs.sort((a,b) => b.updatedAt - a.updatedAt).slice(0, 30);
-    writeJSON(CONVERSATIONS_FILE, [...otherConvs, ...trimmed]);
+    await writeJSON(CONVERSATIONS_FILE, [...otherConvs, ...trimmed]);
     const { userId, ...safe } = newConv;
     res.json(safe);
 });
 
 // 更新对话（标题、消息）
-app.put('/api/conversations/:id', authMiddleware, (req, res) => {
+app.put('/api/conversations/:id', authMiddleware, async (req, res) => {
     const items = readJSON(CONVERSATIONS_FILE, []);
     const index = items.findIndex(c => c.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: '对话不存在喵~' });
@@ -962,27 +1016,27 @@ app.put('/api/conversations/:id', authMiddleware, (req, res) => {
     if (title !== undefined) items[index].title = String(title).substring(0, 50);
     if (messages !== undefined) items[index].messages = Array.isArray(messages) ? messages.slice(-50) : [];
     items[index].updatedAt = Date.now();
-    writeJSON(CONVERSATIONS_FILE, items);
+    await writeJSON(CONVERSATIONS_FILE, items);
     const { userId, ...safe } = items[index];
     res.json(safe);
 });
 
 // 删除单条对话
-app.delete('/api/conversations/:id', authMiddleware, (req, res) => {
+app.delete('/api/conversations/:id', authMiddleware, async (req, res) => {
     const items = readJSON(CONVERSATIONS_FILE, []);
     const index = items.findIndex(c => c.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: '对话不存在喵~' });
     if (items[index].userId !== req.user.id) return res.status(403).json({ error: '不能删除别人的对话喵~' });
     items.splice(index, 1);
-    writeJSON(CONVERSATIONS_FILE, items);
+    await writeJSON(CONVERSATIONS_FILE, items);
     res.json({ success: true });
 });
 
 // 清空所有对话
-app.delete('/api/conversations', authMiddleware, (req, res) => {
+app.delete('/api/conversations', authMiddleware, async (req, res) => {
     const items = readJSON(CONVERSATIONS_FILE, []);
     const otherConvs = items.filter(c => c.userId !== req.user.id);
-    writeJSON(CONVERSATIONS_FILE, otherConvs);
+    await writeJSON(CONVERSATIONS_FILE, otherConvs);
     res.json({ success: true });
 });
 
@@ -991,7 +1045,7 @@ app.delete('/api/conversations', authMiddleware, (req, res) => {
 // =========================
 
 // 在线人数统计 — 全站任意页面调用
-app.get('/api/online-count', (req, res) => {
+app.get('/api/online-count', async (req, res) => {
     updateOnlineUser(req);
     res.json({ onlineCount: getOnlineCount() });
 });
@@ -2418,7 +2472,7 @@ app.post('/api/ai-chat', authMiddleware, upload.array('files', 5), async (req, r
 // =========================
 // 健康检查
 // =========================
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
     res.json({
         status: 'ok',
         uptime: process.uptime(),
@@ -2491,7 +2545,7 @@ app.post('/api/ai-debug', authMiddleware, async (req, res) => {
 // =========================
 
 // 获取单号历史
-app.get('/api/barcode-history', authMiddleware, (req, res) => {
+app.get('/api/barcode-history', authMiddleware, async (req, res) => {
     const items = readJSON(BARCODE_HISTORY_FILE, []);
     const myItems = items
         .filter(item => item.userId === req.user.id)
@@ -2500,7 +2554,7 @@ app.get('/api/barcode-history', authMiddleware, (req, res) => {
 });
 
 // 保存单号历史
-app.post('/api/barcode-history', authMiddleware, (req, res) => {
+app.post('/api/barcode-history', authMiddleware, async (req, res) => {
     const { numbers } = req.body;
 
     if (!numbers || !numbers.trim()) {
@@ -2525,12 +2579,12 @@ app.post('/api/barcode-history', authMiddleware, (req, res) => {
     const myItems = items.filter(item => item.userId === req.user.id);
     const otherItems = items.filter(item => item.userId !== req.user.id);
     const trimmedMyItems = myItems.slice(-50);
-    writeJSON(BARCODE_HISTORY_FILE, [...otherItems, ...trimmedMyItems]);
+    await writeJSON(BARCODE_HISTORY_FILE, [...otherItems, ...trimmedMyItems]);
     res.json(newItem);
 });
 
 // 删除单条历史
-app.delete('/api/barcode-history/:id', authMiddleware, (req, res) => {
+app.delete('/api/barcode-history/:id', authMiddleware, async (req, res) => {
     const items = readJSON(BARCODE_HISTORY_FILE, []);
     const index = items.findIndex(item => item.id === req.params.id);
 
@@ -2542,15 +2596,15 @@ app.delete('/api/barcode-history/:id', authMiddleware, (req, res) => {
     }
 
     items.splice(index, 1);
-    writeJSON(BARCODE_HISTORY_FILE, items);
+    await writeJSON(BARCODE_HISTORY_FILE, items);
     res.json({ success: true });
 });
 
 // 清空历史
-app.delete('/api/barcode-history', authMiddleware, (req, res) => {
+app.delete('/api/barcode-history', authMiddleware, async (req, res) => {
     const items = readJSON(BARCODE_HISTORY_FILE, []);
     const otherItems = items.filter(item => item.userId !== req.user.id);
-    writeJSON(BARCODE_HISTORY_FILE, otherItems);
+    await writeJSON(BARCODE_HISTORY_FILE, otherItems);
     res.json({ success: true });
 });
 
@@ -2559,7 +2613,7 @@ app.delete('/api/barcode-history', authMiddleware, (req, res) => {
 // =========================
 
 // 获取所有分类及其文章计数
-app.get('/api/wiki/categories', (req, res) => {
+app.get('/api/wiki/categories', async (req, res) => {
     try {
         const articles = readJSON(KNOWLEDGE_FILE, []);
         const counts = {};
@@ -2579,7 +2633,7 @@ app.get('/api/wiki/categories', (req, res) => {
 });
 
 // 获取所有标签及其计数
-app.get('/api/wiki/tags', (req, res) => {
+app.get('/api/wiki/tags', async (req, res) => {
     try {
         const articles = readJSON(KNOWLEDGE_FILE, []);
         const tagMap = {};
@@ -2600,7 +2654,7 @@ app.get('/api/wiki/tags', (req, res) => {
 });
 
 // 获取文章列表（含搜索、筛选、分页）
-app.get('/api/wiki', optionalAuth, (req, res) => {
+app.get('/api/wiki', optionalAuth, async (req, res) => {
     try {
         const { search, category, tag, page = 1, limit = 20 } = req.query;
         const pageNum = Math.max(1, parseInt(page) || 1);
@@ -2631,8 +2685,17 @@ app.get('/api/wiki', optionalAuth, (req, res) => {
             );
         }
 
-        // 排序：按更新时间降序
-        articles.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+        // 获取当前用户的置顶偏好
+        const userPins = (req.user && req.user.id) ? getUserPrefs(req.user.id).pinnedArticles : [];
+
+        // 排序：当前用户置顶优先，再按更新时间降序
+        articles.sort((a, b) => {
+            const aPinned = userPins.includes(a.id);
+            const bPinned = userPins.includes(b.id);
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return b.updatedAt.localeCompare(a.updatedAt);
+        });
 
         // 分页
         const total = articles.length;
@@ -2674,19 +2737,19 @@ app.get('/api/wiki', optionalAuth, (req, res) => {
             } else {
                 excerpt = plainText.substring(0, 150);
             }
-            return { ...rest, excerpt, wordCount };
+            return { ...rest, excerpt, wordCount, userPinned: userPins.includes(a.id) };
         });
         // 另外计算所有文章的 totalWordCount（不受分页影响）
         const allWordCount = articles.reduce((sum, a) => sum + (a.content ? a.content.length : 0), 0);
 
-        res.json({ articles: items, total, page: pageNum, totalPages, totalWordCount: allWordCount });
+        res.json({ articles: items, total, page: pageNum, totalPages, totalWordCount: allWordCount, userPins });
     } catch (err) {
         res.status(500).json({ error: '获取文章列表失败喵~' });
     }
 });
 
 // 获取单篇文章详情
-app.get('/api/wiki/:id', optionalAuth, (req, res) => {
+app.get('/api/wiki/:id', optionalAuth, async (req, res) => {
     try {
         const articles = readJSON(KNOWLEDGE_FILE, []);
         const article = articles.find(a => a.id === req.params.id);
@@ -2695,10 +2758,58 @@ app.get('/api/wiki/:id', optionalAuth, (req, res) => {
         }
         // 浏览数 +1
         article.views = (article.views || 0) + 1;
-        writeJSON(KNOWLEDGE_FILE, articles);
-        res.json(article);
+        await writeJSON(KNOWLEDGE_FILE, articles);
+
+        // 附上当前用户的阅读进度（用于恢复阅读位置）
+        const readingProgress = (req.user && req.user.id)
+            ? (getUserPrefs(req.user.id).readingProgress || {})[article.id] || null
+            : null;
+
+        res.json({ ...article, readingProgress });
     } catch (err) {
         res.status(500).json({ error: '获取文章详情失败喵~' });
+    }
+});
+
+// 置顶/取消置顶文章（每个用户独立保存）
+app.put('/api/wiki/:id/pin', authMiddleware, async (req, res) => {
+    try {
+        const articles = readJSON(KNOWLEDGE_FILE, []);
+        if (!articles.find(a => a.id === req.params.id)) {
+            return res.status(404).json({ error: '文章不存在喵~' });
+        }
+        const prefs = getUserPrefs(req.user.id);
+        const idx = prefs.pinnedArticles.indexOf(req.params.id);
+        if (idx >= 0) {
+            prefs.pinnedArticles.splice(idx, 1);
+        } else {
+            prefs.pinnedArticles.unshift(req.params.id);
+        }
+        await setUserPrefs(req.user.id, prefs);
+        res.json({ pinned: idx < 0 });
+    } catch (err) {
+        res.status(500).json({ error: '置顶操作失败喵~' });
+    }
+});
+
+// 保存阅读进度（滚动位置）
+app.put('/api/wiki/:id/reading-progress', authMiddleware, async (req, res) => {
+    try {
+        const { scrollPos } = req.body;
+        const pos = parseFloat(scrollPos);
+        if (isNaN(pos) || pos < 0 || pos > 1) {
+            return res.status(400).json({ error: '无效的阅读位置喵~' });
+        }
+        const prefs = getUserPrefs(req.user.id);
+        if (!prefs.readingProgress) prefs.readingProgress = {};
+        prefs.readingProgress[req.params.id] = {
+            scrollPos: Math.round(pos * 10000) / 10000,
+            updatedAt: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+        };
+        await setUserPrefs(req.user.id, prefs);
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ error: '保存阅读进度失败喵~' });
     }
 });
 
@@ -2710,7 +2821,10 @@ app.post('/api/wiki/upload', authMiddleware, upload.array('files', 5), (req, res
         }
         const urls = req.files.map(file => {
             const mime = detectImageMimeType(file.buffer);
-            const ext = mime ? mime.split('/')[1] : 'png';
+            if (!mime || !mime.startsWith('image/')) {
+                throw new Error('不支持的文件类型，仅允许上传图片喵~');
+            }
+            const ext = mime.split('/')[1];
             const filename = `wiki_img_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.${ext}`;
             const filepath = path.join(UPLOADS_DIR, filename);
             fs.writeFileSync(filepath, file.buffer);
@@ -2738,7 +2852,9 @@ app.post('/api/wiki/upload-book', authMiddleware, upload.array('files', 3), (req
             return res.status(400).json({ error: '请选择书籍文件喵~' });
         }
         const file = req.files[0];
-        const mime = file.mimetype || 'application/octet-stream';
+        // 用 magic bytes 检测真实 MIME（防御 spoofing）
+        const detectedType = detectBookMimeType(file.buffer);
+        const mime = detectedType || file.mimetype || 'application/octet-stream';
         const ext = BOOK_MIME_TYPES[mime];
         if (!ext) {
             return res.status(400).json({ error: '不支持的书籍格式，仅支持 PDF/EPUB/TXT/DOCX 喵~' });
@@ -2762,13 +2878,18 @@ app.post('/api/wiki/upload-book', authMiddleware, upload.array('files', 3), (req
 });
 
 // 读取文本文件内容 (用于 TXT/MD 在线阅读)
-app.get('/api/wiki/read-text', (req, res) => {
+app.get('/api/wiki/read-text', async (req, res) => {
     try {
         const fileUrl = req.query.url;
         if (!fileUrl || !fileUrl.startsWith('/data/uploads/')) {
             return res.status(400).json({ error: '无效的文件路径喵~' });
         }
-        const filepath = path.join(__dirname, fileUrl);
+        // 防路径遍历：先规范化再校验
+        const normalized = path.normalize(fileUrl);
+        if (normalized.includes('..')) {
+            return res.status(400).json({ error: '无效的文件路径喵~' });
+        }
+        const filepath = path.join(__dirname, normalized);
         if (!fs.existsSync(filepath)) {
             return res.status(404).json({ error: '文件不存在喵~' });
         }
@@ -2781,7 +2902,7 @@ app.get('/api/wiki/read-text', (req, res) => {
 });
 
 // 创建文章
-app.post('/api/wiki', authMiddleware, (req, res) => {
+app.post('/api/wiki', authMiddleware, async (req, res) => {
     try {
         const { title, content, category, tags, bookFile } = req.body;
 
@@ -2836,20 +2957,23 @@ app.post('/api/wiki', authMiddleware, (req, res) => {
             });
         }
 
-        writeJSON(KNOWLEDGE_FILE, articles);
+        await writeJSON(KNOWLEDGE_FILE, articles);
         res.json(article);
     } catch (err) {
         res.status(500).json({ error: '创建文章失败喵~' });
     }
 });
 
-// 编辑文章（Wiki 模式：任意登录用户均可编辑）
-app.put('/api/wiki/:id', authMiddleware, (req, res) => {
+// 编辑文章（仅作者本人可编辑）
+app.put('/api/wiki/:id', authMiddleware, async (req, res) => {
     try {
         const articles = readJSON(KNOWLEDGE_FILE, []);
         const index = articles.findIndex(a => a.id === req.params.id);
         if (index === -1) {
             return res.status(404).json({ error: '文章不存在喵~' });
+        }
+        if (articles[index].authorId !== req.user.id) {
+            return res.status(403).json({ error: '只能编辑自己创建的文章喵~' });
         }
 
         const { title, content, category, tags, bookFile } = req.body;
@@ -2891,7 +3015,7 @@ app.put('/api/wiki/:id', authMiddleware, (req, res) => {
         }
 
         articles[index].updatedAt = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-        writeJSON(KNOWLEDGE_FILE, articles);
+        await writeJSON(KNOWLEDGE_FILE, articles);
         res.json(articles[index]);
     } catch (err) {
         res.status(500).json({ error: '编辑文章失败喵~' });
@@ -2899,7 +3023,7 @@ app.put('/api/wiki/:id', authMiddleware, (req, res) => {
 });
 
 // 删除文章（仅作者本人可删）
-app.delete('/api/wiki/:id', authMiddleware, (req, res) => {
+app.delete('/api/wiki/:id', authMiddleware, async (req, res) => {
     try {
         const articles = readJSON(KNOWLEDGE_FILE, []);
         const index = articles.findIndex(a => a.id === req.params.id);
@@ -2910,7 +3034,7 @@ app.delete('/api/wiki/:id', authMiddleware, (req, res) => {
             return res.status(403).json({ error: '只能删除自己创建的文章喵~' });
         }
         articles.splice(index, 1);
-        writeJSON(KNOWLEDGE_FILE, articles);
+        await writeJSON(KNOWLEDGE_FILE, articles);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: '删除文章失败喵~' });
@@ -2982,7 +3106,10 @@ app.get('/api/this-moment', async (req, res) => {
         let buffer = '';
 
         while (true) {
-            const { done, value } = await reader.read();
+            const { done, value } = await Promise.race([
+                reader.read(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('SSE read timeout')), 90000))
+            ]);
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
@@ -3113,6 +3240,11 @@ ${moodClause}${dietClause}${avoidClause}
             })
         });
 
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('Recipe API error:', response.status, errText.substring(0, 200));
+            throw new Error(`API ${response.status}`);
+        }
         const data = await response.json();
         if (!data.choices || !data.choices[0]) {
             throw new Error('DeepSeek API returned unexpected format');

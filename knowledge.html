@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,9 +7,9 @@
     <meta name="view-transition" content="same-origin">
     <title>知识库 — 蜜柑苏打 Wiki</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📚</text></svg>">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    <link rel="stylesheet" href="/lib/highlight-github.min.css">
+    <script src="/lib/marked.min.js"></script>
+    <script src="/lib/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
     <style>
         /* ============================================================
@@ -124,10 +125,13 @@
            ============================================================ */
         .app-shell {
             position: relative;
-            z-index: 1;
+            z-index: 2;
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 14px 18px 32px;
+            padding: 28px 18px 40px;
+            margin: 3vh auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
         }
 
         /* ============================================================
@@ -149,12 +153,18 @@
         /* ============================================================
            导航栏 (与 index.html 相同)
            ============================================================ */
+        /* ===== 顶栏 — 统一 index.html 风格 ===== */
         .nav-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 22px;
-            margin-bottom: 16px;
+            padding: 14px 22px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--glass-shadow);
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -164,7 +174,12 @@
             gap: 10px;
         }
         .nav-logo {
-            font-size: 28px;
+            width: 40px; height: 40px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(255, 159, 67, 0.3);
+            flex-shrink: 0;
         }
         .nav-title {
             font-family: var(--font-display);
@@ -175,36 +190,15 @@
         }
         .nav-subtitle {
             font-size: 12px;
-            color: var(--text-tertiary);
-            margin-left: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
-        }
-        .online-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            background: var(--glass-bg-strong);
-            border-radius: 20px;
-            padding: 6px 14px;
-            border: 1px solid var(--glass-border);
-        }
-        .online-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: #34c759;
-            box-shadow: 0 0 6px rgba(52, 199, 89, 0.4);
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
         }
         .nav-btn {
             display: flex;
@@ -217,18 +211,10 @@
             font-size: 13px;
             cursor: pointer;
             transition: all var(--transition-bounce);
-            text-decoration: none;
-            color: #fff;
-            font-weight: 600;
         }
         .nav-btn:hover {
-            transform: translateY(-1px);
-        }
-        .btn-home {
-            background: linear-gradient(135deg, #ff9f43, #ffb366);
-        }
-        .btn-chat {
-            background: linear-gradient(135deg, #ee5a6f, #f0906b);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .btn-user {
             background: var(--glass-bg-strong);
@@ -236,6 +222,52 @@
             border: 1px solid var(--glass-border-strong);
             font-weight: 500;
         }
+        .online-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 20px;
+            padding: 6px 14px;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .online-badge .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #34c759;
+            box-shadow: 0 0 8px rgba(52, 199, 89, 0.5);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.65); }
+        }
+        /* 导航圆形按钮 */
+        .nav-btn-circle { position:relative; width:42px; height:42px; border:1px solid rgba(255,255,255,0.6);
+            border-radius:50%; color:#fff; cursor:pointer; font-size:20px; box-shadow:0 4px 16px rgba(0,0,0,0.12);
+            transition:all var(--transition-bounce); display:flex; align-items:center; justify-content:center; text-decoration:none; }
+        .nav-btn-circle:hover { transform:translateY(-3px) scale(1.1); }
+        .nav-btn-circle:active { transform:translateY(1px) scale(0.94); }
+        .nav-btn-circle::after { position:absolute; bottom:-36px; left:50%; transform:translateX(-50%) translateY(4px);
+            background:rgba(30,30,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+            color:#fff; font-size:11px; font-weight:500; padding:5px 12px; border-radius:10px;
+            white-space:nowrap; opacity:0; pointer-events:none; transition:all var(--transition-fast); }
+        .nav-btn-circle:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
+        .btn-home { background:linear-gradient(135deg,var(--accent-3),#48cae4); box-shadow:0 4px 16px rgba(10,189,227,0.25); animation:glowBlue 3.5s ease-in-out infinite; }
+        .btn-home::after { content:'回到首页'; }
+        .btn-home:hover { box-shadow:0 8px 24px rgba(10,189,227,0.4); animation:none; }
+        @keyframes glowBlue { 0%,100%{box-shadow:0 4px 16px rgba(10,189,227,0.25),0 0 0 0 rgba(10,189,227,0.3)} 50%{box-shadow:0 4px 16px rgba(10,189,227,0.25),0 0 0 12px rgba(10,189,227,0)} }
+        .btn-chat { background:linear-gradient(135deg,#ff8a80,#ff5252); box-shadow:0 4px 16px rgba(255,82,82,0.25); animation:glowRed 3s ease-in-out infinite; }
+        .btn-chat::after { content:'找小橘聊天~'; }
+        .btn-chat:hover { box-shadow:0 8px 24px rgba(255,82,82,0.4); animation:none; }
+        @keyframes glowRed { 0%,100%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 0 rgba(255,82,82,0.3)} 50%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 12px rgba(255,82,82,0)} }
 
         /* ============================================================
            主布局 — 两列 (左侧栏 + 内容区)
@@ -410,13 +442,25 @@
            内容区
            ============================================================ */
         .content-primary {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 14px;
             min-height: 60vh;
         }
-
-        /* 操作栏 */
+        .content-primary .action-bar { grid-row: 1; }
+        .content-primary .pagination { grid-row: 3; }
+        /* 视图层叠在同一行 — 始终渲染，用 opacity 切换 */
+        #article-list, #article-detail, #editor-view {
+            grid-row: 2;
+            grid-column: 1;
+        }
+        .article-list {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .article-list.hidden {
+            display: none;
+        }
         .action-bar {
             display: flex;
             align-items: center;
@@ -446,6 +490,23 @@
         .result-count {
             font-size: 13px;
             color: var(--text-tertiary);
+        }
+
+        /* 页脚 */
+        .site-footer {
+            text-align: center;
+            padding: 30px 0 16px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            position: relative;
+            z-index: 2;
+        }
+        .site-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .site-footer a:hover {
+            color: var(--accent);
         }
 
         /* 文章列表卡片 */
@@ -539,26 +600,151 @@
         }
         .card-actions {
             display: flex;
-            gap: 6px;
+            align-items: center;
+            gap: 3px;
             margin-left: auto;
+            flex-shrink: 0;
+        }
+        .card-actions-divider {
+            width: 1px;
+            height: 14px;
+            background: rgba(0,0,0,0.08);
+            margin: 0 3px;
+            flex-shrink: 0;
         }
         .card-action-btn {
-            font-size: 14px;
-            padding: 2px 6px;
+            font-size: 13px;
+            width: 30px;
+            height: 30px;
+            padding: 0;
             border: none;
-            background: none;
+            background: transparent;
             cursor: pointer;
-            border-radius: 6px;
-            transition: all var(--transition-fast);
-            opacity: 0.5;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0.45;
+            position: relative;
         }
         .card-action-btn:hover {
             opacity: 1;
-            background: rgba(0,0,0,0.05);
+            transform: scale(1.18);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .card-action-btn.danger:hover {
+        .card-action-btn:active {
+            transform: scale(0.88);
+            transition: all 0.08s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .card-action-btn.pin-btn:hover {
+            background: rgba(255,159,67,0.12);
+            color: var(--accent);
+        }
+        .card-action-btn.pin-btn.pinned {
+            opacity: 1;
+            color: var(--accent);
+            background: rgba(255,159,67,0.08);
+        }
+        .card-action-btn.edit-btn:hover {
+            background: rgba(10,189,227,0.1);
+            color: var(--accent-3);
+        }
+        .card-action-btn.danger-btn:hover {
+            background: rgba(238,90,111,0.1);
             color: var(--accent-2);
-            background: rgba(238,90,111,0.08);
+        }
+        .card-action-btn.read-btn:hover {
+            background: rgba(32,191,107,0.1);
+            color: #20bf6b;
+        }
+        .card-action-btn.read-btn.is-read {
+            opacity: 0.7;
+            color: #20bf6b;
+        }
+
+        /* 文章卡片 — 置顶标记 */
+        .pin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
+
+        /* 文章卡片 — 已读状态 */
+        .article-card.read {
+            opacity: 0.65;
+        }
+        .article-card.read:hover {
+            opacity: 0.9;
+        }
+
+        /* 详情页 — 置顶 / 已读切换按钮 */
+        .read-status-btn {
+            font-size: 12px;
+            padding: 6px 14px;
+            border: 1px solid var(--glass-border-strong);
+            background: var(--glass-bg);
+            border-radius: 14px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-family: var(--font-body);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .read-status-btn:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            border-color: var(--accent-3);
+            color: var(--accent-3);
+            background: rgba(10,189,227,0.04);
+        }
+        .read-status-btn:active {
+            transform: translateY(1px) scale(0.94);
+            transition: all 0.08s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        /* 右下角悬浮按钮（仅详情页显示） */
+        .float-actions {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .float-actions.show {
+            display: flex;
+        }
+        .float-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border-strong);
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: var(--text-secondary);
+        }
+        .float-btn:hover {
+            transform: scale(1.12);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            color: var(--accent);
+        }
+        .float-btn:active {
+            transform: scale(0.9);
         }
 
         /* 分页 */
@@ -650,24 +836,34 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border: 1px solid var(--glass-border-strong);
             border-radius: 14px;
             background: var(--glass-bg);
             font-family: var(--font-body);
             font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all var(--transition-fast);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             color: var(--text-secondary);
         }
         .btn-back:hover {
             background: var(--glass-bg-hover);
+            transform: translateX(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            color: var(--text-primary);
+        }
+        .btn-back:active {
+            transform: translateX(-1px) scale(0.96);
+            transition: all 0.08s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
         .detail-actions {
             display: flex;
+            align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
-        .btn-edit, .btn-delete {
+        .btn-edit, .btn-delete, .btn-read-book {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -677,15 +873,26 @@
             font-family: var(--font-body);
             font-size: 13px;
             cursor: pointer;
-            transition: all var(--transition-bounce);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             color: #fff;
             font-weight: 600;
+        }
+        .btn-edit:hover, .btn-delete:hover, .btn-read-book:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+        .btn-edit:active, .btn-delete:active, .btn-read-book:active {
+            transform: translateY(1px) scale(0.94);
+            transition: all 0.08s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
         .btn-edit {
             background: linear-gradient(135deg, #0abde3, #48dbfb);
         }
         .btn-delete {
             background: linear-gradient(135deg, #ee5a6f, #fc5c65);
+        }
+        .btn-read-book {
+            background: linear-gradient(135deg, #8854d0, #a55eea);
         }
         .detail-card {
             padding: 24px 28px;
@@ -1442,7 +1649,8 @@
         /* 平板竖屏 */
         @media (max-width: 768px) {
             .app-shell {
-                padding: 8px 10px 20px;
+                padding: 12px 14px 30px;
+                gap: 14px;
             }
             .nav-bar {
                 padding: 10px 14px;
@@ -1453,10 +1661,7 @@
             .nav-logo {
                 font-size: 22px;
             }
-            .nav-btn {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
+            .nav-btn-circle { width:36px; height:36px; font-size:18px; }
             .main-layout {
                 grid-template-columns: 1fr;
             }
@@ -1527,14 +1732,8 @@
 
         /* 手机 */
         @media (max-width: 480px) {
-            .nav-btn span {
-                display: none;
-            }
-            .nav-btn {
-                padding: 8px 10px;
-                font-size: 14px;
-                min-width: unset;
-            }
+            .app-shell { padding:8px 8px 24px; gap:10px; }
+            .nav-btn-circle { width:34px; height:34px; font-size:17px; }
             .content-sidebar {
                 width: 85vw;
             }
@@ -1659,7 +1858,7 @@
     <div class="app-shell">
 
         <!-- 导航栏 -->
-        <nav class="nav-bar glass-card">
+        <nav class="nav-bar">
             <div class="nav-brand">
                 <span class="nav-logo">📚</span>
                 <div>
@@ -1669,16 +1868,12 @@
                 </div>
             </div>
             <div class="nav-actions">
-                <div class="online-badge">
-                    <span class="online-dot"></span>
-                    <span id="online-count">--</span> 人在线
-                </div>
-                <a class="nav-btn btn-home" href="/">
-                    🏠 <span>返回首页</span>
-                </a>
-                <a class="nav-btn btn-chat" href="/tools.html">
-                    💬 <span>AI 工具箱</span>
-                </a>
+                <span class="online-badge" id="online-badge" title="全站在线人数">
+                    <span class="dot"></span>
+                    <span id="online-count">-</span> 喵在线
+                </span>
+                <a href="/" class="nav-btn-circle btn-home" title="回到首页">🏠</a>
+                <a href="/tools.html" class="nav-btn-circle btn-chat" title="AI 工具箱">🐱</a>
                 <button class="nav-btn btn-user" id="btn-user" onclick="handleUserClick()">
                     👤 <span id="user-label">登录</span>
                 </button>
@@ -1806,6 +2001,12 @@
                     </div>
                 </div>
             </main>
+
+            <!-- 右下角悬浮按钮（详情页显示） -->
+            <div class="float-actions" id="float-actions">
+                <button class="float-btn" onclick="goBackToList()" title="返回列表">↩️</button>
+                <button class="float-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">⬆️</button>
+            </div>
         </div>
     </div>
 
@@ -1846,9 +2047,17 @@
         toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // ---- 在线人数 ----
+    // ---- 在线人数（基于设备 ID，一台设备 = 一个人） ----
+    function getDeviceId() {
+        var id = localStorage.getItem('miaosite_did');
+        if (!id) {
+            id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+            localStorage.setItem('miaosite_did', id);
+        }
+        return id;
+    }
     function updateOnlineCount() {
-        fetch('/api/online-count')
+        fetch('/api/online-count?did=' + encodeURIComponent(getDeviceId()))
             .then(r => r.json())
             .then(d => { document.getElementById('online-count').textContent = d.onlineCount || 0; })
             .catch(() => {});
@@ -1857,6 +2066,32 @@
     updateOnlineCount();
 
     // ---- 状态管理 ----
+    // 已读文章追踪（localStorage）
+    function getReadArticles() {
+        try {
+            return JSON.parse(localStorage.getItem('miaosite_wiki_read') || '[]');
+        } catch { return []; }
+    }
+    function saveReadArticles(ids) {
+        try {
+            localStorage.setItem('miaosite_wiki_read', JSON.stringify(ids));
+        } catch {}
+    }
+    function isArticleRead(id) {
+        return getReadArticles().includes(id);
+    }
+    function markArticleRead(id) {
+        const ids = getReadArticles();
+        if (!ids.includes(id)) {
+            ids.push(id);
+            saveReadArticles(ids);
+        }
+    }
+    function markArticleUnread(id) {
+        const ids = getReadArticles().filter(x => x !== id);
+        saveReadArticles(ids);
+    }
+
     const state = {
         view: 'list',       // 'list' | 'detail' | 'editor'
         articles: [],
@@ -2031,7 +2266,6 @@
 
     // ---- 加载文章列表 ----
     async function loadArticles() {
-        showView('list');
         const listContainer = document.getElementById('article-list');
         const pagination = document.getElementById('pagination');
         listContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
@@ -2045,7 +2279,7 @@
             params.set('page', state.page);
             params.set('limit', 20);
 
-            const resp = await fetch(`/api/wiki?${params}`);
+            const resp = await Auth.fetch(`/api/wiki?${params}`);
             if (!resp.ok) throw new Error();
             const data = await resp.json();
 
@@ -2088,10 +2322,14 @@
         container.innerHTML = state.articles.map(a => {
             const catName = getCategoryName(a.category);
             const isAuthor = Auth.getUser() && Auth.getUser().id === a.authorId;
+            const isRead = isArticleRead(a.id);
             return `
-            <div class="article-card glass-card" onclick="viewArticle('${a.id}')">
+            <div class="article-card glass-card${isRead ? ' read' : ''}" onclick="viewArticle('${a.id}')">
                 <div class="article-card-header">
-                    <span class="article-card-title">${highlightKeyword(a.title, kw)}</span>
+                    <span class="article-card-title">
+                        ${a.pinned ? '<span class="pin-badge">📌</span>' : ''}
+                        ${highlightKeyword(a.title, kw)}
+                    </span>
                     <span class="category-badge cat-${a.category}">${catName}</span>
                 </div>
                 <div class="article-card-excerpt">${highlightKeyword(a.excerpt || '', kw)}</div>
@@ -2100,14 +2338,19 @@
                     <span>🕒 ${a.updatedAt || ''}</span>
                     <span>👁️ ${a.views || 0}</span>
                     <span>📝 ${formatWordCount(a.wordCount || 0)}</span>
+                    ${isRead ? '<span style="font-size:11px;color:var(--accent-3);">✅ 已读</span>' : ''}
                     ${(a.tags && a.tags.length) ? '<span class="article-card-tags">' +
                         a.tags.slice(0, 3).map(t => `<span class="article-card-tag">${escapeHtml(t)}</span>`).join('') +
                     '</span>' : ''}
-                    ${Auth.isLoggedIn() ? `
                     <span class="card-actions" onclick="event.stopPropagation()">
-                        <button class="card-action-btn" onclick="startEdit(event, '${a.id}')" title="编辑">✏️</button>
-                        ${isAuthor ? `<button class="card-action-btn danger" onclick="deleteArticle(event, '${a.id}')" title="删除">🗑️</button>` : ''}
-                    </span>` : ''}
+                        ${Auth.isLoggedIn() ? `
+                        <button class="card-action-btn pin-btn${a.pinned ? ' pinned' : ''}" onclick="togglePin(event, '${a.id}')" title="${a.pinned ? '取消置顶' : '置顶'}">${a.pinned ? '📌' : '📍'}</button>
+                        <button class="card-action-btn edit-btn" onclick="startEdit(event, '${a.id}')" title="编辑">✏️</button>
+                        ${isAuthor ? `<button class="card-action-btn danger-btn" onclick="deleteArticle(event, '${a.id}')" title="删除">🗑️</button>` : ''}
+                        <span class="card-actions-divider"></span>
+                        ` : ''}
+                        <button class="card-action-btn read-btn${isRead ? ' is-read' : ''}" onclick="toggleRead(event, '${a.id}')" title="${isRead ? '标记未读' : '标记已读'}">${isRead ? '✅' : '📖'}</button>
+                    </span>
                 </div>
             </div>`;
         }).join('');
@@ -2136,6 +2379,92 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // ---- 置顶/取消置顶 ----
+    async function togglePin(event, id) {
+        event.stopPropagation();
+        if (!Auth.isLoggedIn()) {
+            showAuth();
+            return;
+        }
+        try {
+            const resp = await Auth.fetch(`/api/wiki/${id}/pin`, { method: 'PUT' });
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error || '操作失败');
+            }
+            const result = await resp.json();
+            showToast(result.pinned ? '已置顶喵~ 📌' : '已取消置顶喵~');
+            // 同步更新 currentArticle（详情页也会立即变化）
+            if (state.currentArticle && state.currentArticle.id === id) {
+                state.currentArticle.pinned = result.pinned;
+            }
+            // 同步更新文章列表中的条目
+            const articleInList = state.articles.find(a => a.id === id);
+            if (articleInList) {
+                articleInList.pinned = result.pinned;
+            }
+            // 局部渲染：避免全量 reload 导致的闪动
+            if (state.view === 'detail') renderArticleDetail();
+            renderArticleList();
+        } catch (err) {
+            showToast(err.message || '置顶操作失败喵~');
+        }
+    }
+
+    // ---- 已读/未读切换 ----
+    function toggleRead(event, id) {
+        event.stopPropagation();
+        if (isArticleRead(id)) {
+            markArticleUnread(id);
+            showToast('已标记为未读喵~');
+        } else {
+            markArticleRead(id);
+            showToast('已标记为已读喵~ ✅');
+        }
+        renderArticleList();
+    }
+
+    // 详情页滚动到底部自动标记已读
+    let readOnScrollCleanup = null;
+    function setupReadOnScroll(id) {
+        // 清理上一个监听器
+        if (readOnScrollCleanup) readOnScrollCleanup();
+        // 如果已经读过，不重复监听
+        if (isArticleRead(id)) return;
+
+        const handler = () => {
+            const scrollBottom = window.innerHeight + window.scrollY;
+            const pageBottom = document.documentElement.scrollHeight;
+            // 距离底部 80px 以内视为已读完
+            if (scrollBottom >= pageBottom - 80) {
+                markArticleRead(id);
+                showToast('已自动标记为已读 📖✅');
+                window.removeEventListener('scroll', handler);
+                readOnScrollCleanup = null;
+            }
+        };
+        window.addEventListener('scroll', handler, { passive: true });
+        readOnScrollCleanup = () => {
+            window.removeEventListener('scroll', handler);
+            readOnScrollCleanup = null;
+        };
+    }
+
+    // 详情页中切换已读/未读
+    function toggleReadDetail(id) {
+        if (isArticleRead(id)) {
+            markArticleUnread(id);
+            showToast('已标记为未读喵~');
+        } else {
+            markArticleRead(id);
+            showToast('已标记为已读喵~ ✅');
+        }
+        // 重新渲染详情页头部按钮
+        renderArticleDetail();
+        // 同时更新列表（如果列表可见）
+        renderArticleList();
+    }
+
     // ---- 文章详情 ----
     async function viewArticle(id) {
         try {
@@ -2149,6 +2478,8 @@
             renderArticleDetail();
             showView('detail');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            // 监听滚动到底部再自动标记已读
+            setupReadOnScroll(id);
         } catch {
             showToast('加载文章失败喵~');
         }
@@ -2158,12 +2489,13 @@
         const a = state.currentArticle;
         const container = document.getElementById('article-detail');
         const isAuthor = Auth.getUser() && Auth.getUser().id === a.authorId;
+        const isRead = isArticleRead(a.id);
 
         // 去掉内容开头重复标题（标题已在h1显示）并渲染Markdown
         let cleanContent = a.content.replace(/^#{1,3}\s+.+\n+/, '').trim();
         let contentHtml = renderMarkdown(cleanContent);
         // 给图片加 onclick lightbox
-        contentHtml = contentHtml.replace(/<img /g, '<img onclick="event.stopPropagation();openLightbox(this.src)" style="cursor:zoom-in;" ');
+        contentHtml = contentHtml.replace(/<img /g, '<img loading="lazy" decoding="async" onclick="event.stopPropagation();openLightbox(this.src)" style="cursor:zoom-in;" ');
 
         const typeLabels = { pdf: 'PDF', epub: 'EPUB', txt: 'TXT', md: 'MD', docx: 'DOCX' };
         const bookInfo = a.bookFile ? `
@@ -2175,6 +2507,10 @@
             <div class="detail-header">
                 <button class="btn-back" onclick="goBackToList()">← 返回列表</button>
                 <div class="detail-actions">
+                    ${Auth.isLoggedIn() ? `<button class="read-status-btn" onclick="togglePin(event, '${a.id}')" style="margin-right:4px;">${a.pinned ? '📌 取消置顶' : '📍 置顶'}</button>` : ''}
+                    <button class="read-status-btn" onclick="event.stopPropagation();toggleReadDetail('${a.id}')">
+                        ${isRead ? '✅ 标记未读' : '📖 标记已读'}
+                    </button>
                     ${a.bookFile ? `<button class="btn-read-book" onclick="openReader(${JSON.stringify(a.bookFile).replace(/"/g, '&quot;')})">📖 阅读</button>` : ''}
                     ${Auth.isLoggedIn() ? `<button class="btn-edit" onclick="startEdit(event, '${a.id}')">✏️ 编辑</button>` : ''}
                     ${isAuthor ? `<button class="btn-delete" onclick="deleteArticle(event, '${a.id}')">🗑️ 删除</button>` : ''}
@@ -2198,15 +2534,18 @@
             </div>`;
     }
 
-    function goBackToList() {
+    async function goBackToList() {
+        if (readOnScrollCleanup) { readOnScrollCleanup(); }
         state.currentArticle = null;
         state.editingId = null;
+        // 先加载数据渲染好列表（此时列表在 detail 背后，不可见，不会闪）
+        await loadArticles();
+        // 再播放过渡动画切到已经渲染好的列表
         showView('list');
-        loadArticles();
     }
 
     // ---- 编辑器 ----
-    function startCreate() {
+    async function startCreate() {
         if (!Auth.isLoggedIn()) {
             showAuth();
             return;
@@ -2223,12 +2562,12 @@
         document.getElementById('upload-hint').textContent = '';
         showBookFilePreview();
         updatePreview();
-        showView('editor');
         populateCategorySelect();
+        showView('editor');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function startEdit(event, id) {
+    async function startEdit(event, id) {
         event.stopPropagation();
         if (!Auth.isLoggedIn()) {
             showAuth();
@@ -2246,7 +2585,7 @@
         fillEditor(article);
     }
 
-    function fillEditor(article) {
+    async function fillEditor(article) {
         state.editingId = article.id;
         state.currentArticle = article;
         document.getElementById('editor-title').value = article.title || '';
@@ -2259,8 +2598,8 @@
         state.bookFile = article.bookFile || null;
         showBookFilePreview();
         updatePreview();
-        showView('editor');
         populateCategorySelect();
+        showView('editor');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -2726,11 +3065,40 @@
 
     // ---- 视图切换 ----
     function showView(view) {
+        var oldView = state.view;
+        if (view === oldView) return;
+
+        if (view !== 'detail' && readOnScrollCleanup) { readOnScrollCleanup(); }
+
         state.view = view;
-        document.getElementById('article-list').style.display = view === 'list' ? '' : 'none';
+
+        // 右下角悬浮按钮：仅详情页显示
+        var floatActions = document.getElementById('float-actions');
+        if (floatActions) floatActions.classList.toggle('show', view === 'detail');
+
+        var listEl = document.getElementById('article-list');
+        var detailEl = document.getElementById('article-detail');
+        var editorEl = document.getElementById('editor-view');
+
+        // 栅格叠层 → 所有视图始终渲染，startViewTransition 截图精准
+        if (document.startViewTransition) {
+            document.startViewTransition(function() {
+                listEl.classList.toggle('hidden', view !== 'list');
+                detailEl.classList.toggle('show', view === 'detail');
+                editorEl.classList.toggle('show', view === 'editor');
+                document.getElementById('pagination').style.display = view === 'list' ? '' : 'none';
+                document.getElementById('result-count').style.display = view === 'list' ? '' : 'none';
+                document.getElementById('btn-create').style.display =
+                    (view === 'detail' || view === 'editor') ? 'none' : '';
+            });
+            return;
+        }
+
+        // 降级
+        listEl.classList.toggle('hidden', view !== 'list');
+        detailEl.classList.toggle('show', view === 'detail');
+        editorEl.classList.toggle('show', view === 'editor');
         document.getElementById('pagination').style.display = view === 'list' ? '' : 'none';
-        document.getElementById('article-detail').classList.toggle('show', view === 'detail');
-        document.getElementById('editor-view').classList.toggle('show', view === 'editor');
         document.getElementById('result-count').style.display = view === 'list' ? '' : 'none';
         document.getElementById('btn-create').style.display =
             (view === 'detail' || view === 'editor') ? 'none' : '';
@@ -2916,5 +3284,16 @@
     }
     init();
     </script>
+
+<footer class="site-footer">
+    © 2026 喵码 miaojiaozhu.com ·
+    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">湘ICP备2026021704号-1</a>
+</footer>
+
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
 </body>
 </html>
