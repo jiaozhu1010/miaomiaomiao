@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
     <title>喵码生成器 — 极简快递单号条码生成</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script src="/lib/jsbarcode.min.js"></script>
         <style>
         /* =========================
            喵码 Air · 柔和玻璃态
@@ -46,11 +46,9 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        *,
-        *:focus,
-        *:focus-visible,
-        *:active {
-            outline: none !important;
+        *:focus-visible {
+            outline: 2px solid var(--accent, #ff9f43);
+            outline-offset: 2px;
         }
 
         /* =========================
@@ -180,6 +178,8 @@
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             box-shadow: var(--glass-shadow);
+            position: relative;
+            z-index: 10;
         }
         .nav-brand {
             display: flex;
@@ -288,6 +288,7 @@
             opacity: 0;
             pointer-events: none;
             transition: all var(--transition-fast);
+            z-index: 100;
         }
         .ai-chat-btn:hover::after {
             opacity: 1;
@@ -342,6 +343,7 @@
             opacity: 0;
             pointer-events: none;
             transition: all var(--transition-fast);
+            z-index: 100;
         }
         .wiki-btn:hover::after {
             opacity: 1;
@@ -358,90 +360,6 @@
             align-items: flex-start;
             justify-content: center;
         }
-
-        /* 左侧趣味栏 — 「此刻」+「今天吃什么」 */
-        .left-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-            transition: all 0.45s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        .left-sidebar.collapsed {
-            flex: 0 0 0;
-            min-width: 0;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateX(-30px);
-            margin-right: -22px; /* 抵消 grid gap */
-        }
-        .left-sidebar.collapsed .moment-card,
-        .left-sidebar.collapsed .recipe-card {
-            position: absolute;
-            opacity: 0;
-            transform: translateY(-12px);
-            pointer-events: none;
-            transition: all 0.35s ease;
-        }
-
-        /* 收起按钮 — 玻璃药丸 */
-        .left-collapse-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            align-self: flex-end;
-            padding: 4px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.5);
-            cursor: pointer;
-            font-size: 11px;
-            color: var(--text-tertiary);
-            font-family: var(--font-body);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.25s var(--transition-bounce);
-            white-space: nowrap;
-        }
-        .left-collapse-btn:hover {
-            background: rgba(255,255,255,0.8);
-            color: var(--text-secondary);
-            padding-right: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        /* 折叠后的浮动展开按钮 */
-        .left-float-paw {
-            display: none;
-            position: absolute;
-            left: 8px;
-            top: 20px;
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.6);
-            background: linear-gradient(135deg, rgba(255,159,67,0.85), rgba(255,180,110,0.85));
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            cursor: pointer;
-            font-size: 18px;
-            color: #fff;
-            z-index: 20;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(255,159,67,0.25);
-            transition: all 0.3s var(--transition-bounce);
-            animation: floatBounce 2.5s ease-in-out infinite;
-        }
-        @keyframes floatBounce {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(4px); }
-        }
-        .left-float-paw:hover {
-            transform: scale(1.15);
-            box-shadow: 0 6px 24px rgba(255,159,67,0.4);
-            animation: none;
-        }
-        .left-float-paw.show { display: flex; }
 
         /* =========================
            毛玻璃卡片通用样式
@@ -469,154 +387,6 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-        }
-
-        /* =========================
-           左栏卡片 — 「此刻」诗意卡片
-           ========================= */
-        .moment-card {
-            /* glass-card 基础上仅微调内边距和布局 */
-            padding: 16px 18px;
-            text-align: center;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        .moment-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #b86840;
-            letter-spacing: 1.5px;
-        }
-        .moment-text {
-            font-size: 13px;
-            font-style: italic;
-            color: #5d3a1a;
-            line-height: 1.7;
-            transition: opacity 0.5s ease;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-        }
-        .moment-text.fade-out { opacity: 0; }
-        .moment-dots {
-            display: flex; gap: 5px; justify-content: center;
-        }
-        .moment-dots span {
-            width: 5px; height: 5px; border-radius: 50%;
-            background: #d4b088; transition: all 0.3s ease;
-        }
-        .moment-dots span.active {
-            background: #d49478; transform: scale(1.4);
-        }
-
-        /* =========================
-           左栏卡片 — 「今天吃什么」食谱卡片
-           ========================= */
-        .recipe-card {
-            /* glass-card 基础上仅微调内边距 */
-            padding: 16px;
-        }
-        .recipe-card h3 {
-            text-align: center;
-            color: var(--accent);
-            font-size: 14px;
-            margin: 0 0 10px 0;
-        }
-        .recipe-card .ingredient-input {
-            width: 100%; padding: 8px 10px;
-            border: 1px solid #e8d5c0;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.6);
-            font-size: 12px;
-            margin-bottom: 8px;
-            font-family: var(--font-body);
-            color: var(--text-primary);
-            transition: border-color 0.3s;
-        }
-        .recipe-card .ingredient-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255,159,67,0.08);
-        }
-        .recipe-card .ingredient-input::placeholder {
-            color: #c4b5a8;
-        }
-        .recipe-card .mood-chips,
-        .recipe-card .diet-chips {
-            display: flex; flex-wrap: wrap;
-            gap: 4px; margin-bottom: 6px;
-        }
-        .recipe-card .diet-chips {
-            margin-bottom: 10px;
-        }
-        .recipe-card .chip {
-            padding: 3px 10px; border-radius: 14px;
-            font-size: 11px; cursor: pointer;
-            background: #f5f0eb; border: 1px solid transparent;
-            transition: all 0.2s;
-            user-select: none;
-            white-space: nowrap;
-        }
-        .recipe-card .chip:hover {
-            background: #fdf3e4;
-        }
-        .recipe-card .chip.active {
-            background: #fdf3e4;
-            border-color: var(--accent);
-            color: #b86840; font-weight: 600;
-        }
-        .recipe-card .decide-btn {
-            width: 100%; padding: 10px;
-            background: linear-gradient(135deg, #ff9f43, #ffb88c);
-            color: #fff; border: none;
-            border-radius: 12px;
-            font-size: 13px; font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-            font-family: var(--font-body);
-        }
-        .recipe-card .decide-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 4px 16px rgba(255,159,67,0.3);
-        }
-        .recipe-card .decide-btn:active {
-            transform: scale(0.96);
-        }
-        .recipe-card .decide-btn:disabled {
-            opacity: 0.5; cursor: not-allowed; transform: none;
-        }
-
-        /* 食谱结果展示 */
-        .recipe-result {
-            margin-top: 10px; padding: 12px;
-            background: linear-gradient(135deg, #fff8f0, #fff3e6);
-            border-radius: 12px; border: 1px solid #f0d8c0;
-            animation: resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
-            display: none;
-        }
-        .recipe-result.show { display: block; }
-        .recipe-result .dish-name {
-            font-size: 18px; font-weight: 800; color: #b86840;
-            text-align: center; margin-bottom: 4px;
-        }
-        .recipe-result .dish-meta {
-            text-align: center; font-size: 11px; color: #a08c7a; margin-bottom: 8px;
-        }
-        .recipe-result .dish-steps {
-            font-size: 12px; color: #5d3a1a; line-height: 1.6;
-            padding-left: 16px; margin-bottom: 8px;
-        }
-        .recipe-result .cat-comment {
-            font-size: 11px; font-style: italic; color: #d49478;
-            text-align: center; border-top: 1px dashed #e8c8b0;
-            padding-top: 8px;
-        }
-        @keyframes resultPop {
-            from { opacity:0; transform: translateY(10px) scale(0.95); }
-            to { opacity:1; transform: translateY(0) scale(1); }
         }
 
         /* 页面标题区 */
@@ -1572,7 +1342,11 @@
         /* 侧边栏提示卡片 */
         .tips-card {
             padding: 18px;
+            max-height: 320px;
+            overflow-y: auto;
+            scrollbar-width: none;
         }
+        .tips-card::-webkit-scrollbar { display: none; }
         .tips-card h3 {
             font-family: var(--font-display);
             font-size: 14px;
@@ -1829,12 +1603,6 @@
                 grid-template-columns: minmax(460px, 760px) minmax(260px, 340px);
                 justify-content: center;
             }
-            .left-sidebar {
-                display: none;
-            }
-            .left-float-paw {
-                display: none !important;
-            }
             .content-sidebar {
                 position: static;
                 display: grid;
@@ -1976,57 +1744,8 @@
         <!-- 三栏主体（主内容居中） -->
         <div class="main-layout">
 
-            <!-- ========== 左栏：生活趣味 ========== -->
-            <aside class="left-sidebar" id="left-sidebar">
-                <button class="left-collapse-btn" id="left-collapse-btn">◀ 收起</button>
-
-                <!-- 🕰️ 此刻卡片 -->
-                <div class="glass-card moment-card" id="moment-card">
-                    <div class="moment-label">🕰️ 此刻</div>
-                    <div class="moment-text" id="moment-text">此刻，有一只小橘猫正在窗边等你回家喵~</div>
-                    <div class="moment-dots" id="moment-dots">
-                        <span class="active"></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-
-                <!-- 🍜 今天吃什么卡片 -->
-                <div class="glass-card recipe-card" id="recipe-card">
-                    <h3>🍜 今天吃什么</h3>
-
-                    <input class="ingredient-input" id="recipe-ingredients"
-                           placeholder="🥬 冰箱里有啥？（可不填）"
-                           maxlength="100">
-
-                    <div class="mood-chips" id="mood-chips">
-                        <span class="chip" data-mood="happy">😊 开心</span>
-                        <span class="chip" data-mood="lazy">😴 懒散</span>
-                        <span class="chip" data-mood="sick">🤒 不舒服</span>
-                        <span class="chip" data-mood="treat">🎉 犒劳自己</span>
-                    </div>
-
-                    <div class="diet-chips" id="diet-chips">
-                        <span class="chip" data-diet="nospicy">🌶️ 不吃辣</span>
-                        <span class="chip" data-diet="noseafood">🐟 不吃海鲜</span>
-                        <span class="chip" data-diet="veggie">🥬 素食</span>
-                        <span class="chip" data-diet="lactose">🥛 乳糖不耐</span>
-                        <span class="chip" data-diet="lowsugar">🍬 控糖</span>
-                    </div>
-
-                    <button class="decide-btn" id="recipe-btn">
-                        🎲 帮我决定！
-                    </button>
-
-                    <div class="recipe-result" id="recipe-result">
-                        <div class="dish-name" id="dish-name"></div>
-                        <div class="dish-meta" id="dish-meta"></div>
-                        <div class="dish-steps" id="dish-steps"></div>
-                        <div class="cat-comment" id="cat-comment"></div>
-                    </div>
-                </div>
-
-            </aside>
+            <!-- ========== 左栏占位（保持居中对齐） ========== -->
+            <aside class="left-sidebar" id="left-sidebar"></aside>
 
             <!-- ========== 中栏：主内容 ========== -->
             <div class="content-primary">
@@ -2228,6 +1947,7 @@
                 if (response.status === 401) {
                     localStorage.removeItem('miaosite_token');
                     localStorage.removeItem('miaosite_user');
+                    showToast('登录已过期，请重新登录喵~');
                 }
                 return response;
             }
@@ -3200,7 +2920,7 @@
                     actions.appendChild(removeSingle);
                     itemDiv.appendChild(actions);
                 } catch (error) {
-                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符喵~ (${text})</span>`;
+                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符喵~ (${escapeHtml(text)})</span>`;
                 }
                 outputArea.appendChild(itemDiv);
             });
@@ -3628,12 +3348,33 @@
                 if (!list) return;
                 list.innerHTML = history.map((item, i) => `
                     <div class="history-entry">
-                        <span class="history-entry-content" onclick="loadHistory(${i})" title="点击恢复此记录">${item.content.replace(/\n/g, ' | ')}</span>
+                        <span class="history-entry-content" data-index="${i}" title="点击恢复此记录">${escapeHtml(item.content).replace(/\n/g, ' | ')}</span>
                         <span class="history-entry-time">${item.time}</span>
-                        <button class="history-delete-btn" onclick="deleteHistory(${i})" title="删除此记录">✕</button>
+                        <button class="history-delete-btn" data-index="${i}" title="删除此记录">✕</button>
                     </div>
                 `).join('');
             }
+
+            // 事件委托：历史记录列表的点击处理
+            document.getElementById('history-list').addEventListener('click', function(e) {
+                const contentEl = e.target.closest('.history-entry-content');
+                const deleteBtn = e.target.closest('.history-delete-btn');
+                if (contentEl) {
+                    const idx = parseInt(contentEl.dataset.index);
+                    if (!isNaN(idx) && history[idx]) {
+                        inputArea.value = history[idx].content;
+                        renderBarcodes();
+                        document.getElementById('barcode-output').scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+                if (deleteBtn) {
+                    e.stopPropagation();
+                    const idx = parseInt(deleteBtn.dataset.index);
+                    if (!isNaN(idx) && history[idx]) {
+                        deleteHistory(idx);
+                    }
+                }
+            });
 
             window.loadHistory = function(index) {
                 if (history[index]) {
@@ -3730,218 +3471,18 @@
     </script>
 
     <!-- 折叠后浮动展开按钮 -->
-    <button class="left-float-paw" id="left-float-paw" title="展开">🌟</button>
-
-    <!-- ==================== 左栏折叠开关 ==================== -->
-    <script>
-    (function() {
-        var sidebar = document.getElementById('left-sidebar');
-        var collapseBtn = document.getElementById('left-collapse-btn');
-        var floatPaw = document.getElementById('left-float-paw');
-        if (!sidebar) return;
-
-        function alignPawToTitle() {
-            var title = document.querySelector('.hero-title');
-            if (!title) return;
-            var rect = title.getBoundingClientRect();
-            // position:absolute 需加上 scrollY 转换为文档坐标
-            floatPaw.style.top = (rect.top + window.scrollY + rect.height / 2 - 18) + 'px';
-        }
-
-        collapseBtn.addEventListener('click', function() {
-            sidebar.classList.add('collapsed');
-            alignPawToTitle();
-            floatPaw.classList.add('show');
-        });
-        floatPaw.addEventListener('click', function() {
-            sidebar.classList.remove('collapsed');
-            floatPaw.classList.remove('show');
-        });
-        window.addEventListener('resize', function() {
-            if (floatPaw.classList.contains('show')) alignPawToTitle();
-        });
-        window.addEventListener('scroll', function() {
-            if (floatPaw.classList.contains('show')) alignPawToTitle();
-        });
-    })();
-    </script>
-
-    <!-- ==================== 「此刻」诗意卡片 ==================== -->
-    <script>
-    (function() {
-        var momentText = document.getElementById('moment-text');
-        var momentDots = document.getElementById('moment-dots');
-        if (!momentText) return;
-
-        var dots = momentDots ? momentDots.querySelectorAll('span') : [];
-        var dotIndex = 0;
-
-        function updateDots() {
-            dots.forEach(function(d, i) {
-                d.classList.toggle('active', i === dotIndex);
-            });
-            dotIndex = (dotIndex + 1) % dots.length;
-        }
-
-        async function refreshMoment() {
-            try {
-                var res = await fetch('/api/this-moment');
-                var data = await res.json();
-                momentText.classList.add('fade-out');
-                await new Promise(function(r) { setTimeout(r, 400); });
-                momentText.textContent = data.text;
-                updateDots();
-                momentText.classList.remove('fade-out');
-            } catch (e) {
-                // 静默失败，保留当前文字
-            }
-        }
-
-        // 首次加载：失败则重试，一直等到真实数据
-        async function initMoment() {
-            try {
-                await refreshMoment();
-            } catch (e) {
-                // 5秒后重试
-                setTimeout(function() { initMoment(); }, 5000);
-            }
-        }
-
-        initMoment();
-        setInterval(refreshMoment, 1200000); // 20分钟刷新
-    })();
-    </script>
-
-    <!-- ==================== 「今天吃什么」食谱推荐 ==================== -->
-    <script>
-    (function() {
-        var moodChips = document.getElementById('mood-chips');
-        var dietChips = document.getElementById('diet-chips');
-        var recipeBtn = document.getElementById('recipe-btn');
-        var ingredientsInput = document.getElementById('recipe-ingredients');
-        var recipeResult = document.getElementById('recipe-result');
-
-        if (!recipeBtn) return;
-
-        // 心情单选
-        if (moodChips) {
-            moodChips.querySelectorAll('.chip').forEach(function(chip) {
-                chip.addEventListener('click', function() {
-                    moodChips.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
-                    chip.classList.add('active');
-                });
-            });
-        }
-
-        // 忌口多选
-        if (dietChips) {
-            dietChips.querySelectorAll('.chip').forEach(function(chip) {
-                chip.addEventListener('click', function() {
-                    chip.classList.toggle('active');
-                });
-            });
-        }
-
-        // 回车快捷触发
-        if (ingredientsInput) {
-            ingredientsInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    recipeBtn.click();
-                }
-            });
-        }
-
-        // 点击决策
-        recipeBtn.addEventListener('click', async function() {
-            var ingredients = ingredientsInput ? ingredientsInput.value.trim() : '';
-            var moodEl = moodChips ? moodChips.querySelector('.chip.active') : null;
-            var mood = moodEl ? moodEl.dataset.mood : '';
-            var dietEls = dietChips ? dietChips.querySelectorAll('.chip.active') : [];
-            var diets = Array.from(dietEls).map(function(c) { return c.dataset.diet; });
-
-            if (!ingredients && !mood && diets.length === 0) {
-                if (typeof showToast === 'function') {
-                    var emptyTips = [
-                        '啥都没选？小橘帮你盲选喵~ 🎲',
-                        '交给命运吧！小橘随便做一道~ 🐱',
-                        '今天让小橘替你决定！✨',
-                        '盲盒模式启动！看看今天吃啥~ 🎁',
-                        '不挑食的好孩子，小橘来安排！🍜'
-                    ];
-                    showToast(emptyTips[Math.floor(Math.random() * emptyTips.length)]);
-                }
-                // 不return，允许空食材盲推
-            }
-
-            var btn = recipeBtn;
-            var origText = btn.textContent;
-            btn.disabled = true;
-            var loadingTexts = [
-                '🐱 小橘翻菜谱中...',
-                '🍳 小橘在翻冰箱...',
-                '🥘 小橘在尝味道...',
-                '🔥 小橘在颠勺中...',
-                '📖 小橘翻祖传菜谱...',
-                '🥢 小橘偷吃了一口...',
-                '🧑‍🍳 小橘戴上厨师帽...',
-                '🍜 小橘正在试菜...'
-            ];
-            btn.textContent = loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
-
-            try {
-                var res = await fetch('/api/recipe-suggest', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ingredients: ingredients, mood: mood, diets: diets })
-                });
-                if (!res.ok) {
-                    var errData = await res.json();
-                    throw new Error(errData.error || '请求失败');
-                }
-                var data = await res.json();
-
-                document.getElementById('dish-name').textContent = data.dish || '';
-
-                document.getElementById('dish-meta').textContent = '⏱️ ' + (data.difficulty || '⭐简单') + ' · ' + (data.time || '15分钟');
-
-                // 安全构建步骤列表（避免 XSS）
-                var stepsContainer = document.getElementById('dish-steps');
-                stepsContainer.innerHTML = '';
-                (data.steps || []).forEach(function(s, i) {
-                    var span = document.createElement('span');
-                    span.textContent = (i + 1) + '. ' + s;
-                    stepsContainer.appendChild(span);
-                    stepsContainer.appendChild(document.createElement('br'));
-                });
-
-                document.getElementById('cat-comment').textContent = data.catComment || '小橘觉得这道菜很不错喵~';
-                recipeResult.classList.add('show');
-                // 首次成功后按钮变「换一个」
-                recipeBtn.textContent = '🔄 换一个';
-            } catch (e) {
-                console.error('Recipe error:', e);
-                if (typeof showToast === 'function') {
-                    showToast('小橘翻菜谱翻到猫砂盆里了，再试试喵~');
-                }
-                btn.disabled = false;
-                btn.textContent = origText;
-                return;
-            }
-
-            btn.disabled = false;
-            // 成功后按钮保持「换一个」（已在上面设置）
-        });
-    })();
-    </script>
-
     <!-- 全站在线人数 -->
     <script>
     (function() {
         var countEl = document.getElementById('online-count');
         if (!countEl) return;
+        function getDeviceId() {
+            var id = localStorage.getItem('miaosite_did');
+            if (!id) { id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); localStorage.setItem('miaosite_did', id); }
+            return id;
+        }
         function fetchOnline() {
-            fetch('/api/online-count')
+            fetch('/api/online-count?did=' + encodeURIComponent(getDeviceId()))
                 .then(function(r) { return r.json(); })
                 .then(function(d) { countEl.textContent = d.onlineCount; })
                 .catch(function() { countEl.textContent = '?'; });

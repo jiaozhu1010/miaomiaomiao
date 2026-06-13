@@ -16,5 +16,5 @@
 - 所有文件均被 `.gitignore` 排除 — **永远不上传 git**
 - ID 格式: `kb_随机16位hex` (知识库) / `usr_随机16位hex` (用户) / `conv_随机hex` (对话) 等
 - `createdAt` / `updatedAt` 时间用 `zh-CN` + `Asia/Shanghai`
-- 知识库文章 `content` 字段可包含 Markdown, 上限 200000 字符
+- 知识库文章 `content` 字段可包含 Markdown, 上限 2000000 字符
 - `readJSON(path)` 不存在时自动创建空数组 `[]`; `writeJSON(path, data)` 原子写入
