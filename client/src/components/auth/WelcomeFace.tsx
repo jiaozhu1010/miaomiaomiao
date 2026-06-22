@@ -20,7 +20,7 @@ export default function WelcomeFace({ onFlip }: WelcomeFaceProps) {
         <div className="mb-6 flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-mia-orange to-mia-orange-dark shadow-lg">
           <LogIn className="size-12 text-white" />
         </div>
-        <h1 className="mb-2 text-3xl font-bold text-mia-brown">喵码</h1>
+        <h1 className="mb-2 text-3xl font-bold text-mia-brown">欢迎使用喵码 🐱</h1>
         <p className="mb-10 text-sm text-mia-brown-light">
           快递条码生成 · OCR 识别 · AI 聊天
         </p>
@@ -32,7 +32,7 @@ export default function WelcomeFace({ onFlip }: WelcomeFaceProps) {
             return (
               <div
                 key={i}
-                className="flex items-center gap-4 rounded-xl bg-white/70 p-4 text-left shadow-sm backdrop-blur-xs"
+                className="flex items-center gap-4 rounded-xl bg-white/70 p-4 text-left shadow-sm backdrop-blur-sm"
               >
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-mia-orange/10">
                   <Icon className="size-5 text-mia-orange" />
