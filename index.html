@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
     <title>喵码生成器 — 极简快递单号条码生成</title>
+    <script>
+    (function() {
+        var reloadToken = sessionStorage.getItem('miaosite_force_reload_token');
+        if (reloadToken) sessionStorage.removeItem('miaosite_force_reload_token');
+        window.__miaositeForceReloadToken = reloadToken || '';
+
+        window.miaositeCacheBust = function(url) {
+            if (!url || url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
+            if (!window.__miaositeForceReloadToken) return url;
+            var nextUrl = new URL(url, window.location.href);
+            if (nextUrl.origin !== window.location.origin) return url;
+            nextUrl.searchParams.set('__miaosite_force_reload', window.__miaositeForceReloadToken);
+            return nextUrl.pathname + nextUrl.search + nextUrl.hash;
+        };
+    })();
+    </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="/styles/base.css?v=2">
-    <link rel="stylesheet" href="/styles/auth.css">
+    <script>
+    document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/styles/base.css?v=2') + '">');
+    document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/styles/auth.css') + '">');
+    </script>
         <style>
         /* =========================
            喵码 Air · 页面特有样式
@@ -864,6 +882,66 @@
         }
         .btn-history-clear:hover {
             background: rgba(255,107,107,0.2);
+        }
+        .force-refresh-btn {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all var(--transition-bounce);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            background: linear-gradient(135deg, #34c759, #0abde3);
+            box-shadow: 0 4px 16px rgba(10,189,227,0.25);
+            animation: glowRefresh 3.8s ease-in-out infinite;
+        }
+        .force-refresh-btn:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 8px 24px rgba(10,189,227,0.4);
+            animation: none;
+        }
+        .force-refresh-btn:active {
+            transform: translateY(1px) scale(0.94);
+        }
+        .force-refresh-btn:disabled {
+            opacity: 0.7;
+            cursor: wait;
+            transform: none;
+            animation: none;
+        }
+        .force-refresh-btn::after {
+            position: absolute;
+            bottom: -36px;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: rgba(30,30,30,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 10px;
+            z-index: 100;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--transition-fast);
+            content: '清理缓存并强制刷新';
+        }
+        .force-refresh-btn:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        @keyframes glowRefresh {
+            0%,100% { box-shadow: 0 4px 16px rgba(10,189,227,0.25), 0 0 0 0 rgba(10,189,227,0.28); }
+            50% { box-shadow: 0 4px 16px rgba(10,189,227,0.25), 0 0 0 12px rgba(10,189,227,0); }
         }
 
         /* =========================
@@ -1792,6 +1870,7 @@
                     <span id="online-count">-</span> 喵在线
                 </span>
                 <a href="admin.html" class="admin-btn" id="admin-entry" style="display:none" title="在线用户管理">📊</a>
+                <button class="force-refresh-btn js-force-cache-refresh" id="force-cache-refresh" type="button" title="清理缓存并强制刷新">↻</button>
                 <a href="/knowledge.html" class="wiki-btn" title="知识库 Wiki">📚</a>
                 <a href="/tools.html" class="chat-btn" title="AI 工具箱">🐱</a>
                 <button class="nav-btn btn-user" id="btn-user" type="button">
@@ -2033,7 +2112,9 @@
     </div>
 
     <!-- ==================== JavaScript（保留全部原有逻辑） ==================== -->
-    <script src="/lib/miaosite-auth.js"></script>
+    <script>
+    document.write('<script src="' + window.miaositeCacheBust('/lib/miaosite-auth.js') + '"><\/script>');
+    </script>
     <script>
         const inputArea = document.getElementById('barcode-input');
         const outputArea = document.getElementById('barcode-output');
@@ -2110,6 +2191,47 @@
             showToast.timer = setTimeout(() => {
                 toast.classList.remove('show');
             }, 1800);
+        }
+
+        function forceCacheRefresh(triggerButton) {
+            const originalText = triggerButton ? triggerButton.textContent : '';
+            if (triggerButton) {
+                triggerButton.disabled = true;
+                triggerButton.textContent = '⏳';
+            }
+            showToast('正在清理页面缓存喵~');
+
+            let cacheCleanup = Promise.resolve();
+            if ('caches' in window) {
+                cacheCleanup = caches.keys().then(names => Promise.all(names.map(name => caches.delete(name))));
+            }
+
+            let serviceWorkerCleanup = Promise.resolve();
+            if ('serviceWorker' in navigator) {
+                serviceWorkerCleanup = navigator.serviceWorker.getRegistrations()
+                    .then(registrations => Promise.all(registrations.map(registration => registration.unregister())));
+            }
+
+            Promise.all([cacheCleanup, serviceWorkerCleanup]).then(() => {
+                const reloadToken = Date.now().toString();
+                sessionStorage.setItem('miaosite_force_reload_token', reloadToken);
+                const url = new URL(window.location.href);
+                url.searchParams.set('__miaosite_force_reload', reloadToken);
+                window.location.replace(url.toString());
+            }).catch(() => {
+                showToast('缓存清理失败，请手动硬刷新喵~');
+                if (triggerButton) {
+                    triggerButton.disabled = false;
+                    triggerButton.textContent = originalText || '↻';
+                }
+            });
+        }
+
+        window.forceCacheRefresh = forceCacheRefresh;
+
+        const forceCacheRefreshBtn = document.getElementById('force-cache-refresh');
+        if (forceCacheRefreshBtn) {
+            forceCacheRefreshBtn.addEventListener('click', () => forceCacheRefresh(forceCacheRefreshBtn));
         }
 
         MiaositeAuth.mount({
@@ -4109,9 +4231,11 @@
 </script>
 
 <!-- GSAP Animation Engine -->
-<script src="/lib/jsbarcode.min.js?v=1"></script>
-<script src="/lib/gsap.min.js?v=1"></script>
-<script src="/lib/ScrollTrigger.min.js?v=1"></script>
+<script>
+document.write('<script src="' + window.miaositeCacheBust('/lib/jsbarcode.min.js?v=1') + '"><\/script>');
+document.write('<script src="' + window.miaositeCacheBust('/lib/gsap.min.js?v=1') + '"><\/script>');
+document.write('<script src="' + window.miaositeCacheBust('/lib/ScrollTrigger.min.js?v=1') + '"><\/script>');
+</script>
 <script>
 // ==================== 喵码 · GSAP + ScrollTrigger 动画系统 ====================
 (function() {
@@ -4494,31 +4618,6 @@ mm.add({
 
 <!-- React Auth Flip Card -->
 <div id="auth-root"></div>
-<div id="auth-debug" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:#333;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-family:monospace;opacity:0.85">React: 检测中...</div>
-<script src="/www/auth/assets/index-BPCcM2cS.js"></script>
-<script>
-  var _acTimer = 0;
-  var _dbg = document.getElementById('auth-debug');
-  (function check() {
-    _acTimer++;
-    var fn = typeof window.__miaositeOpenAuth;
-    var root = document.getElementById('auth-root');
-    var msg = '[诊断#' + _acTimer + '] __miaositeOpenAuth=' + fn + ' children=' + (root ? root.children.length : 'NULL');
-    console.log(msg);
-    if (fn !== 'function' && _acTimer < 15) {
-      _dbg.textContent = 'React: 等待中... (' + _acTimer + '/15)';
-      _dbg.style.background = '#333';
-      setTimeout(check, 400);
-    } else if (fn !== 'function') {
-      _dbg.textContent = 'React: 加载失败!';
-      _dbg.style.background = '#c00';
-      console.error('[诊断] FAIL: React 15次检查未加载');
-    } else {
-      _dbg.textContent = 'React: OK ✓';
-      _dbg.style.background = '#080';
-      console.log('[诊断] OK: React 就绪');
-    }
-  })();
-</script>
+<script src="/www/auth/assets/index-B4sqbSlq.js"></script>
 </body>
 </html>
