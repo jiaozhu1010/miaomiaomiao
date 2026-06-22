@@ -9,35 +9,107 @@
   --color-mia-bg: #fef8f2;
 }
 
-/* 3D perspective for flip card */
-.perspective-\[1200px\] {
-  perspective: 1200px;
+/* ========== Glass card ========== */
+.glass-card {
+  @apply bg-white/75 backdrop-blur-xl border border-white/60 rounded-2xl;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Flip card responsive sizing */
-.flip-card-container {
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
+/* ========== Input field ========== */
+.auth-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-field {
+  position: relative;
+}
+
+.input-field {
+  @apply w-full h-14 py-3 pl-14 pr-5 bg-[#fafbfc] border text-[16px] text-[#111111];
+  @apply placeholder-transparent transition-shadow transition-colors duration-200;
+  border-radius: 999px;
+  line-height: 1.25;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-color: #e3e7ec;
+}
+.input-field:hover {
+  border-color: #111111;
+}
+.input-field:focus {
+  @apply outline-none;
+  border-color: #111111;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.18);
+}
+.input-field:disabled {
+  @apply cursor-not-allowed opacity-50;
+  background-color: #f5f7fa;
+}
+.input-field.error {
+  border-color: #ef4444;
+}
+.input-field.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+/* ========== Floating label ========== */
+.floating-label {
+  @apply absolute top-1/2 -translate-y-1/2 text-[#9ca3af] pointer-events-none transition-all duration-200 text-[16px];
+  left: 3.25rem;
+  line-height: 1;
+}
+.floating-label.focused {
+  @apply -top-2 left-[3.25rem] text-[12px] text-[#ff9f43] bg-[#fafbfc] px-1.5;
+  transform: translateY(0);
+}
+.floating-label.has-value {
+  @apply -top-2 left-[3.25rem] text-[12px] text-[#999] bg-[#fafbfc] px-1.5;
+  transform: translateY(0);
+}
+.floating-label.focused.has-value {
+  @apply text-[#ff9f43];
+}
+
+.auth-password-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.auth-password-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ========== Neon button ========== */
+.neon-button {
+  @apply relative overflow-hidden bg-gradient-to-r from-[#ff9f43] to-[#f57c00] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300;
+  @apply hover:shadow-lg hover:shadow-orange-500/25 active:scale-[0.97];
+}
+
+/* ========== Password strength ========== */
+.password-strength {
+  @apply h-1.5 rounded-full transition-all duration-300;
+}
+.strength-weak { @apply bg-red-400 w-1/4; }
+.strength-medium { @apply bg-yellow-400 w-2/4; }
+.strength-strong { @apply bg-green-400 w-full; }
+
+/* ========== 3D flip ========== */
+.perspective-\[1200px\] {
+  perspective: 1200px;
 }
 
 @media (max-width: 768px) {
   .perspective-\[1200px\] {
     perspective: 1000px;
   }
-
-  .flip-card-container {
-    max-width: 380px;
-  }
 }
-
 @media (max-width: 480px) {
   .perspective-\[1200px\] {
     perspective: 800px;
-  }
-
-  .flip-card-container {
-    max-width: 100%;
-    padding: 0 8px;
   }
 }

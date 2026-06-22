@@ -45,6 +45,13 @@ let state: AuthState = {
 }
 
 const listeners = new Set<() => void>()
+let cachedSnapshot: AuthState = state
+
+function isSameUser(a: User | null, b: User | null): boolean {
+  if (a === b) return true
+  if (!a || !b) return false
+  return JSON.stringify(a) === JSON.stringify(b)
+}
 
 function notify(): void {
   for (const listener of listeners) {
@@ -54,6 +61,7 @@ function notify(): void {
 
 function setState(partial: Partial<AuthState>): void {
   state = { ...state, ...partial }
+  cachedSnapshot = state
   notify()
 }
 
@@ -67,7 +75,37 @@ function subscribe(callback: () => void): () => void {
 }
 
 function getSnapshot(): AuthState {
-  return state
+  // Always compute isLoggedIn from localStorage so external changes
+  // (e.g. vanilla JS clearSession) are reflected immediately.
+  const token = readToken()
+  const user = readStoredUser()
+  const nextSnapshot = {
+    user,
+    token,
+    isLoggedIn: !!token && !!user,
+    isLoading: state.isLoading,
+  }
+
+  if (
+    cachedSnapshot.token === nextSnapshot.token &&
+    cachedSnapshot.isLoggedIn === nextSnapshot.isLoggedIn &&
+    cachedSnapshot.isLoading === nextSnapshot.isLoading &&
+    isSameUser(cachedSnapshot.user, nextSnapshot.user)
+  ) {
+    return cachedSnapshot
+  }
+
+  cachedSnapshot = nextSnapshot
+  return cachedSnapshot
+}
+
+// --- 外部同步 ---
+// vanilla JS (lib/miaosite-auth.js) dispatches 'miaosite-auth-change' on login/logout.
+// This keeps React's useAuthStore in sync when auth state changes outside React.
+if (typeof window !== 'undefined') {
+  window.addEventListener('miaosite-auth-change', () => {
+    notify()
+  })
 }
 
 // --- Actions (模块级, 稳定引用) ---

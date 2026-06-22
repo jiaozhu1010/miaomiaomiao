@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import AuthModal from '@/components/auth/AuthModal'
-import { useAuthStore } from '@/lib/auth-store'
 
 declare global {
   interface Window {
@@ -9,7 +8,6 @@ declare global {
 }
 
 export default function App() {
-  const { isLoggedIn } = useAuthStore()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const openModal = useCallback(() => {
@@ -31,12 +29,16 @@ export default function App() {
   // Listen for clicks on #btn-user in existing pages
   // Uses capture phase (true) so React fires BEFORE the old miaosite-auth.js handler.
   // Don't stopPropagation — the old handler checks window.__miaositeOpenAuth and gracefully returns.
+  // IMPORTANT: Read localStorage directly instead of using React's isLoggedIn state.
+  // Vanilla JS (lib/miaosite-auth.js) can clear the session outside React's awareness,
+  // which would leave React's cached isLoggedIn stale. Checking localStorage directly
+  // ensures the handler always sees the authoritative login state.
   useEffect(() => {
     function handleUserBtnClick(e: MouseEvent) {
       const target = e.target as HTMLElement
       const btn = target.closest('#btn-user')
       if (!btn) return
-      if (isLoggedIn) return
+      if (localStorage.getItem('miaosite_token')) return
       e.preventDefault()
       openModal()
     }
@@ -45,7 +47,7 @@ export default function App() {
     return () => {
       document.removeEventListener('click', handleUserBtnClick, true)
     }
-  }, [isLoggedIn, openModal])
+  }, [openModal])
 
   return <AuthModal isOpen={isModalOpen} onClose={closeModal} />
 }

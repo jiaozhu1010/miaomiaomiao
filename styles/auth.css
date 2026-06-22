@@ -104,7 +104,7 @@ body.miaosite-modal-open {
 .miaosite-auth-card .auth-error {
     display: none;
     margin-bottom: 10px;
-    padding: 10px 12px;
+    padding: 8px 12px;
     border-radius: 10px;
     background: rgba(248, 113, 113, 0.14);
     color: #b42318;
@@ -120,26 +120,32 @@ body.miaosite-modal-open {
 
 .auth-input {
     width: 100%;
-    min-height: 42px;
+    min-height: 36px;
     box-sizing: border-box;
-    border: 1px solid rgba(120, 76, 36, 0.16);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid #e3e7ec;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: #fafbfc;
     color: var(--text-primary, #4a3428);
     font: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.auth-input:hover {
+  border-color: var(--text-primary, #4a3428);
 }
 
 .auth-input:focus {
-    outline: 2px solid rgba(255, 159, 67, 0.28);
-    border-color: rgba(255, 159, 67, 0.55);
+    outline: none;
+    border-color: var(--text-primary, #4a3428);
+  box-shadow: 0 0 0 3px rgba(74, 52, 40, 0.18);
 }
 
 .auth-submit,
 .account-logout {
-    min-height: 42px;
+    min-height: 36px;
     border: 0;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 10px 14px;
     font-weight: 700;
     cursor: pointer;
@@ -190,7 +196,7 @@ body.miaosite-modal-open {
 
 .account-meta div {
     padding: 10px;
-    border-radius: 12px;
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.48);
 }
 

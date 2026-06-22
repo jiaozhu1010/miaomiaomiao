@@ -1,7 +1,5 @@
 import { motion } from 'framer-motion'
-import { CheckCircle, ArrowRight } from 'lucide-react'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Check } from 'lucide-react'
 
 interface SuccessFaceProps {
   username: string
@@ -10,39 +8,46 @@ interface SuccessFaceProps {
 
 export default function SuccessFace({ username, onClose }: SuccessFaceProps) {
   return (
-    <Card className="w-full h-full flex flex-col items-center justify-center text-center">
-      <CardHeader>
-        <motion.div
-          initial={{ scale: 0, rotate: -90 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{
-            type: 'spring',
-            stiffness: 200,
-            damping: 15,
-            delay: 0.2,
-          }}
-          className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center"
-        >
-          <CheckCircle className="w-10 h-10 text-green-500" />
-        </motion.div>
-        <h2 className="text-xl font-bold text-stone-800 mt-4">
-          欢迎回来喵~ 🎉
-        </h2>
-        <p className="text-sm text-stone-500 mt-1">
-          <span className="font-semibold text-orange-500">{username}</span>{' '}
-          主人，登录成功啦
-        </p>
-      </CardHeader>
+    <div className="glass-card p-10 w-full flex flex-col items-center text-center">
+      {/* Check icon */}
+      <motion.div
+        initial={{ scale: 0, rotate: -90 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 18, delay: 0.1 }}
+        className="inline-flex items-center justify-center size-16 rounded-2xl bg-[#111] mb-6"
+      >
+        <Check className="size-7 text-white stroke-[2.5]" />
+      </motion.div>
 
-      <CardContent className="w-full">
-        <p className="text-sm text-stone-400 mb-4">
-          你现在可以使用喵码的全部功能了
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+      >
+        <h2 className="text-[22px] font-bold text-[#111] tracking-[-0.03em]">欢迎回来 🎉</h2>
+        <p className="text-sm text-[#999] mt-1.5">
+          <span className="font-semibold text-[#111]">{username}</span> 主人，登录成功啦
         </p>
-        <Button className="w-full" onClick={onClose}>
-          <ArrowRight className="w-4 h-4" />
-          继续
-        </Button>
-      </CardContent>
-    </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55, duration: 0.4 }}
+        className="mt-8 w-full"
+      >
+        <div className="rounded-xl bg-[#f8f9fb] border border-[#eef0f4] p-4 mb-6">
+          <p className="text-[13px] text-[#999]">你现在可以使用喵码的全部功能了</p>
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+          onClick={onClose}
+          className="w-full h-12 bg-[#111] text-white font-semibold rounded-xl text-[15px] tracking-[-0.01em] hover:bg-[#333] transition-colors duration-200"
+        >
+          开始使用
+        </motion.button>
+      </motion.div>
+    </div>
   )
 }

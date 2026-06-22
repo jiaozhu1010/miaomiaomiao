@@ -21,14 +21,14 @@ const backdropVariants: Variants = {
 }
 
 const cardVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.9, y: 40 },
+  hidden: { opacity: 0, scale: 0.94, y: 24 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { type: 'spring', stiffness: 300, damping: 25, delay: 0.08 },
+    transition: { type: 'spring', stiffness: 380, damping: 30, mass: 0.85, delay: 0.04 },
   },
-  exit: { opacity: 0, scale: 0.95, y: 20, transition: { duration: 0.2 } },
+  exit: { opacity: 0, scale: 0.96, y: 12, transition: { duration: 0.18 } },
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
@@ -82,16 +82,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <RegisterForm onSuccess={handleSuccess} onSwitchToLogin={handleSwitchToLogin} />
       )
 
-    return (
-      <FlipCard isFlipped={isFlipped} front={front} back={back} />
-    )
+    return <FlipCard isFlipped={isFlipped} front={front} back={back} />
   }
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1121]/55 backdrop-blur-lg"
           variants={backdropVariants}
           initial="hidden"
           animate="visible"
@@ -105,15 +103,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             animate="visible"
             exit="exit"
           >
-            {/* Close button — only shown on welcome and form views */}
+            {/* Close button */}
             {view !== 'success' && (
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute -top-10 right-4 z-10 flex size-8 items-center justify-center rounded-full bg-white/80 text-stone-500 shadow-sm transition hover:bg-white hover:text-stone-800"
+                className="absolute -top-11 right-4 z-10 flex size-9 items-center justify-center rounded-xl bg-white/95 text-[#8b919a] shadow-sm border border-[#e9edf2] backdrop-blur-sm transition-all duration-200 hover:bg-white hover:text-[#111111] hover:shadow-md"
                 aria-label="关闭弹窗"
               >
-                <X className="size-4" />
+                <X className="size-4 stroke-[1.5]" />
               </button>
             )}
 
