@@ -4494,6 +4494,31 @@ mm.add({
 
 <!-- React Auth Flip Card -->
 <div id="auth-root"></div>
-<script type="module" crossorigin src="/www/auth/assets/index-CirbHk2I.js"></script>
+<div id="auth-debug" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:#333;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-family:monospace;opacity:0.85">React: 检测中...</div>
+<script type="module" src="/www/auth/assets/index-BdVM4_18.js"></script>
+<script>
+  var _acTimer = 0;
+  var _dbg = document.getElementById('auth-debug');
+  (function check() {
+    _acTimer++;
+    var fn = typeof window.__miaositeOpenAuth;
+    var root = document.getElementById('auth-root');
+    var msg = '[诊断#' + _acTimer + '] __miaositeOpenAuth=' + fn + ' children=' + (root ? root.children.length : 'NULL');
+    console.log(msg);
+    if (fn !== 'function' && _acTimer < 15) {
+      _dbg.textContent = 'React: 等待中... (' + _acTimer + '/15)';
+      _dbg.style.background = '#333';
+      setTimeout(check, 400);
+    } else if (fn !== 'function') {
+      _dbg.textContent = 'React: 加载失败!';
+      _dbg.style.background = '#c00';
+      console.error('[诊断] FAIL: React 15次检查未加载');
+    } else {
+      _dbg.textContent = 'React: OK ✓';
+      _dbg.style.background = '#080';
+      console.log('[诊断] OK: React 就绪');
+    }
+  })();
+</script>
 </body>
 </html>

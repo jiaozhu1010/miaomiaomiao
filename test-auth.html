@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>Auth Test</title></head>
+<body>
+  <h1>Auth Test</h1>
+  <p>Status: <span id="status" style="color:orange">checking...</span></p>
+  <button id="btn-user" type="button">👤 btn-user (normal click)</button>
+  <button id="btn-force" type="button">🔧 Force Open React Modal</button>
+  <div id="auth-root"></div>
+  <div id="errors" style="color:red;margin-top:20px;white-space:pre-wrap"></div>
+
+  <script>
+    // Catch all errors
+    window.onerror = function(msg, url, line) {
+      document.getElementById('errors').textContent += 'ERROR: ' + msg + ' at ' + url + ':' + line + '\n';
+    };
+  </script>
+
+  <script type="module" src="/www/auth/assets/index-BdVM4_18.js"></script>
+
+  <script>
+    // Check React loaded and wire up
+    var checks = 0;
+    function check() {
+      checks++;
+      var ok = typeof window.__miaositeOpenAuth === 'function';
+      var el = document.getElementById('status');
+      if (ok) {
+        el.textContent = 'React LOADED (checks=' + checks + ', children=' + document.getElementById('auth-root').children.length + ')';
+        el.style.color = 'green';
+        document.getElementById('btn-force').onclick = function() {
+          window.__miaositeOpenAuth();
+        };
+      } else if (checks < 20) {
+        el.textContent = 'Waiting for React... (' + checks + ')';
+        setTimeout(check, 300);
+      } else {
+        el.textContent = 'FAILED after ' + checks + ' checks!';
+        el.style.color = 'red';
+      }
+    }
+    setTimeout(check, 200);
+  </script>
+</body>
+</html>
