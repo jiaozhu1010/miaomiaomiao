@@ -41,3 +41,6 @@ AGENTS.md
 m.role
 # 旧版设计文档（已迁移到 superpowers）
 docs/superpowers/*/2026-06-02-*
+
+# TypeScript build info
+*.tsbuildinfo
