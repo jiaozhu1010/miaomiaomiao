@@ -14,5 +14,10 @@ export default defineConfig({
   build: {
     outDir: '../www/auth',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        format: 'iife',
+      },
+    },
   },
 })
