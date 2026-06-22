@@ -31,34 +31,15 @@ export interface RegisterPayload {
   password: string
 }
 
-export interface UpdateProfilePayload {
-  username?: string
-  email?: string
-}
-
-export interface ChangePasswordPayload {
-  currentPassword: string
-  newPassword: string
-}
-
 // --- localStorage 键名 (必须与后端/原有前端一致) ---
 
 const TOKEN_KEY = 'miaosite_token'
 const USER_KEY = 'miaosite_user'
 
-// --- Session 管理 ---
+// --- Session 管理 (内部使用, 通过 store 暴露) ---
 
-export function getToken(): string | null {
+function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
-}
-
-export function getStoredUser(): User | null {
-  try {
-    const raw = localStorage.getItem(USER_KEY)
-    return raw ? (JSON.parse(raw) as User) : null
-  } catch {
-    return null
-  }
 }
 
 export function setSession(token: string, user: User): void {
@@ -125,24 +106,6 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
   })
 }
 
-export async function fetchCurrentUser(): Promise<User> {
+export async function getMe(): Promise<User> {
   return request<User>('/api/auth/me', { auth: true })
-}
-
-export async function updateProfile(payload: UpdateProfilePayload): Promise<AuthResponse> {
-  return request<AuthResponse>('/api/auth/profile', {
-    method: 'PUT',
-    body: payload,
-    auth: true,
-  })
-}
-
-export async function changePassword(
-  payload: ChangePasswordPayload
-): Promise<{ success: boolean; message: string }> {
-  return request<{ success: boolean; message: string }>('/api/auth/password', {
-    method: 'PUT',
-    body: payload,
-    auth: true,
-  })
 }
