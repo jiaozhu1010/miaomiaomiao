@@ -29,8 +29,8 @@ export default function App() {
   }, [openModal])
 
   // Listen for clicks on #btn-user in existing pages
-  // Uses capture phase (true) so React fires BEFORE the old miaosite-auth.js handler,
-  // then stopImmediatePropagation prevents the old handler from firing.
+  // Uses capture phase (true) so React fires BEFORE the old miaosite-auth.js handler.
+  // Don't stopPropagation — the old handler checks window.__miaositeOpenAuth and gracefully returns.
   useEffect(() => {
     function handleUserBtnClick(e: MouseEvent) {
       const target = e.target as HTMLElement
@@ -38,8 +38,6 @@ export default function App() {
       if (!btn) return
       if (isLoggedIn) return
       e.preventDefault()
-      e.stopPropagation()
-      e.stopImmediatePropagation()
       openModal()
     }
 
