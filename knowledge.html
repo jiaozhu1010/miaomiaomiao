@@ -30,7 +30,7 @@
         body {
             font-family: var(--font-body);
             color: var(--text-primary);
-            background: linear-gradient(135deg, #fef9f4 0%, #fff5ec 25%, #fdf2f8 50%, #f0f7fa 75%, #faf5f0 100%);
+            background: #ffffff;
             background-attachment: fixed;
             min-height: 100vh;
             line-height: 1.6;
@@ -38,7 +38,7 @@
         }
 
         /* ============================================================
-           背景氛围 (与 index.html 相同)
+           背景氛围 — 柔黄光晕 + 纹理
            ============================================================ */
         .bg-atmosphere {
             position: fixed;
@@ -47,45 +47,13 @@
             z-index: 0;
             overflow: hidden;
         }
-        .bg-orb {
+        .bg-grid {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.35;
-            animation: orbFloat 20s ease-in-out infinite;
-        }
-        .bg-orb:nth-child(1) {
-            width: 420px; height: 420px;
-            background: radial-gradient(circle, rgba(255,159,67,0.3), transparent);
-            top: -5%; left: -8%;
-            animation-delay: 0s;
-        }
-        .bg-orb:nth-child(2) {
-            width: 340px; height: 340px;
-            background: radial-gradient(circle, rgba(240,130,110,0.25), transparent);
-            top: 50%; right: -10%;
-            animation-delay: -7s;
-            animation-duration: 24s;
-        }
-        .bg-orb:nth-child(3) {
-            width: 300px; height: 300px;
-            background: radial-gradient(circle, rgba(10,189,227,0.2), transparent);
-            bottom: -8%; left: 30%;
-            animation-delay: -14s;
-            animation-duration: 22s;
-        }
-        .bg-orb:nth-child(4) {
-            width: 360px; height: 360px;
-            background: radial-gradient(circle, rgba(255,184,140,0.22), transparent);
-            top: 30%; left: 45%;
-            animation-delay: -3s;
-            animation-duration: 26s;
-        }
-        @keyframes orbFloat {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(30px, -25px) scale(1.03); }
-            50% { transform: translate(-15px, -45px) scale(0.97); }
-            75% { transform: translate(-25px, 20px) scale(1.02); }
+            inset: 0;
+            background-image:
+                linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+                linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
         }
         .bg-grain {
             position: absolute;
@@ -1914,12 +1882,9 @@
 </head>
 <body>
 
-    <!-- 背景氛围 -->
+    <!-- 背景氛围 — 网格 + 柔黄光晕 -->
     <div class="bg-atmosphere">
-        <div class="bg-orb"></div>
-        <div class="bg-orb"></div>
-        <div class="bg-orb"></div>
-        <div class="bg-orb"></div>
+        <div class="bg-grid"></div>
         <div class="bg-grain"></div>
     </div>
 
@@ -4357,6 +4322,8 @@ if ('serviceWorker' in navigator) {
 
 <!-- React Auth Flip Card -->
 <div id="auth-root"></div>
-<script src="/www/auth/assets/index-l1m2xINV.js"></script>
+<script>
+  document.write('<script src="/www/auth/assets/miaosite-auth.js?v=' + Date.now() + '"><\/script>');
+</script>
 </body>
 </html>

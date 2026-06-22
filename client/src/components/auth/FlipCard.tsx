@@ -23,22 +23,25 @@ const FlipCard = React.forwardRef<HTMLDivElement, FlipCardProps>(
         className={cn("perspective-[1200px]", className)}
       >
         <motion.div
-          className="relative"
+          className="grid place-items-center"
           style={{ transformStyle: "preserve-3d" }}
           animate={{ rotateY: isFlipped ? 180 : 0 }}
           transition={{ duration, ease: [0.4, 0, 0.2, 1] }}
         >
-          {/* Front face */}
+          {/* Front face — grid cell auto-sizes to the larger of the two faces */}
           <div
-            style={{ backfaceVisibility: "hidden" }}
+            aria-hidden={isFlipped}
+            className={isFlipped ? "pointer-events-none" : "pointer-events-auto"}
+            style={{ gridArea: "1/1", backfaceVisibility: "hidden" }}
           >
             {front}
           </div>
 
-          {/* Back face — rotated 180deg so it faces the viewer when the parent flips */}
+          {/* Back face — co-located in the same grid cell, rotated 180deg so it faces the viewer when the parent flips */}
           <div
-            className="absolute inset-0"
-            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+            aria-hidden={!isFlipped}
+            className={isFlipped ? "pointer-events-auto" : "pointer-events-none"}
+            style={{ gridArea: "1/1", backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
             {back}
           </div>

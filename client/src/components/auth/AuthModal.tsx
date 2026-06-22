@@ -1,4 +1,5 @@
 import { useState, useCallback, type MouseEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { X } from 'lucide-react'
 import { FlipCard } from '@/components/auth/FlipCard'
@@ -7,8 +8,8 @@ import LoginForm from '@/components/auth/LoginForm'
 import RegisterForm from '@/components/auth/RegisterForm'
 import SuccessFace from '@/components/auth/SuccessFace'
 
-type Mode = 'login' | 'register'
 type View = 'welcome' | 'form' | 'success'
+type Mode = 'login' | 'register'
 
 export interface AuthModalProps {
   isOpen: boolean
@@ -38,6 +39,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isFlipped, setIsFlipped] = useState(false)
 
   const handleFlip = useCallback(() => {
+    setMode('login')
     setView('form')
     setIsFlipped(true)
   }, [])
@@ -75,21 +77,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     const front = <WelcomeFace onFlip={handleFlip} />
 
-    const back =
-      mode === 'login' ? (
-        <LoginForm onSuccess={handleSuccess} onSwitchToRegister={handleSwitchToRegister} />
-      ) : (
-        <RegisterForm onSuccess={handleSuccess} onSwitchToLogin={handleSwitchToLogin} />
-      )
+    const back = (
+      <FlipCard
+        isFlipped={mode === 'register'}
+        duration={0.58}
+        front={<LoginForm onSuccess={handleSuccess} onSwitchToRegister={handleSwitchToRegister} />}
+        back={<RegisterForm onSuccess={handleSuccess} onSwitchToLogin={handleSwitchToLogin} />}
+      />
+    )
 
     return <FlipCard isFlipped={isFlipped} front={front} back={back} />
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1121]/55 backdrop-blur-lg"
+          className="fixed inset-0 z-50 grid h-dvh place-items-center overflow-y-auto bg-[#0b1121]/55 p-4 backdrop-blur-lg"
           variants={backdropVariants}
           initial="hidden"
           animate="visible"
@@ -97,18 +101,19 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           onClick={handleBackdropClick}
         >
           <motion.div
-            className="relative w-full max-w-md px-4"
+            className="auth-shell relative"
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             {view !== 'success' && (
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute -top-11 right-4 z-10 flex size-9 items-center justify-center rounded-xl bg-white/95 text-[#8b919a] shadow-sm border border-[#e9edf2] backdrop-blur-sm transition-all duration-200 hover:bg-white hover:text-[#111111] hover:shadow-md"
+                className="absolute -top-11 right-0 z-10 flex size-9 items-center justify-center rounded-xl bg-white/95 text-[#8b919a] shadow-sm border border-[#e9edf2] backdrop-blur-sm transition-all duration-200 hover:bg-white hover:text-[#111111] hover:shadow-md"
                 aria-label="关闭弹窗"
               >
                 <X className="size-4 stroke-[1.5]" />
@@ -119,6 +124,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }
