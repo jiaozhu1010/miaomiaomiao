@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mia-orange: #ff9f43;
+  --color-mia-orange-dark: #f57c00;
+  --color-mia-orange-light: #ffb88c;
+  --color-mia-brown: #4a3428;
+  --color-mia-brown-light: #6f5648;
+  --color-mia-bg: #fef8f2;
+}
+
+/* 3D perspective for flip card */
+.perspective-\[1200px\] {
+  perspective: 1200px;
+}
+
+@media (max-width: 480px) {
+  .perspective-\[1200px\] {
+    perspective: 800px;
+  }
+}
