@@ -761,64 +761,7 @@
         }
     };
 
-<<<<<<< HEAD
     function showAuthOverlay() { MiaositeAuth.showAuth('login'); }
-=======
-    function updateAuthUI() {
-        var btn = document.getElementById('btn-user');
-        var label = document.getElementById('user-label');
-        if (!btn || !label) return;
-        if (Auth.isLoggedIn()) {
-            var user = Auth.getUser();
-            label.textContent = user ? user.username : '已登录';
-            btn.title = '点击退出登录';
-        } else {
-            label.textContent = '登录';
-            btn.title = '登录/注册';
-        }
-    }
-    function handleUserClick() {
-        if (Auth.isLoggedIn()) confirmLogout();
-        else showAuthOverlay();
-    }
-
-    function confirmLogout() {
-        if (confirm('确定要退出登录吗喵？')) {
-            Auth.clearSession();
-            updateAuthUI();
-            showToast('已退出喵~');
-        }
-    }
-
-    let authMode = 'login';
-    function switchAuthTab(mode) {
-        authMode = mode;
-        const isLogin = mode === 'login';
-        document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && isLogin) || (i===1 && !isLogin)));
-        document.getElementById('authEmail').style.display = isLogin ? 'none' : 'block';
-        document.getElementById('authSubmit').textContent = isLogin ? '登录' : '创建账号';
-        document.getElementById('authTitle').textContent = isLogin ? '登录' : '注册';
-        document.getElementById('authSubtitle').textContent = isLogin ? '欢迎使用喵码工具箱' : '加入喵码，解锁全部功能';
-    }
-    function showAuthOverlay() { document.getElementById('authOverlay').classList.add('show'); }
-    function hideAuthOverlay() { document.getElementById('authOverlay').classList.remove('show'); }
-    async function handleAuth(e) {
-        e.preventDefault();
-        const username = document.getElementById('authUsername').value.trim();
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value;
-        const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-        const body = authMode === 'login' ? { username, password } : { username, email, password };
-        try {
-            const res = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || '认证失败');
-            Auth.setSession(data.token, data.user);
-            hideAuthOverlay(); updateAuthUI(); updateChatLabel();
-            showToast(`欢迎回来喵~ ${data.user.username}`);
-        } catch(err) { showToast(err.message); }
-    }
->>>>>>> origin/main
 
     // ============================
     //  Toast
