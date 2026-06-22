@@ -18,6 +18,7 @@ const upload = multer({
         }
     }
 });
+<<<<<<< HEAD
 
 // 聊天文件上传：更宽松的白名单（支持代码文件等）
 const chatUpload = multer({
@@ -34,6 +35,8 @@ const chatUpload = multer({
         }
     }
 });
+=======
+>>>>>>> origin/main
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -103,7 +106,10 @@ const PROMPTS_FILE = path.join(DATA_DIR, 'prompts.json');
 const BARCODE_HISTORY_FILE = path.join(DATA_DIR, 'barcode_history.json');
 const CONVERSATIONS_FILE = path.join(DATA_DIR, 'conversations.json');
 const KNOWLEDGE_FILE = path.join(DATA_DIR, 'knowledge.json');
+<<<<<<< HEAD
 const PYTHON_TUTORIAL_FILE = path.join(DATA_DIR, 'python_tutorial.json');
+=======
+>>>>>>> origin/main
 const USER_PREFS_FILE = path.join(DATA_DIR, 'user_preferences.json');
 
 // 用户偏好读写（按 userId 存储置顶/阅读进度）
@@ -143,12 +149,20 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
+<<<<<<< HEAD
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "data:", "https://cdn.jsdelivr.net"],
             scriptSrcAttr: ["'unsafe-inline'"],
             workerSrc: ["'self'", "blob:", "data:"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
             imgSrc: ["'self'", "data:", "blob:"],
             connectSrc: ["'self'", "data:", "https://api.deepseek.com", "https://api.xiaomimimo.com", "https://cdn.jsdelivr.net"],
+=======
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            scriptSrcAttr: ["'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            connectSrc: ["'self'", "https://api.deepseek.com", "https://api.siliconflow.cn"],
+>>>>>>> origin/main
             fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
             objectSrc: ["'none'"],
             frameAncestors: ["'self'"],
@@ -696,6 +710,7 @@ function writeJSON(file, data) {
     });
     _writeQueues.set(file, task);
     return task;
+<<<<<<< HEAD
 }
 
 function nowChinaString() {
@@ -884,6 +899,8 @@ function invalidateTutorialCache() {
     tutorialCache.dayIndex = null;
     tutorialCache.mtimeMs = 0;
     tutorialCache.loading = null;
+=======
+>>>>>>> origin/main
 }
 
 // =========================
@@ -1228,9 +1245,13 @@ app.post('/api/data-parse-image', dataParseImageUpload.single('image'), async (r
 
 // 注册
 app.post('/api/auth/register', async (req, res) => {
+<<<<<<< HEAD
     const username = normalizeUsername(req.body.username);
     const email = normalizeEmail(req.body.email);
     const { password } = req.body;
+=======
+    const { username, email, password } = req.body;
+>>>>>>> origin/main
 
     // 校验
     if (!isValidUsername(username)) {
@@ -1257,7 +1278,10 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+<<<<<<< HEAD
     const now = nowChinaString();
+=======
+>>>>>>> origin/main
     const newUser = {
         id: generateId('u_'),
         username,
@@ -1284,8 +1308,12 @@ app.post('/api/auth/register', async (req, res) => {
 
 // 登录（支持用户名或邮箱）
 app.post('/api/auth/login', async (req, res) => {
+<<<<<<< HEAD
     const loginId = normalizeLoginId(req.body.username || req.body.id || req.body.email);
     const { password } = req.body;
+=======
+    const { username, password } = req.body;
+>>>>>>> origin/main
 
     if (!loginId || !password) {
         return res.status(400).json({ error: '请输入用户名和密码喵~' });
@@ -1481,6 +1509,17 @@ app.delete('/api/prompts/seed-cleanup', authMiddleware, async (req, res) => {
     res.json({ success: true, removed });
 });
 
+<<<<<<< HEAD
+=======
+// 管理员：一键重置所有用户的提示词（全部清空，下次访问时重播最新种子）
+app.post('/api/admin/reset-all-seeds', adminTokenMiddleware, async (req, res) => {
+    const prompts = readJSON(PROMPTS_FILE, []);
+    const before = prompts.length;
+    await writeJSON(PROMPTS_FILE, []);
+    res.json({ success: true, removed: before, message: `已清空全部 ${before} 条提示词` });
+});
+
+>>>>>>> origin/main
 // 更新提示词
 app.put('/api/prompts/:id', authMiddleware, async (req, res) => {
     const prompts = readJSON(PROMPTS_FILE, []);
@@ -1620,6 +1659,7 @@ app.delete('/api/conversations', authMiddleware, async (req, res) => {
 // 聊天 API
 // =========================
 
+<<<<<<< HEAD
 // 在线人数 — 兼容旧版轮询（SSE 不可用时的兜底方案）
 // 如果请求带了 session cookie，顺便更新心跳（作为额外的活跃信号）
 app.get('/api/online-count', async (req, res) => {
@@ -1724,6 +1764,12 @@ app.get('/api/admin/online-users', adminAuthMiddleware, (req, res) => {
         users,
         updatedAt: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
     });
+=======
+// 在线人数统计 — 全站任意页面调用
+app.get('/api/online-count', async (req, res) => {
+    updateOnlineUser(req);
+    res.json({ onlineCount: getOnlineCount() });
+>>>>>>> origin/main
 });
 
 
