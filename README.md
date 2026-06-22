@@ -4,7 +4,7 @@
 
 **域名**: [miaojiaozhu.com](https://miaojiaozhu.com)  
 **部署**: 宝塔面板 + Node.js + PM2  
-**AI 引擎**: DeepSeek V4 Pro (SSE 流式)
+**AI 引擎**: Mimo v2.5 多模态 (SSE 流式)
 
 ---
 
@@ -15,9 +15,9 @@
 | 📦 **条码生成器** | 粘贴快递单号 → 自动生成 CODE128 条码，支持批量输入、一键复制 |
 | 📸 **OCR 识别** | 上传快递面单截图 → AI 自动识别单号、收件人、地址 |
 | 📋 **智能整理** | 粘贴乱码文本 → 一键纠错、去重排序、格式化 |
-| 🤖 **AI 工具箱** | 8 大技能卡片环绕中央对话区，DeepSeek V4 Pro 流式响应 |
-| 📚 **知识库 Wiki** | 六类快递物流百科，支持全文搜索、分类浏览、Markdown 渲染 |
-| 🌙 **暗色模式** | 一键切换，localStorage 持久化偏好 |
+| 🤖 **AI 工具箱** | 9 大技能卡片环绕中央对话区，Mimo v2.5 流式响应 |
+| 📚 **知识库 Wiki** | 六类快递物流百科，支持分类浏览、Markdown 渲染 |
+| 🐍 **Python 教程** | 《Python-100-Days》内置阅读器，进度追踪 |
 | 💬 **对话管理** | 消息气泡、历史回话、编辑重发、导出 Markdown |
 
 ### 🧰 AI 工具箱技能卡片
@@ -32,6 +32,7 @@
 | 📅 工作周报 | 输入要点 → 输出结构化周报 |
 | 📝 Markdown 排版 | 输入文本 → 精美 Markdown 格式输出 |
 | 📄 长文总结 | 长文本精炼摘要，提取关键信息 |
+| 💬 通用助手 | 日常对话、代码辅助、猫娘卖萌 |
 
 ---
 
@@ -41,7 +42,7 @@
 |------|------|
 | 后端 | Node.js / Express 4 / JWT + bcryptjs |
 | 前端 | 原生 HTML + CSS + JS（无框架）/ JsBarcode / Tesseract.js |
-| AI | DeepSeek API (v4-pro, SSE 流式) / 硅基流动 OCR |
+| AI | Mimo v2.5 (SSE 流式对话 / OCR / 数据解析) |
 | 部署 | 宝塔面板 / PM2 / Nginx 反代 / SSL |
 | 存储 | JSON 文件 (data/ 目录) |
 
@@ -54,7 +55,7 @@
 npm install
 
 # 设置环境变量 (Windows)
-set SILICONFLOW_API_KEY=your_key
+set MIMO_API_KEY=your_key
 set DEEPSEEK_API_KEY=your_key
 set JWT_SECRET=your_secret
 
@@ -72,14 +73,23 @@ miaosite/
 ├── server.js              # Express 后端 (API + SSE)
 ├── index.html             # 首页 — 条码生成 + OCR
 ├── tools.html             # AI 工具箱 — 卡片环绕对话
-├── knowledge.html         # 知识库 Wiki
+├── knowledge.html         # 知识库 Wiki + Python 教程
 ├── 404.html               # 自定义 404
 ├── barcode_decoder.py     # Python 本地条码解码
 ├── ocr_shipping.py        # Python OCR 快递面单
 ├── ecosystem.config.js    # PM2 配置 (不提交)
+├── lib/                   # 前端静态库
+│   ├── gsap.min.js        #   GSAP 动画引擎
+│   ├── ScrollTrigger.min.js
+│   ├── jsbarcode.min.js   #   JsBarcode 条码生成
+│   ├── marked.min.js      #   Markdown 渲染
+│   ├── highlight.min.js   #   代码高亮
+│   └── katex.min.js       #   数学公式渲染
 ├── data/                  # JSON 数据文件
 │   ├── knowledge.json     #   知识库文章
-│   └── prompts.json       #   提示词模板
+│   ├── prompts.json       #   提示词模板
+│   ├── python_tutorial.json  # Python 教程数据
+│   └── python_tutorial_images/  # 教程图片
 ├── docs/superpowers/      # 设计文档
 │   ├── specs/             #   设计规格
 │   └── plans/             #   实现计划

@@ -9,7 +9,7 @@
 - **域名**: miaojiaozhu.com | **IP**: 124.221.144.237 | **面板**: 宝塔
 - **部署目录**: /www/wwwroot/miaosite | **入口**: server.js | **端口**: 3000
 - **PM2 进程名**: miaosite | **重启**: `pm2 restart miaosite`
-- **环境变量** (PM2 ecosystem.config.js): SILICONFLOW_API_KEY, DEEPSEEK_API_KEY, JWT_SECRET
+- **环境变量** (PM2 ecosystem.config.js): MIMO_API_KEY, DEEPSEEK_API_KEY, JWT_SECRET
 - **node --check server.js** 验证语法后再部署
 
 ---
@@ -17,7 +17,7 @@
 ## 🔧 技术栈
 
 - **后端**: Express 4.x + JWT + bcryptjs + Multer (内存, 10MB/5文件)
-- **AI**: DeepSeek API (deepseek-v4-pro, SSE 流式) + SiliconFlow OCR
+- **AI**: DeepSeek API (deepseek-v4-pro, SSE 流式) + Mimo v2.5 多模态 OCR
 - **前端**: 纯原生 HTML/CSS/JS — **禁止引入 React/Vue 等框架**
 - **设计**: Glassmorphism 柔和玻璃态, 暖橘主色调 (#ff9f43, #ffb88c)
 - **数据**: JSON 文件 (data/), 用 `readJSON()` / `writeJSON()` 工具函数
@@ -44,7 +44,7 @@
 
 ```bash
 npm install
-set SILICONFLOW_API_KEY=your_key
+set MIMO_API_KEY=your_key
 set DEEPSEEK_API_KEY=your_key
 node server.js  # → http://localhost:3000
 ```
@@ -58,9 +58,9 @@ node server.js  # → http://localhost:3000
 - **时间**: zh-CN + Asia/Shanghai
 - **中间件顺序**: raw body parser → JSON parser → 设备检测 → static files
 - **SSE**: `X-Accel-Buffering: no`, 15s keepalive, 不可用 compression
-- **OCR**: 先本地尺寸检测 → SiliconFlow API → cleanOCRText
+- **OCR**: 先本地尺寸检测 → Mimo v2.5 API → cleanOCRText
 - **条码**: pyzbar (本地) + AI OCR (兜底)
-- **手机版 (m/)** 与桌面版完全独立 — 改一边要确认另一边
+- **响应式**: 所有页面通过 CSS 媒体查询适配桌面/平板/手机
 
 ---
 
@@ -78,8 +78,9 @@ node server.js  # → http://localhost:3000
 
 | 目录 | CLAUDE.md | 说明 |
 |------|-----------|------|
-| `data/` | [data/CLAUDE.md](data/CLAUDE.md) | JSON 数据库约定 |
 | `server.js` | — | 所有 API 路由、中间件、AI 调用逻辑 |
-| `index.html` | — | 桌面版条码生成器 |
-| `chat.html` | — | 桌面版 AI 聊天 |
-| `m/` | — | 手机版独立前端 |
+| `index.html` | — | 桌面版条码生成器 + OCR |
+| `tools.html` | — | 桌面版 AI 工具箱（聊天 + 9 大技能） |
+| `knowledge.html` | — | 知识库 Wiki + Python 教程 |
+| `lib/` | — | 前端静态库 (GSAP, JsBarcode, KaTeX 等) |
+| `data/` | [data/CLAUDE.md](data/CLAUDE.md) | JSON 数据库 + Python 教程数据 |

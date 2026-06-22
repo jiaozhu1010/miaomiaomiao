@@ -1,0 +1,233 @@
+.miaosite-auth-overlay,
+.miaosite-account-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(80, 48, 28, 0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    overscroll-behavior: contain;
+}
+
+html.miaosite-modal-open,
+body.miaosite-modal-open {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+.miaosite-auth-overlay.show,
+.miaosite-account-overlay.show {
+    display: flex;
+}
+
+.miaosite-auth-card,
+.miaosite-account-card {
+    position: relative;
+    width: min(440px, 100%);
+    max-height: min(86vh, 760px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.45));
+    border-radius: 18px;
+    background: var(--glass-bg-strong, rgba(255, 255, 255, 0.9));
+    box-shadow: var(--glass-shadow, 0 20px 70px rgba(120, 76, 36, 0.22));
+    color: var(--text-primary, #4a3428);
+    padding: 26px;
+}
+
+.miaosite-account-card {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.miaosite-account-card::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.miaosite-auth-card h2,
+.miaosite-account-card h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    letter-spacing: 0;
+}
+
+.miaosite-auth-card .auth-subtitle {
+    margin-bottom: 14px;
+    color: var(--text-secondary, #6f5648);
+    font-size: 13px;
+}
+
+.miaosite-auth-card .auth-close,
+.miaosite-account-card .auth-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.58);
+    color: var(--text-secondary, #6f5648);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.miaosite-auth-card .auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0 42px 14px 0;
+}
+
+.miaosite-auth-card .auth-tab {
+    min-height: 40px;
+    border: 1px solid rgba(255, 159, 67, 0.22);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary, #6f5648);
+    cursor: pointer;
+}
+
+.miaosite-auth-card .auth-tab.active {
+    background: var(--accent, #ff9f43);
+    color: #fff;
+    font-weight: 700;
+}
+
+.miaosite-auth-card .auth-error {
+    display: none;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(248, 113, 113, 0.14);
+    color: #b42318;
+    font-size: 13px;
+}
+
+.miaosite-auth-card form,
+.miaosite-account-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.auth-input {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    border: 1px solid rgba(120, 76, 36, 0.16);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--text-primary, #4a3428);
+    font: inherit;
+}
+
+.auth-input:focus {
+    outline: 2px solid rgba(255, 159, 67, 0.28);
+    border-color: rgba(255, 159, 67, 0.55);
+}
+
+.auth-submit,
+.account-logout {
+    min-height: 42px;
+    border: 0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-submit {
+    background: var(--accent, #ff9f43);
+    color: #fff;
+}
+
+.auth-submit:disabled {
+    opacity: 0.66;
+    cursor: wait;
+}
+
+.account-logout {
+    width: 100%;
+    margin-top: 12px;
+    background: rgba(248, 113, 113, 0.14);
+    color: #b42318;
+}
+
+.account-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255, 159, 67, 0.1);
+    margin-bottom: 14px;
+}
+
+.account-summary strong {
+    font-size: 20px;
+}
+
+.account-summary span {
+    color: var(--text-secondary, #6f5648);
+    word-break: break-all;
+}
+
+.account-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.account-meta div {
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.48);
+}
+
+.account-meta span,
+.account-form label {
+    display: block;
+    color: var(--text-secondary, #6f5648);
+    font-size: 12px;
+}
+
+.account-meta strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    word-break: break-word;
+}
+
+.account-form {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(120, 76, 36, 0.12);
+}
+
+.account-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+@media (max-width: 520px) {
+    .miaosite-auth-card,
+    .miaosite-account-card {
+        border-radius: 14px;
+        padding: 22px 18px;
+    }
+
+    .account-meta {
+        grid-template-columns: 1fr;
+    }
+}

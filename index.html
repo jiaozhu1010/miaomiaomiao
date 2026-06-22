@@ -4,63 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin">
-    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
     <title>喵码生成器 — 极简快递单号条码生成</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="/styles/base.css?v=2">
+    <link rel="stylesheet" href="/styles/auth.css">
         <style>
         /* =========================
-           喵码 Air · 柔和玻璃态
-           设计理念：轻盈 · 通透 · 有温度
+           喵码 Air · 页面特有样式
+           (共享样式见 /styles/base.css)
            ========================= */
 
-        :root {
-            --accent: #ff9f43;
-            --accent-2: #ee5a6f;
-            --accent-3: #0abde3;
-            --text-primary: #1d1d1f;
-            --text-secondary: #6e6e73;
-            --text-tertiary: #aeaeb2;
-            --glass-bg: rgba(255, 255, 255, 0.55);
-            --glass-bg-hover: rgba(255, 255, 255, 0.72);
-            --glass-bg-strong: rgba(255, 255, 255, 0.78);
-            --glass-border: rgba(255, 255, 255, 0.55);
-            --glass-border-strong: rgba(255, 255, 255, 0.7);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
-            --glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
-            --radius-sm: 12px;
-            --radius: 18px;
-            --radius-lg: 24px;
-            --radius-xl: 32px;
-            --font-display: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            --font-body: "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Monaco, Consolas, monospace;
-            --transition-smooth: 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
-            --transition-bounce: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-            --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
+        /* ===== 根变量已移至 base.css ===== */
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        *,
-        *:focus,
-        *:focus-visible,
-        *:active {
-            outline: none !important;
-        }
-
-        /* =========================
-           动态柔光背景
-           ========================= */
+        /* ===== 页面背景 ===== */
         body {
-            font-family: var(--font-body);
-            min-height: 100vh;
-            color: var(--text-primary);
-            background: #f5f0eb;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
             position: relative;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
@@ -70,75 +29,7 @@
             justify-content: center;
         }
 
-        /* 背景光晕层 */
-        .bg-atmosphere {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
-        .bg-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.5;
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-        }
-        .bg-orb--warm {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(255, 180, 130, 0.55) 0%, transparent 70%);
-            top: -15%;
-            left: -10%;
-            animation-name: orbDriftWarm;
-            animation-duration: 18s;
-        }
-        .bg-orb--pink {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(255, 150, 150, 0.4) 0%, transparent 70%);
-            top: 50%;
-            right: -12%;
-            animation-name: orbDriftPink;
-            animation-duration: 22s;
-        }
-        .bg-orb--blue {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(130, 200, 240, 0.3) 0%, transparent 70%);
-            bottom: -10%;
-            left: 30%;
-            animation-name: orbDriftBlue;
-            animation-duration: 20s;
-        }
-        .bg-orb--cream {
-            width: 450px; height: 450px;
-            background: radial-gradient(circle, rgba(255, 240, 220, 0.5) 0%, transparent 70%);
-            top: 20%;
-            left: 50%;
-            animation-name: orbDriftCream;
-            animation-duration: 24s;
-        }
-
-        @keyframes orbDriftWarm {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(8%, 5%) scale(1.08); }
-            50% { transform: translate(3%, 10%) scale(0.95); }
-            75% { transform: translate(-3%, 3%) scale(1.05); }
-        }
-        @keyframes orbDriftPink {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(-6%, -8%) scale(1.1); }
-            66% { transform: translate(-2%, 5%) scale(0.93); }
-        }
-        @keyframes orbDriftBlue {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(10%, -5%) scale(1.12); }
-        }
-        @keyframes orbDriftCream {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            30% { transform: translate(-5%, 4%) scale(1.06); }
-            70% { transform: translate(5%, -3%) scale(0.96); }
-        }
+        /* 背景光晕层（基础样式见 base.css，此处仅页面特定动画） */
 
         /* 网格纹理覆盖 */
         .bg-grain {
@@ -146,7 +37,7 @@
             inset: 0;
             pointer-events: none;
             z-index: 1;
-            opacity: 0.03;
+            opacity: 0.04;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
             background-size: 256px 256px;
         }
@@ -174,12 +65,14 @@
             align-items: center;
             justify-content: space-between;
             padding: 14px 22px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            background: rgba(255, 255, 255, var(--nav-opacity, 0.55));
+            backdrop-filter: blur(var(--nav-blur, 8px)) saturate(180%);
+            -webkit-backdrop-filter: blur(var(--nav-blur, 8px)) saturate(180%);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             box-shadow: var(--glass-shadow);
+            position: relative;
+            z-index: 10;
         }
         .nav-brand {
             display: flex;
@@ -212,141 +105,9 @@
             align-items: center;
             gap: 12px;
         }
-        .online-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: 20px;
-            padding: 6px 14px;
-            white-space: nowrap;
-            user-select: none;
-        }
-        .online-badge .dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: #34c759;
-            box-shadow: 0 0 8px rgba(52, 199, 89, 0.5);
-            animation: dotPulse 2s ease-in-out infinite;
-        }
-        @keyframes dotPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.65); }
-        }
+        /* .online-badge — 样式见 base.css */
 
-        /* AI 聊天导航按钮 */
-        .ai-chat-btn {
-            position: relative;
-            width: 42px; height: 42px;
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ff8a80, #ff5252);
-            color: #fff;
-            cursor: pointer;
-            font-size: 20px;
-            box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25);
-            transition: all var(--transition-bounce);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: aiGlow 3s ease-in-out infinite;
-        }
-        @keyframes aiGlow {
-            0%, 100% { box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25), 0 0 0 0 rgba(255,82,82,0.3); }
-            50% { box-shadow: 0 4px 16px rgba(255, 82, 82, 0.25), 0 0 0 12px rgba(255,82,82,0); }
-        }
-        .ai-chat-btn:hover {
-            transform: translateY(-3px) scale(1.1);
-            box-shadow: 0 8px 24px rgba(255, 82, 82, 0.4);
-            animation: none;
-        }
-        .ai-chat-btn:active {
-            transform: translateY(1px) scale(0.94);
-            box-shadow: 0 2px 8px rgba(255, 82, 82, 0.2);
-        }
-        .ai-chat-btn::after {
-            content: '找小橘聊天~';
-            position: absolute;
-            bottom: -36px;
-            left: 50%;
-            transform: translateX(-50%) translateY(4px);
-            background: rgba(30,30,30,0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 500;
-            padding: 5px 12px;
-            border-radius: 10px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all var(--transition-fast);
-        }
-        .ai-chat-btn:hover::after {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* 知识库导航按钮 */
-        .wiki-btn {
-            position: relative;
-            width: 42px; height: 42px;
-            border: 1px solid rgba(255,255,255,0.6);
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ff9f43, #ffb366);
-            color: #fff;
-            cursor: pointer;
-            font-size: 20px;
-            box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25);
-            transition: all var(--transition-bounce);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: wikiGlow 3.5s ease-in-out infinite;
-        }
-        @keyframes wikiGlow {
-            0%, 100% { box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25), 0 0 0 0 rgba(255,159,67,0.3); }
-            50% { box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25), 0 0 0 12px rgba(255,159,67,0); }
-        }
-        .wiki-btn:hover {
-            transform: translateY(-3px) scale(1.1);
-            box-shadow: 0 8px 24px rgba(255, 159, 67, 0.4);
-            animation: none;
-        }
-        .wiki-btn:active {
-            transform: translateY(1px) scale(0.94);
-            box-shadow: 0 2px 8px rgba(255, 159, 67, 0.2);
-        }
-        .wiki-btn::after {
-            content: '知识库 Wiki';
-            position: absolute;
-            bottom: -36px;
-            left: 50%;
-            transform: translateX(-50%) translateY(4px);
-            background: rgba(30,30,30,0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 500;
-            padding: 5px 12px;
-            border-radius: 10px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all var(--transition-fast);
-        }
-        .wiki-btn:hover::after {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+        /* 知识库/AI 导航按钮 — 独立 class（wiki-btn / chat-btn），与 admin-btn 同结构 */
 
         /* =========================
            主体三栏居中布局（类似原版）
@@ -358,90 +119,6 @@
             align-items: flex-start;
             justify-content: center;
         }
-
-        /* 左侧趣味栏 — 「此刻」+「今天吃什么」 */
-        .left-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-            transition: all 0.45s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        .left-sidebar.collapsed {
-            flex: 0 0 0;
-            min-width: 0;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateX(-30px);
-            margin-right: -22px; /* 抵消 grid gap */
-        }
-        .left-sidebar.collapsed .moment-card,
-        .left-sidebar.collapsed .recipe-card {
-            position: absolute;
-            opacity: 0;
-            transform: translateY(-12px);
-            pointer-events: none;
-            transition: all 0.35s ease;
-        }
-
-        /* 收起按钮 — 玻璃药丸 */
-        .left-collapse-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            align-self: flex-end;
-            padding: 4px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.5);
-            cursor: pointer;
-            font-size: 11px;
-            color: var(--text-tertiary);
-            font-family: var(--font-body);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.25s var(--transition-bounce);
-            white-space: nowrap;
-        }
-        .left-collapse-btn:hover {
-            background: rgba(255,255,255,0.8);
-            color: var(--text-secondary);
-            padding-right: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        /* 折叠后的浮动展开按钮 */
-        .left-float-paw {
-            display: none;
-            position: absolute;
-            left: 8px;
-            top: 20px;
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.6);
-            background: linear-gradient(135deg, rgba(255,159,67,0.85), rgba(255,180,110,0.85));
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            cursor: pointer;
-            font-size: 18px;
-            color: #fff;
-            z-index: 20;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(255,159,67,0.25);
-            transition: all 0.3s var(--transition-bounce);
-            animation: floatBounce 2.5s ease-in-out infinite;
-        }
-        @keyframes floatBounce {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(4px); }
-        }
-        .left-float-paw:hover {
-            transform: scale(1.15);
-            box-shadow: 0 6px 24px rgba(255,159,67,0.4);
-            animation: none;
-        }
-        .left-float-paw.show { display: flex; }
 
         /* =========================
            毛玻璃卡片通用样式
@@ -471,154 +148,6 @@
             gap: 20px;
         }
 
-        /* =========================
-           左栏卡片 — 「此刻」诗意卡片
-           ========================= */
-        .moment-card {
-            /* glass-card 基础上仅微调内边距和布局 */
-            padding: 16px 18px;
-            text-align: center;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        .moment-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #b86840;
-            letter-spacing: 1.5px;
-        }
-        .moment-text {
-            font-size: 13px;
-            font-style: italic;
-            color: #5d3a1a;
-            line-height: 1.7;
-            transition: opacity 0.5s ease;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-        }
-        .moment-text.fade-out { opacity: 0; }
-        .moment-dots {
-            display: flex; gap: 5px; justify-content: center;
-        }
-        .moment-dots span {
-            width: 5px; height: 5px; border-radius: 50%;
-            background: #d4b088; transition: all 0.3s ease;
-        }
-        .moment-dots span.active {
-            background: #d49478; transform: scale(1.4);
-        }
-
-        /* =========================
-           左栏卡片 — 「今天吃什么」食谱卡片
-           ========================= */
-        .recipe-card {
-            /* glass-card 基础上仅微调内边距 */
-            padding: 16px;
-        }
-        .recipe-card h3 {
-            text-align: center;
-            color: var(--accent);
-            font-size: 14px;
-            margin: 0 0 10px 0;
-        }
-        .recipe-card .ingredient-input {
-            width: 100%; padding: 8px 10px;
-            border: 1px solid #e8d5c0;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.6);
-            font-size: 12px;
-            margin-bottom: 8px;
-            font-family: var(--font-body);
-            color: var(--text-primary);
-            transition: border-color 0.3s;
-        }
-        .recipe-card .ingredient-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255,159,67,0.08);
-        }
-        .recipe-card .ingredient-input::placeholder {
-            color: #c4b5a8;
-        }
-        .recipe-card .mood-chips,
-        .recipe-card .diet-chips {
-            display: flex; flex-wrap: wrap;
-            gap: 4px; margin-bottom: 6px;
-        }
-        .recipe-card .diet-chips {
-            margin-bottom: 10px;
-        }
-        .recipe-card .chip {
-            padding: 3px 10px; border-radius: 14px;
-            font-size: 11px; cursor: pointer;
-            background: #f5f0eb; border: 1px solid transparent;
-            transition: all 0.2s;
-            user-select: none;
-            white-space: nowrap;
-        }
-        .recipe-card .chip:hover {
-            background: #fdf3e4;
-        }
-        .recipe-card .chip.active {
-            background: #fdf3e4;
-            border-color: var(--accent);
-            color: #b86840; font-weight: 600;
-        }
-        .recipe-card .decide-btn {
-            width: 100%; padding: 10px;
-            background: linear-gradient(135deg, #ff9f43, #ffb88c);
-            color: #fff; border: none;
-            border-radius: 12px;
-            font-size: 13px; font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-            font-family: var(--font-body);
-        }
-        .recipe-card .decide-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 4px 16px rgba(255,159,67,0.3);
-        }
-        .recipe-card .decide-btn:active {
-            transform: scale(0.96);
-        }
-        .recipe-card .decide-btn:disabled {
-            opacity: 0.5; cursor: not-allowed; transform: none;
-        }
-
-        /* 食谱结果展示 */
-        .recipe-result {
-            margin-top: 10px; padding: 12px;
-            background: linear-gradient(135deg, #fff8f0, #fff3e6);
-            border-radius: 12px; border: 1px solid #f0d8c0;
-            animation: resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
-            display: none;
-        }
-        .recipe-result.show { display: block; }
-        .recipe-result .dish-name {
-            font-size: 18px; font-weight: 800; color: #b86840;
-            text-align: center; margin-bottom: 4px;
-        }
-        .recipe-result .dish-meta {
-            text-align: center; font-size: 11px; color: #a08c7a; margin-bottom: 8px;
-        }
-        .recipe-result .dish-steps {
-            font-size: 12px; color: #5d3a1a; line-height: 1.6;
-            padding-left: 16px; margin-bottom: 8px;
-        }
-        .recipe-result .cat-comment {
-            font-size: 11px; font-style: italic; color: #d49478;
-            text-align: center; border-top: 1px dashed #e8c8b0;
-            padding-top: 8px;
-        }
-        @keyframes resultPop {
-            from { opacity:0; transform: translateY(10px) scale(0.95); }
-            to { opacity:1; transform: translateY(0) scale(1); }
-        }
-
         /* 页面标题区 */
         .hero-section {
             text-align: left;
@@ -634,7 +163,7 @@
         }
         .hero-title .emoji {
             display: inline-block;
-            animation: heroBounce 2s ease-in-out infinite;
+            /* 原 CSS heroBounce 已由 GSAP「慢眨眼」接管 */
         }
         @keyframes heroBounce {
             0%, 100% { transform: translateY(0); }
@@ -707,6 +236,7 @@
             box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
         }
         textarea#barcode-input:focus {
+            outline: none;
             border-color: var(--accent);
             background: rgba(255, 255, 255, 0.75);
             box-shadow:
@@ -870,6 +400,7 @@
             background: linear-gradient(135deg, #f7a978, #f5c09e);
             color: #fff;
             box-shadow: 0 4px 14px rgba(247, 169, 120, 0.3);
+            transition: all 0.25s ease;
         }
         .btn-comma:hover {
             transform: translateY(-2px);
@@ -878,6 +409,179 @@
         .btn-comma:active {
             transform: translateY(1px) scale(0.96);
             box-shadow: 0 2px 8px rgba(247, 169, 120, 0.2);
+        }
+
+        /* 复制成功反馈 */
+        .btn.copied {
+            background: linear-gradient(135deg, #34c759, #30d158) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(52, 199, 89, 0.35) !important;
+        }
+
+        /* =========================
+           分割按钮：逗号拼接 + 下拉菜单
+           喵码 Air 玻璃态 · 暖橙氛围
+           ========================= */
+        .btn-split-group {
+            position: relative;
+            display: inline-flex;
+            align-items: stretch;
+        }
+        .btn-split-main:hover,
+        .btn-split-arrow:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-split-group:hover .btn-split-main,
+        .btn-split-group:hover .btn-split-arrow {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(247, 169, 120, 0.45);
+        }
+        .btn-split-group.is-sinking .btn-split-main,
+        .btn-split-group.is-sinking .btn-split-arrow {
+            transform: translateY(1px) scale(0.96) !important;
+            box-shadow: 0 2px 8px rgba(247, 169, 120, 0.2) !important;
+        }
+        .btn-split-main {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            padding-left: 16px;
+            padding-right: 10px;
+            margin: 0;
+            transition: all 0.25s ease;
+        }
+        .btn-split-arrow {
+            position: relative;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+            border-left: 1px solid rgba(255,255,255,0.35) !important;
+            padding: 0 10px !important;
+            min-width: 30px;
+            margin: 0;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+        }
+        .split-arrow-icon {
+            display: block;
+            width: 7px;
+            height: 7px;
+            border-right: 2px solid rgba(255,255,255,0.95);
+            border-bottom: 2px solid rgba(255,255,255,0.95);
+            transform: translateY(-1.5px) rotate(45deg);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-split-group.menu-open .split-arrow-icon {
+            transform: translateY(2px) rotate(225deg);
+        }
+
+        .btn-split-group.copied .btn-split-main,
+        .btn-split-group.copied .btn-split-arrow {
+            background: linear-gradient(135deg, #34c759, #30d158) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(52, 199, 89, 0.35) !important;
+        }
+
+        /* ---- 弹出菜单：玻璃态卡片 ---- */
+        .comma-popup {
+            position: absolute;
+            left: 0;
+            top: calc(100% + 8px);
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border-strong);
+            border-radius: var(--radius-sm);
+            box-shadow:
+                0 8px 28px rgba(0, 0, 0, 0.07),
+                0 1px 4px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+            z-index: 300;
+            opacity: 0;
+            transform: translateY(-6px) scale(0.96);
+            transform-origin: top right;
+            pointer-events: none;
+            transition:
+                opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+                transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .comma-popup.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        /* 菜单项 */
+        .comma-popup-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 9px 12px;
+            text-align: left;
+            transition: background 0.18s ease;
+            position: relative;
+        }
+        .comma-popup-item:hover {
+            background: rgba(255, 159, 67, 0.07);
+        }
+        .comma-popup-item:active {
+            background: rgba(255, 159, 67, 0.13);
+        }
+        .comma-popup-hint {
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.2px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .comma-hint-mark {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            vertical-align: middle;
+        }
+
+        /* 当前选中标记 */
+        .comma-popup-item.is-active {
+            background: rgba(255, 159, 67, 0.06);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .comma-popup-item.is-active::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 5px rgba(255, 159, 67, 0.3);
+        }
+
+        /* 菜单项点击成功反馈 */
+        .comma-popup-item.copied {
+            background: rgba(52, 199, 89, 0.14) !important;
+            color: #2eaa52 !important;
         }
 
         /* 自定义 Select */
@@ -1103,6 +807,7 @@
             align-items: center;
             gap: 10px;
             padding: 10px 14px;
+            margin-right: 4px;
             background: rgba(255,255,255,0.45);
             border: 1px solid rgba(0,0,0,0.05);
             border-radius: var(--radius-sm);
@@ -1240,20 +945,46 @@
         }
         .ocr-file-input { display: none; }
         .ocr-progress {
+            position: relative;
             height: 4px;
             margin-top: 14px;
             background: rgba(0,0,0,0.04);
             border-radius: 99px;
             overflow: hidden;
             display: none;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
         }
         .ocr-progress.active { display: block; }
         .ocr-progress-bar {
             height: 100%;
             width: 0;
-            background: linear-gradient(90deg, var(--accent-3), var(--accent));
             border-radius: 99px;
-            transition: width 0.2s ease;
+            /* 双层背景：底部渐变色 + 顶部 shimmer 光泽层 */
+            background:
+                linear-gradient(90deg,
+                    rgba(255,255,255,0) 0%,
+                    rgba(255,255,255,0.35) 40%,
+                    rgba(255,255,255,0.45) 50%,
+                    rgba(255,255,255,0.35) 60%,
+                    rgba(255,255,255,0) 100%),
+                linear-gradient(90deg, #0abde3, #22d3ee, #ff9f43);
+            background-size: 200% 100%, 100% 100%;
+            background-position: -100% 0, 0 0;
+            box-shadow: 0 0 8px rgba(10,189,227,0.3);
+            /* 宽度由 GSAP 控制，不再使用 CSS transition */
+        }
+        .ocr-progress-bar.phase-success {
+            background:
+                linear-gradient(90deg,
+                    rgba(255,255,255,0) 0%,
+                    rgba(255,255,255,0.35) 40%,
+                    rgba(255,255,255,0.45) 50%,
+                    rgba(255,255,255,0.35) 60%,
+                    rgba(255,255,255,0) 100%),
+                #34c759;
+            background-size: 200% 100%, 100% 100%;
+            background-position: -100% 0, 0 0;
+            box-shadow: 0 0 8px rgba(52,199,89,0.35);
         }
         .ocr-preview-wrap {
             margin-top: 14px;
@@ -1276,6 +1007,9 @@
             font-weight: 500;
             color: var(--text-secondary);
             line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .ocr-status.success { color: #34c759; font-weight: 700; }
         .ocr-status.error { color: var(--accent-2); font-weight: 700; }
@@ -1326,6 +1060,26 @@
             background: rgba(255, 159, 67, 0.1);
             color: var(--accent);
             border: 1px solid rgba(255, 159, 67, 0.25);
+        }
+
+        /* 三点跳动加载指示器 */
+        .fx-loader-dots {
+            display: inline-flex;
+            gap: 3px;
+            align-items: center;
+            vertical-align: middle;
+        }
+        .fx-loader-dots span {
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: fx-dot-pulse 1.2s ease infinite;
+        }
+        .fx-loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .fx-loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes fx-dot-pulse {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40%            { transform: scale(1); opacity: 1; }
         }
 
         /* =========================
@@ -1569,10 +1323,106 @@
         .data-tools-status.success { color: #34c759; font-weight: 600; }
         .data-tools-status.error { color: var(--accent-2); font-weight: 600; }
 
+        /* Tab 切换器 — 滑动指示器（与 knowledge.html 同款动画） */
+        .data-tools-tabs {
+            position: relative;
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            margin-bottom: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+        }
+        .data-tools-tabs-indicator {
+            position: absolute;
+            top: 4px;
+            left: 0;
+            height: calc(100% - 8px);
+            width: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fff9f0, #fff5ec);
+            box-shadow: 0 2px 8px rgba(255, 159, 67, 0.2);
+            pointer-events: none;
+            z-index: 0;
+            will-change: transform, width;
+        }
+        .data-tools-tab {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color 0.35s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        font-weight 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .data-tools-tab:hover {
+            color: var(--text-primary);
+        }
+        .data-tools-tab.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* 面板显隐 */
+        .data-tools-panel { display: none; }
+        .data-tools-panel.active { display: block; }
+
+        /* 图片拖放区（复用 OCR dropzone 风格） */
+        .data-tools-dropzone {
+            min-height: 130px;
+            border: 2px dashed rgba(255, 159, 67, 0.3);
+            border-radius: var(--radius);
+            background: rgba(255,255,255,0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+        }
+        .data-tools-dropzone:hover,
+        .data-tools-dropzone.dragover {
+            border-color: var(--accent);
+            background: rgba(255,159,67,0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,159,67,0.12);
+        }
+        .data-tools-dropzone strong {
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .data-tools-dropzone span {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+        .data-tools-file-input { display: none; }
+
         /* 侧边栏提示卡片 */
         .tips-card {
             padding: 18px;
+            max-height: 320px;
+            overflow-y: auto;
+            scrollbar-width: none;
         }
+        .tips-card::-webkit-scrollbar { display: none; }
         .tips-card h3 {
             font-family: var(--font-display);
             font-size: 14px;
@@ -1802,24 +1652,7 @@
             100% { transform: translateY(-300px) translateX(-8px); opacity: 0; font-size: 5px; }
         }
 
-        /* =========================
-           页脚
-           ========================= */
-        .site-footer {
-            text-align: center;
-            padding: 30px 0 16px;
-            font-size: 11px;
-            color: var(--text-tertiary);
-            position: relative;
-            z-index: 2;
-        }
-        .site-footer a {
-            color: var(--text-secondary);
-            text-decoration: none;
-        }
-        .site-footer a:hover {
-            color: var(--accent);
-        }
+        /* 页脚 — 样式见 base.css */
 
         /* =========================
            响应式
@@ -1828,12 +1661,6 @@
             .main-layout {
                 grid-template-columns: minmax(460px, 760px) minmax(260px, 340px);
                 justify-content: center;
-            }
-            .left-sidebar {
-                display: none;
-            }
-            .left-float-paw {
-                display: none !important;
             }
             .content-sidebar {
                 position: static;
@@ -1920,6 +1747,7 @@
             from { opacity: 0; transform: scale(1.01); }
             to   { opacity: 1; transform: scale(1); }
         }
+
     </style>
 </head>
 <body>
@@ -1946,7 +1774,6 @@
         <div class="bg-orb bg-orb--cream"></div>
     </div>
     <div class="bg-grain" aria-hidden="true"></div>
-
     <!-- ==================== 主布局 ==================== -->
     <div class="app-shell">
 
@@ -1964,11 +1791,11 @@
                     <span class="dot"></span>
                     <span id="online-count">-</span> 喵在线
                 </span>
-                <button class="wiki-btn" onclick="goToWiki(event)" title="知识库 Wiki">
-                    📚
-                </button>
-                <button class="ai-chat-btn" onclick="goToChat(event)" title="和小橘AI聊天喵~">
-                    🐱
+                <a href="admin.html" class="admin-btn" id="admin-entry" style="display:none" title="在线用户管理">📊</a>
+                <a href="/knowledge.html" class="wiki-btn" title="知识库 Wiki">📚</a>
+                <a href="/tools.html" class="chat-btn" title="AI 工具箱">🐱</a>
+                <button class="nav-btn btn-user" id="btn-user" type="button">
+                    👤 <span id="user-label">登录</span>
                 </button>
             </div>
         </nav>
@@ -1976,57 +1803,8 @@
         <!-- 三栏主体（主内容居中） -->
         <div class="main-layout">
 
-            <!-- ========== 左栏：生活趣味 ========== -->
-            <aside class="left-sidebar" id="left-sidebar">
-                <button class="left-collapse-btn" id="left-collapse-btn">◀ 收起</button>
-
-                <!-- 🕰️ 此刻卡片 -->
-                <div class="glass-card moment-card" id="moment-card">
-                    <div class="moment-label">🕰️ 此刻</div>
-                    <div class="moment-text" id="moment-text">此刻，有一只小橘猫正在窗边等你回家喵~</div>
-                    <div class="moment-dots" id="moment-dots">
-                        <span class="active"></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-
-                <!-- 🍜 今天吃什么卡片 -->
-                <div class="glass-card recipe-card" id="recipe-card">
-                    <h3>🍜 今天吃什么</h3>
-
-                    <input class="ingredient-input" id="recipe-ingredients"
-                           placeholder="🥬 冰箱里有啥？（可不填）"
-                           maxlength="100">
-
-                    <div class="mood-chips" id="mood-chips">
-                        <span class="chip" data-mood="happy">😊 开心</span>
-                        <span class="chip" data-mood="lazy">😴 懒散</span>
-                        <span class="chip" data-mood="sick">🤒 不舒服</span>
-                        <span class="chip" data-mood="treat">🎉 犒劳自己</span>
-                    </div>
-
-                    <div class="diet-chips" id="diet-chips">
-                        <span class="chip" data-diet="nospicy">🌶️ 不吃辣</span>
-                        <span class="chip" data-diet="noseafood">🐟 不吃海鲜</span>
-                        <span class="chip" data-diet="veggie">🥬 素食</span>
-                        <span class="chip" data-diet="lactose">🥛 乳糖不耐</span>
-                        <span class="chip" data-diet="lowsugar">🍬 控糖</span>
-                    </div>
-
-                    <button class="decide-btn" id="recipe-btn">
-                        🎲 帮我决定！
-                    </button>
-
-                    <div class="recipe-result" id="recipe-result">
-                        <div class="dish-name" id="dish-name"></div>
-                        <div class="dish-meta" id="dish-meta"></div>
-                        <div class="dish-steps" id="dish-steps"></div>
-                        <div class="cat-comment" id="cat-comment"></div>
-                    </div>
-                </div>
-
-            </aside>
+            <!-- ========== 左栏占位（保持居中对齐） ========== -->
+            <aside class="left-sidebar" id="left-sidebar"></aside>
 
             <!-- ========== 中栏：主内容 ========== -->
             <div class="content-primary">
@@ -2108,14 +1886,27 @@
                                 </div>
                             </div>
                             <button class="btn btn-info" id="copy-btn">复制单号</button>
-                            <button class="btn btn-comma" id="comma-copy-btn">逗号拼接</button>
+                            <span class="btn-split-group" id="comma-split-group">
+                                <button class="btn btn-comma btn-split-main" id="comma-copy-btn">逗号拼接</button>
+                                <button class="btn btn-comma btn-split-arrow" id="comma-arrow-btn" aria-label="更多拼接格式" title="更多格式"><span class="split-arrow-icon"></span></button>
+                                <span class="comma-popup" id="comma-popup" role="menu" aria-label="拼接格式选项">
+                                    <button class="comma-popup-item is-active" data-format="comma" role="menuitem">
+                                        逗号拼接
+                                        <span class="comma-popup-hint">DPK...,DPL...,DPK...</span>
+                                    </button>
+                                    <button class="comma-popup-item" data-format="newline" role="menuitem">
+                                        逗号+换行
+                                        <span class="comma-popup-hint">DPK...,<b class="comma-hint-mark">⏎</b> DPL...,<b class="comma-hint-mark">⏎</b> DPK...,</span>
+                                    </button>
+                                </span>
+                            </span>
                             <button class="btn btn-danger" id="clear-btn">清空</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 条码输出 -->
-                <div class="glass-card barcode-section">
+                <div class="glass-card barcode-section" id="barcode-section">
                     <div class="barcode-section-header">
                         <span class="barcode-section-title">🏷️ 生成的条码</span>
                     </div>
@@ -2138,14 +1929,13 @@
                 <!-- OCR 面板 -->
                 <div class="glass-card ocr-card" aria-labelledby="ocr-title">
                     <div class="ocr-card-header">
-                        <h2 id="ocr-title">🔍 图片识别单号</h2>
+                        <h2 id="ocr-title">📸 图片识别单号</h2>
                     </div>
                     <label class="ocr-dropzone" id="ocr-dropzone" for="ocr-file-input">
                         <input class="ocr-file-input" id="ocr-file-input" type="file" accept="image/*">
-                        <span class="ocr-target-mark" aria-hidden="true">DPK</span>
-                        <strong>拖入快递截图</strong>
-                        <span>文字识别 + 条码扫描，自动提取 DPK/DPL 单号</span>
-                        <span style="font-size:11px;">也支持 Ctrl+V 粘贴图片</span>
+                        <span class="ocr-target-mark" aria-hidden="true">📦</span>
+                        <strong>拖入快递截图或 Ctrl+V 粘贴</strong>
+                        <span>Mimo AI + 条码扫描，智能提取 DPK/DPL 单号</span>
                     </label>
                     <div class="ocr-progress" id="ocr-progress" aria-hidden="true">
                         <div class="ocr-progress-bar" id="ocr-progress-bar"></div>
@@ -2153,14 +1943,43 @@
                     <div class="ocr-preview-wrap">
                         <img id="ocr-preview" alt="待识别图片预览" hidden>
                     </div>
-                    <div class="ocr-status" id="ocr-status">等待图片上传</div>
+                    <div class="ocr-status" id="ocr-status">拖入图片或 Ctrl+V 开始识别喵~</div>
                     <div class="ocr-candidates" id="ocr-candidates"></div>
                 </div>
 
                 <!-- AI 智能数据处理 -->
                 <div class="glass-card data-tools-card">
                     <h3>🤖 AI 智能数据处理</h3>
-                    <textarea class="data-tools-input" id="data-tools-input" placeholder="粘贴任意格式的杂乱文本...&#10;例如：聊天记录、复制内容、邮件正文&#10;AI 会自动识别并转为整齐的表格"></textarea>
+
+                    <!-- 模式切换 Tab -->
+                    <div class="data-tools-tabs" id="data-tools-tabs">
+                        <div class="data-tools-tabs-indicator" id="data-tools-tabs-indicator"></div>
+                        <button class="data-tools-tab active" data-tab="text">📝 文本解析</button>
+                        <button class="data-tools-tab" data-tab="image">🖼️ 图片识别</button>
+                    </div>
+
+                    <!-- Tab 1: 文本模式 -->
+                    <div class="data-tools-panel active" id="panel-text">
+                        <textarea class="data-tools-input" id="data-tools-input" placeholder="粘贴任意格式的杂乱文本...&#10;例如：聊天记录、复制内容、邮件正文&#10;AI 会自动识别并转为整齐的表格"></textarea>
+                    </div>
+
+                    <!-- Tab 2: 图片模式 -->
+                    <div class="data-tools-panel" id="panel-image">
+                        <label class="data-tools-dropzone" id="data-tools-dropzone">
+                            <input class="data-tools-file-input" id="data-tools-file-input" type="file" accept="image/*">
+                            <span class="ocr-target-mark" aria-hidden="true">📊</span>
+                            <strong>拖入截图或点击上传</strong>
+                            <span>Mimo v2.5 多模态 AI，自动识别图片中的表格内容</span>
+                        </label>
+                        <div class="ocr-progress" id="data-tools-progress" aria-hidden="true">
+                            <div class="ocr-progress-bar" id="data-tools-progress-bar"></div>
+                        </div>
+                        <div class="ocr-preview-wrap" id="data-tools-preview-wrap" hidden>
+                            <img id="data-tools-preview-img" alt="待识别图片预览">
+                        </div>
+                    </div>
+
+                    <!-- 共享的操作区和输出 -->
                     <div class="data-tools-actions">
                         <button class="btn btn-accent btn-sm" id="data-parse-btn">🤖 智能解析</button>
                         <button class="btn btn-ghost btn-sm" id="data-copy-btn" disabled>📋 复制表格</button>
@@ -2168,7 +1987,7 @@
                     </div>
                     <div class="data-tools-status" id="data-tools-status"></div>
                     <div class="data-tools-output" id="data-tools-output">
-                        <div class="data-tools-empty">👆 粘贴文本后点击「AI 智能解析」，DeepSeek 自动识别并转为表格</div>
+                        <div class="data-tools-empty">👆 粘贴文本或拖入图片，AI 自动识别并转为表格</div>
                     </div>
                 </div>
 
@@ -2176,13 +1995,13 @@
                 <div class="glass-card tips-card">
                     <h3>💡 使用小贴士</h3>
                     <div class="tips-list">
-                        <div class="tip-item">📦 粘贴快递单号 → 自动生成 CODE128 条码，支持批量输入、一键复制</div>
-                        <div class="tip-item">📸 上传快递面单截图 → AI 自动识别单号、收件人、地址等关键信息</div>
-                        <div class="tip-item">📋 粘贴乱码文本 → 点击「智能整理」→ 一键纠错、去重排序、格式化</div>
-                        <div class="tip-item">🤖 点击顶部导航「🧰 AI 工具箱」→ 8 大技能卡片环绕对话，DeepSeek V4 Pro 驱动</div>
-                        <div class="tip-item">📚 点击顶部「📚 知识库」→ 六类快递物流百科，支持搜索和分类浏览</div>
-                        <div class="tip-item">🌙 点击导航栏右侧月亮图标 → 切换暗色模式，夜间使用更护眼</div>
-                        <div class="tip-item">🖱️ 点击单号历史记录 → 快速恢复之前生成的条码，支持批量删除</div>
+                        <div class="tip-item">📦 粘贴快递单号 → 自动生成 CODE128 条码，支持批量生成、一键复制、逗号拼接</div>
+                        <div class="tip-item">🔧 DPK / DPL 快捷按钮 → 一键添加前缀，智能识别并补全 12 位数字单号</div>
+                        <div class="tip-item">✨ 「智能整理」按钮 → 自动纠正常见 OCR 误读、去重排序、格式化输出</div>
+                        <div class="tip-item">📸 上传快递面单截图 → Mimo v2.5 多模态 AI 识别单号，支持拖拽和 Ctrl+V 粘贴图片</div>
+                        <div class="tip-item">🤖 侧边栏「AI 智能数据处理」→ 粘贴文本用 DeepSeek 解析，拖入图片用 Mimo v2.5 识别表格</div>
+                        <div class="tip-item">📚 顶部「📚 知识库」→ 六类快递物流百科，支持搜索和分类浏览</div>
+                        <div class="tip-item">🐱 顶部「🐱」AI 聊天 → 快递智能助手小橘在线答疑，DeepSeek V4 Pro 驱动</div>
                     </div>
                 </div>
             </aside>
@@ -2214,25 +2033,8 @@
     </div>
 
     <!-- ==================== JavaScript（保留全部原有逻辑） ==================== -->
+    <script src="/lib/miaosite-auth.js"></script>
     <script>
-        // Auth helpers
-        const Auth = {
-            getToken() { return localStorage.getItem('miaosite_token'); },
-            getUser() { try { return JSON.parse(localStorage.getItem('miaosite_user')); } catch { return null; } },
-            isLoggedIn() { return !!this.getToken(); },
-            async fetch(url, options = {}) {
-                const token = this.getToken();
-                const headers = { ...options.headers };
-                if (token) headers['Authorization'] = 'Bearer ' + token;
-                const response = await fetch(url, { ...options, headers });
-                if (response.status === 401) {
-                    localStorage.removeItem('miaosite_token');
-                    localStorage.removeItem('miaosite_user');
-                }
-                return response;
-            }
-        };
-
         const inputArea = document.getElementById('barcode-input');
         const outputArea = document.getElementById('barcode-output');
         const colSelect = document.getElementById('col-select');
@@ -2241,6 +2043,9 @@
         const btnDpl = document.getElementById('btn-dpl');
         const copyBtn = document.getElementById('copy-btn');
         const commaCopyBtn = document.getElementById('comma-copy-btn');
+        const commaArrowBtn = document.getElementById('comma-arrow-btn');
+        const commaPopup = document.getElementById('comma-popup');
+        const commaSplitGroup = document.getElementById('comma-split-group');
         const formatBtn = document.getElementById('format-btn');
         const heightSelect = document.getElementById('barcode-height-select');
         const toast = document.getElementById('toast');
@@ -2306,6 +2111,10 @@
                 toast.classList.remove('show');
             }, 1800);
         }
+
+        MiaositeAuth.mount({
+            toast: function(message) { showToast(message); }
+        });
 
         function getLines() {
             return inputArea.value
@@ -2432,21 +2241,85 @@
         }
 
         function setOcrStatus(message, type = '') {
-            ocrStatus.innerText = message;
+            ocrStatus.innerHTML = message;
             ocrStatus.className = `ocr-status ${type}`.trim();
+        }
+
+        // ---- OCR 进度条 (GSAP 驱动) ----
+        let ocrShimmerTween = null;
+
+        function startOcrShimmer() {
+            if (ocrShimmerTween) return;
+            ocrShimmerTween = gsap.to(ocrProgressBar, {
+                backgroundPosition: '100% 0, 0 0',
+                duration: 1.6,
+                repeat: -1,
+                ease: 'none'
+            });
+        }
+
+        function stopOcrShimmer() {
+            if (ocrShimmerTween) {
+                ocrShimmerTween.kill();
+                ocrShimmerTween = null;
+            }
+            gsap.set(ocrProgressBar, { backgroundPosition: '-100% 0, 0 0' });
         }
 
         function setOcrProgress(value) {
             const progress = Math.max(0, Math.min(100, Math.round(value)));
+            const wasActive = ocrProgress.classList.contains('active');
             ocrProgress.classList.add('active');
-            ocrProgressBar.style.width = `${progress}%`;
+            // 首次激活时启动流光 shimmer
+            if (!wasActive) startOcrShimmer();
+            // 用 GSAP 替代 CSS transition，平滑过渡宽度
+            gsap.to(ocrProgressBar, {
+                width: `${progress}%`,
+                duration: 0.5,
+                ease: 'power2.out',
+                overwrite: 'auto'
+            });
+            if (progress >= 100) {
+                stopOcrShimmer();
+                ocrProgressBar.classList.add('phase-success');
+                // 成功爆发微交互：短暂放大 + 绿色辉光扩散 → 回弹
+                gsap.fromTo(ocrProgressBar,
+                    { scaleY: 2.2, boxShadow: '0 0 16px rgba(52,199,89,0.55)' },
+                    { scaleY: 1, boxShadow: '0 0 8px rgba(52,199,89,0.35)', duration: 0.55, ease: 'back.out(1.7)' }
+                );
+            }
         }
 
         function hideOcrProgress() {
-            setTimeout(() => {
-                ocrProgress.classList.remove('active');
-                ocrProgressBar.style.width = '0';
-            }, 700);
+            stopOcrShimmer();
+            if (ocrProgressBar.classList.contains('phase-success')) {
+                // 成功：保持绿色短暂可见，然后整体淡出
+                gsap.to(ocrProgress, {
+                    opacity: 0,
+                    duration: 0.35,
+                    delay: 0.55,
+                    ease: 'power2.in',
+                    onComplete: () => {
+                        ocrProgress.classList.remove('active');
+                        ocrProgressBar.classList.remove('phase-success');
+                        gsap.set(ocrProgressBar, { width: '0%', scaleY: 1, clearProps: 'scaleY,boxShadow' });
+                        gsap.set(ocrProgress, { opacity: 1, clearProps: 'opacity' });
+                    }
+                });
+            } else {
+                // 中断/失败：快速淡出
+                gsap.to(ocrProgress, {
+                    opacity: 0,
+                    duration: 0.2,
+                    delay: 0.15,
+                    ease: 'power2.in',
+                    onComplete: () => {
+                        ocrProgress.classList.remove('active');
+                        gsap.set(ocrProgressBar, { width: '0%', scaleY: 1, clearProps: 'scaleY,boxShadow' });
+                        gsap.set(ocrProgress, { opacity: 1, clearProps: 'opacity' });
+                    }
+                });
+            }
         }
 
         function mergeOcrCodesIntoInput(codes) {
@@ -2475,7 +2348,7 @@
 
                 button.addEventListener('click', () => {
                     const added = mergeOcrCodesIntoInput([code]);
-                    setOcrStatus(added > 0 ? `${code} 已填入文本框` : `${code} 已在文本框中`, 'success');
+                    setOcrStatus(added > 0 ? `${code} 已填入文本框喵~` : `${code} 已在文本框中喵~`, 'success');
                     showToast(added > 0 ? '已填入识别单号喵~' : '单号已存在喵~');
                 });
                 ocrCandidates.appendChild(button);
@@ -2545,6 +2418,9 @@
         }
 
         function closeLightbox() {
+            // 清除 GSAP 留在 overlay 上的内联样式，否则 CSS .closing 规则无法生效
+            lightboxOverlay.style.opacity = '';
+            lightboxOverlay.style.transform = '';
             lightboxOverlay.classList.remove('active');
             lightboxOverlay.classList.add('closing');
             document.body.style.overflow = '';
@@ -2696,21 +2572,6 @@
             lightboxImg.classList.remove('dragging');
         });
 
-        function enhanceCanvasForOcr(canvas) {
-            const ctx = canvas.getContext('2d');
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                const luminance = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-                let value = (luminance - 128) * 1.38 + 128;
-                if (value > 218) value = 255;
-                if (value < 108) value = 0;
-                value = Math.max(0, Math.min(255, value));
-                data[i] = value; data[i + 1] = value; data[i + 2] = value;
-            }
-            ctx.putImageData(imageData, 0, 0);
-        }
-
         // 共享的旋转函数（用于 180° 翻转重试）
         async function applyRotation(image, angleDeg) {
             const srcW = image.naturalWidth || image.width;
@@ -2741,71 +2602,7 @@
             });
         }
 
-        function buildOcrCanvas(image) {
-            const sourceWidth = image.naturalWidth || image.width;
-            const sourceHeight = image.naturalHeight || image.height;
-            const targetWidth = Math.min(1500, Math.max(1100, sourceWidth));
-            const scale = targetWidth / sourceWidth;
-            const fullWidth = Math.round(sourceWidth * scale);
-            const fullHeight = Math.round(sourceHeight * scale);
-            const topSourceHeight = Math.max(1, Math.round(sourceHeight * 0.34));
-            const topHeight = Math.round(topSourceHeight * scale * 1.18);
-            // 底部 34% 放大区域：倒立图片的追踪号可能在这里
-            const bottomSourceHeight = Math.max(1, Math.round(sourceHeight * 0.34));
-            const bottomHeight = Math.round(bottomSourceHeight * scale * 1.18);
-            const spacer = 18;
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = fullWidth;
-            canvas.height = topHeight + bottomHeight + spacer + fullHeight;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            // Section A: 顶部 34% 放大 1.18×（追踪号常在面单顶部）
-            ctx.drawImage(image, 0, 0, sourceWidth, topSourceHeight, 0, 0, fullWidth, topHeight);
-            // Section B: 底部 34% 放大 1.18×（倒立时追踪号可能在此区域）
-            ctx.drawImage(image, 0, sourceHeight - bottomSourceHeight, sourceWidth, bottomSourceHeight,
-                          0, topHeight, fullWidth, bottomHeight);
-            // Section C: 完整图片
-            ctx.drawImage(image, 0, 0, sourceWidth, sourceHeight,
-                          0, topHeight + bottomHeight + spacer, fullWidth, fullHeight);
-            enhanceCanvasForOcr(canvas);
-            return canvas;
-        }
-
         function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-        async function getTesseractEngine() {
-            // 动态加载 Tesseract.js（按需加载，节省首屏带宽）
-            if (!window.Tesseract) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-            for (let i = 0; i < 30; i++) {
-                if (window.Tesseract && window.Tesseract.recognize) return window.Tesseract;
-                await wait(100);
-            }
-            return null;
-        }
-
-        async function runTesseractOcr(ocrCanvas) {
-            const engine = await getTesseractEngine();
-            if (!engine) throw new Error('Tesseract 引擎加载失败');
-            const result = await engine.recognize(ocrCanvas, 'eng', {
-                logger: message => {
-                    if (message.status === 'recognizing text' && typeof message.progress === 'number') {
-                        setOcrProgress(40 + message.progress * 56);
-                    }
-                }
-            });
-            return result && result.data ? result.data.text : '';
-        }
 
         async function runApiOcr(ocrCanvas, signal = null) {
             const maxDim = 800;
@@ -2823,12 +2620,26 @@
             canvas.getContext('2d').drawImage(ocrCanvas, 0, 0, w, h);
             const blob = await new Promise(resolve => canvas.toBlob(resolve, mimeType, 0.85));
             setOcrProgress(20);
-            const response = await fetch('/api/ocr', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/octet-stream' },
-                body: blob,
-                signal: signal || undefined
-            });
+
+            // 客户端 35s 超时（Mimo v2.5 服务端 30s + 网络缓冲 5s）
+            const clientAbort = new AbortController();
+            const timer = setTimeout(() => clientAbort.abort(), 35000);
+            // 如果外部 signal 先触发，也中止客户端定时器
+            if (signal) {
+                signal.addEventListener('abort', () => { clientAbort.abort(); clearTimeout(timer); });
+            }
+
+            let response;
+            try {
+                response = await fetch('/api/ocr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                    body: blob,
+                    signal: clientAbort.signal
+                });
+            } finally {
+                clearTimeout(timer);
+            }
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
                 throw new Error(err.error || '识别服务异常');
@@ -2838,7 +2649,7 @@
             return data.text || '';
         }
 
-        async function runServerBarcodeDecode(image) {
+        async function runServerBarcodeDecode(image, signal = null) {
             // 服务端 pyzbar + opencv 专业条码解码（主引擎）
             let w = image.naturalWidth || image.width;
             let h = image.naturalHeight || image.height;
@@ -2854,7 +2665,8 @@
             const response = await fetch('/api/barcode-decode', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/octet-stream' },
-                body: blob
+                body: blob,
+                signal
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
@@ -2877,11 +2689,21 @@
             canvas.width = w; canvas.height = h;
             canvas.getContext('2d').drawImage(image, 0, 0, w, h);
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const response = await fetch('/api/barcode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/octet-stream' },
-                body: blob
-            });
+
+            // 客户端 35s 超时（Mimo v2.5 服务端 30s + 网络缓冲 5s）
+            const abort = new AbortController();
+            const timer = setTimeout(() => abort.abort(), 35000);
+            let response;
+            try {
+                response = await fetch('/api/barcode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                    body: blob,
+                    signal: abort.signal
+                });
+            } finally {
+                clearTimeout(timer);
+            }
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
                 throw new Error(err.error || '条码解码服务异常');
@@ -2892,12 +2714,12 @@
 
         async function processOcrFile(file) {
             if (!file || !file.type.startsWith('image/')) {
-                setOcrStatus('请拖入图片文件', 'error');
+                setOcrStatus('请拖入图片文件喵~', 'error');
                 showToast('请拖入图片文件喵~');
                 return;
             }
             ocrCandidates.innerHTML = '';
-            setOcrStatus('🔍 正在准备图片...');
+            setOcrStatus('🔍 正在加载图片<span class="fx-loader-dots"><span></span><span></span><span></span></span>');
             setOcrProgress(3);
             try {
                 const { image, previewUrl } = await loadImageElement(file);
@@ -2908,122 +2730,118 @@
                 ocrPreview.hidden = false;
                 setOcrProgress(8);
 
-                // ===== OCR 识别流水线（条码 + 文字同时跑，条码优先）=====
-                async function runFullOcrPipeline(targetImage, opts = {}) {
-                    const textOcrAbort = new AbortController();
-
-                    // ── 文字 OCR 后台启动（不阻塞，可被条码结果终止）──
-                    const textOcrP = (async () => {
-                        let text = '';
-                        let usedFallback = false;
-                        let apiErrorReason = '';
-                        try {
-                            text = await runApiOcr(targetImage, textOcrAbort.signal);
-                        } catch (apiError) {
-                            if (textOcrAbort.signal.aborted) {
-                                console.log('🛑 文字 OCR 被条码结果终止');
-                                return { codes: [], usedFallback: false, apiErrorReason: '', cancelled: true };
-                            }
-                            console.warn('云端 OCR 失败，降级到 Tesseract:', apiError.message);
-                            apiErrorReason = apiError.message || '云端识别不可用';
-                            setOcrStatus('💻 云端识别失败，本地引擎补位中...');
-                        }
-                        if (!textOcrAbort.signal.aborted && !extractOcrTrackingCodes(text).length) {
-                            try {
-                                if (!apiErrorReason) setOcrStatus('💻 云端未识别到文字，本地引擎补位中...');
-                                const tesseractCanvas = buildOcrCanvas(targetImage);
-                                text = await runTesseractOcr(tesseractCanvas);
-                                usedFallback = true;
-                            } catch (tessError) {
-                                console.error('Tesseract 失败:', tessError.message);
-                            }
-                        }
-                        return { codes: extractOcrTrackingCodes(text), usedFallback, apiErrorReason };
-                    })();
-
-                    // ── 条码检测（与文字 OCR 同时进行）──
-                    if (!opts.skipPyzbar) {
-                        let pyzbarCodes = [];
-                        try {
-                            pyzbarCodes = await runServerBarcodeDecode(targetImage);
-                            console.log('pyzbar 服务端条码:', pyzbarCodes.length ? pyzbarCodes.join(',') : '(empty)');
-                        } catch (e) {
-                            console.warn('服务端条码检测失败:', e.message);
-                        }
-
-                        if (pyzbarCodes.length > 0) {
-                            // 🎯 条码找到！立即终止文字 OCR，优先返回条码结果
-                            textOcrAbort.abort();
-                            const codeSources = {};
-                            pyzbarCodes.forEach(c => { codeSources[c] = ['barcode']; });
-
-                            // 仅后台跑 AI 视觉兜底
-                            (async () => {
-                                try {
-                                    const aiCodes = await runApiBarcodeDecode(targetImage);
-                                    const newCodes = aiCodes.filter(c => !codeSources[c]);
-                                    if (newCodes.length > 0) {
-                                        newCodes.forEach(c => { codeSources[c] = ['ai-barcode']; });
-                                        renderOcrCandidates(Object.keys(codeSources), codeSources);
-                                        setInputValue(Object.keys(codeSources).join('\n'));
-                                        setOcrStatus(`🎯 📊条码+🤖AI，共 ${Object.keys(codeSources).length} 个单号`, 'success');
-                                    }
-                                } catch (e) { console.warn('AI 条码解码(后台)失败:', e.message); }
-                            })();
-
-                            return {
-                                allCodes: pyzbarCodes, codeSources,
-                                textCodes: [], barcodeCodes: pyzbarCodes,
-                                pyzbarCodes, aiBarcodeCodes: [],
-                                usedFallback: false, apiErrorReason: '', pyzbarError: null,
-                                fromBarcode: true
-                            };
-                        }
-                    }
-
-                    // ── 无条码：等文字 OCR（早已在后台跑着了）──
-                    console.log('pyzbar 无条码，等待文字 OCR 结果...');
-                    let textCodes = [];
-                    let usedFallback = false;
-                    let apiErrorReason = '';
-                    try {
-                        const tr = await textOcrP;
-                        textCodes = tr.codes;
-                        usedFallback = tr.usedFallback;
-                        apiErrorReason = tr.apiErrorReason;
-                    } catch (e) {
-                        apiErrorReason = e.message || '文字识别失败';
-                    }
+                // ===== 识别流水线（pyzbar + Mimo v2.5 AI 双引擎并行，先到先得）=====
+                function runFullOcrPipeline(targetImage, opts = {}) {
                     const codeSources = {};
-                    textCodes.forEach(c => { codeSources[c] = ['text']; });
+                    const allCodes = [];
+                    const seen = new Set();
+                    let winner = null;
+                    let done = false;
+                    let resolveMain, rejectMain;
+                    const raceAbort = new AbortController();  // 首个引擎出结果后取消其他引擎
 
-                    return {
-                        allCodes: textCodes, codeSources,
-                        textCodes, barcodeCodes: [],
-                        pyzbarCodes: [], aiBarcodeCodes: [],
-                        usedFallback, apiErrorReason, pyzbarError: null,
-                        fromBarcode: false
-                    };
+                    const mainPromise = new Promise((resolve, reject) => {
+                        resolveMain = resolve;
+                        rejectMain = reject;
+                    });
+
+                    function mergeCodes(source, codes) {
+                        codes.forEach(c => {
+                            if (!seen.has(c)) {
+                                seen.add(c);
+                                allCodes.push(c);
+                            }
+                            if (!codeSources[c]) codeSources[c] = [];
+                            if (!codeSources[c].includes(source)) codeSources[c].push(source);
+                        });
+                    }
+
+                    function buildResult(w) {
+                        return {
+                            allCodes: [...allCodes],
+                            codeSources: { ...codeSources },
+                            textCodes: [...cloudOk],
+                            barcodeCodes: [...pyzbarOk],
+                            pyzbarCodes: [...pyzbarOk],
+                            cloudCodes: [...cloudOk],
+                            usedFallback: false,
+                            apiErrorReason: '',
+                            pyzbarError: null,
+                            fromBarcode: pyzbarOk.length > 0,
+                            winner: w
+                        };
+                    }
+
+                    // 引擎状态：pyzbar + Mimo v2.5 双引擎并行
+                    let pyzbarOk = [], cloudOk = [];
+                    const priorityTotal = 2;
+                    let priorityCompleted = 0;
+
+                    function engineDone(source, codes) {
+                        if (source === 'barcode') pyzbarOk = codes;
+                        else if (source === 'cloud') cloudOk = codes;
+
+                        mergeCodes(source, codes);
+                        priorityCompleted++;
+
+                        if (codes.length > 0 && !done) {
+                            // 🏆 第一个出结果的引擎立即返回，取消另一个
+                            done = true;
+                            winner = source;
+                            raceAbort.abort();
+                            resolveMain(buildResult(source));
+                        }
+                        if (priorityCompleted === priorityTotal && !done) {
+                            // 双引擎均无结果
+                            resolveMain(buildResult(null));
+                        }
+                    }
+
+                    setOcrStatus('🚀 pyzbar + Mimo v2.5 并行识别中<span class="fx-loader-dots"><span></span><span></span><span></span></span>');
+
+                    // ── Phase 1: pyzbar + Mimo 双引擎同时启动 ──
+
+                    // 1. 条码解码 (pyzbar — 自带快速预检，无条码图片秒返)
+                    runServerBarcodeDecode(targetImage, raceAbort.signal).then(codes => {
+                        console.log('pyzbar:', codes.length ? codes.join(',') : '(empty)');
+                        engineDone('barcode', codes);
+                    }).catch(e => {
+                        if (e.name === 'AbortError') { engineDone('barcode', []); return; }
+                        console.warn('pyzbar失败:', e.message);
+                        engineDone('barcode', []);
+                    });
+
+                    // 2. Mimo v2.5 多模态识别（文字 + 条码一次完成）
+                    runApiOcr(targetImage, raceAbort.signal).then(text => {
+                        const codes = extractOcrTrackingCodes(text);
+                        console.log('Mimo v2.5:', codes.length ? codes.join(',') : '(empty)');
+                        engineDone('cloud', codes);
+                    }).catch(e => {
+                        if (e.name === 'AbortError') { engineDone('cloud', []); return; }
+                        console.warn('Mimo v2.5 失败:', e.message);
+                        engineDone('cloud', []);
+                    });
+
+                    return mainPromise;
                 }
 
-                // ===== 第一轮：条码检测 =====
-                // 在 OCR 开始前先把输入框里的旧文本存下来，用于保存历史记录
+                // ===== 第一轮：pyzbar + Mimo 双引擎并行识别 =====
                 const textBeforeOcr = inputArea.value.trim();
-                setOcrStatus('🔍 条码检测中...');
                 setOcrProgress(12);
-                let result = await runFullOcrPipeline(image);
+                
+                let result = await runFullOcrPipeline(image, {});
                 setOcrProgress(80);
                 let wasFlipped = false;
 
                 // ===== 如果没识别到单号：翻转 180° 再试一次 =====
                 if (result.allCodes.length === 0) {
                     console.log('processOcrFile: 第一轮无结果，翻转 180° 重试...');
-                    setOcrStatus('🔄 正面未识别到，翻转 180° 重试中...');
+                    setOcrStatus('🔄 第一轮无结果，翻转 180° 重试中...');
                     setOcrProgress(50);
-                    // 翻转重试：pyzbar 第一轮也没找到条码，跳过直接用文字 OCR
+                    // 翻转重试：完整流水线（pyzbar 自带快速预检，无条码图片秒返）
                     try {
                         const flipResult = await applyRotation(image, 180);
-                        result = await runFullOcrPipeline(flipResult.image, { skipPyzbar: true });
+                        result = await runFullOcrPipeline(flipResult.image, {});
                         wasFlipped = true;
                         if (result.allCodes.length > 0) {
                             // 翻转后识别成功，更新预览为翻转后的图片
@@ -3039,7 +2857,7 @@
                 }
                 setOcrProgress(100);
 
-                const { allCodes, codeSources, textCodes, barcodeCodes, pyzbarCodes, aiBarcodeCodes, usedFallback, apiErrorReason, pyzbarError, fromBarcode } = result;
+                const { allCodes, codeSources, textCodes, barcodeCodes, pyzbarCodes, cloudCodes, usedFallback, apiErrorReason, pyzbarError, fromBarcode, winner } = result;
 
                 if (allCodes.length === 0) {
                     // 都没找到 → 给出具体原因
@@ -3047,7 +2865,7 @@
                     if (apiErrorReason) scanDetails.push(`云端接口: ${apiErrorReason}`);
                     if (pyzbarError) scanDetails.push('条码解码服务异常');
                     setOcrStatus(
-                        '😿 未识别到 DPK/DPL 单号' + (scanDetails.length ? `（${scanDetails.join('，')}）` : '，请换更清晰的截图重试喵'),
+                        '😿 未识别到单号' + (scanDetails.length ? `（${scanDetails.join('，')}）` : '，换张清晰图片再试试喵~'),
                         'error'
                     );
                     showToast('未识别到单号喵~');
@@ -3070,23 +2888,17 @@
 
                 // 构建识别来源详情
                 const parts = [];
-                if (fromBarcode) {
-                    parts.push('📊条码');
-                } else {
-                    const hasCloudOcr = textCodes.length > 0 && !usedFallback;
-                    const hasLocalOcr = textCodes.length > 0 && usedFallback;
-                    if (hasCloudOcr) parts.push('☁️云端');
-                    if (hasLocalOcr) parts.push('💻本地');
-                }
-                const hasAi = aiBarcodeCodes && aiBarcodeCodes.length > 0;
-                if (hasAi) parts.push('🤖AI');
-                const sourceLabel = parts.length > 0 ? parts.join('+') + ' 识别，' : '';
-                setOcrStatus(`🎯 ${sourceLabel}共 ${allCodes.length} 个单号，已填入文本框`, 'success');
-                showToast(`已填入 ${allCodes.length} 个识别单号喵~`);
+                if (pyzbarCodes && pyzbarCodes.length > 0) parts.push('📊 条码扫描');
+                if (cloudCodes && cloudCodes.length > 0) parts.push('☁️ Mimo');
+                const sourceLabel = parts.length > 0 ? parts.join(' + ') + ' · ' : '';
+                const winnerLabel = winner ? { barcode: '条码先到', cloud: 'Mimo 先到' }[winner] : '';
+                const winnerNote = winnerLabel ? ` 🏆${winnerLabel}` : '';
+                setOcrStatus(`✅ ${sourceLabel}${allCodes.length} 个单号${winnerNote}，已填入文本框`, 'success');
+                showToast(`已识别 ${allCodes.length} 个单号喵~`);
                 const codesText = allCodes.join('\n');
                 copyText(codesText, '单号已自动复制喵~').catch(() => {});
             } catch (error) {
-                setOcrStatus(error.message || '识别失败，请重试', 'error');
+                setOcrStatus(error.message || '识别失败，请重试喵~', 'error');
                 showToast('图片识别失败喵~');
             } finally {
                 hideOcrProgress();
@@ -3200,7 +3012,7 @@
                     actions.appendChild(removeSingle);
                     itemDiv.appendChild(actions);
                 } catch (error) {
-                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符喵~ (${text})</span>`;
+                    itemDiv.innerHTML = `<span class="error-msg">无法生成: 包含无效字符喵~ (${escapeHtml(text)})</span>`;
                 }
                 outputArea.appendChild(itemDiv);
             });
@@ -3316,14 +3128,33 @@
             event.target.value = '';
         });
 
-        // Lightbox: click preview to open
-        ocrPreview.addEventListener('click', () => {
-            if (ocrProgress.classList.contains('active')) return;
-            if (lightboxCurrentFile && !lightboxOverlay.classList.contains('active')) {
-                openLightbox(lightboxCurrentFile);
+        // Lightbox: click preview or preview wrap to open
+        function handlePreviewClick() {
+            if (ocrProgress.classList.contains('active')) {
+                showToast('识别进行中，请稍后再查看喵~');
+                return;
             }
-        });
+            const file = lightboxCurrentFile;
+            const url = ocrPreview.src;
+            if (!file || !url) {
+                showToast('请先上传一张图片喵~');
+                return;
+            }
+            if (lightboxOverlay.classList.contains('active')) return;
+            openLightbox(file);
+        }
+        ocrPreview.addEventListener('click', handlePreviewClick);
         ocrPreview.style.cursor = 'zoom-in';
+        ocrPreview.title = '点击查看大图';
+        // Also bind click on the preview wrap (larger hit area)
+        const ocrPreviewWrap = ocrPreview.closest('.ocr-preview-wrap');
+        if (ocrPreviewWrap) {
+            ocrPreviewWrap.style.cursor = 'zoom-in';
+            ocrPreviewWrap.addEventListener('click', (e) => {
+                if (e.target === ocrPreview) return; // already handled by img click
+                handlePreviewClick();
+            });
+        }
 
         // Lightbox: close triggers
         lightboxClose.addEventListener('click', closeLightbox);
@@ -3345,7 +3176,13 @@
                     }
                 }
             }
-            if (file) processOcrFile(file);
+            if (!file) return;
+            // 图片 tab 时粘贴到数据处理卡片，否则走 OCR
+            if (typeof currentDataTab !== 'undefined' && currentDataTab === 'image') {
+                setDataImage(file);
+            } else {
+                processOcrFile(file);
+            }
         });
 
         inputArea.addEventListener('input', renderBarcodes);
@@ -3364,28 +3201,116 @@
             if (copied) {
                 const originalText = copyBtn.innerText;
                 copyBtn.innerText = '已复制！';
-                copyBtn.style.background = 'linear-gradient(135deg, #34c759, #30d158)';
+                copyBtn.classList.add('copied');
                 setTimeout(() => {
                     copyBtn.innerText = originalText;
-                    copyBtn.style.background = '';
+                    copyBtn.classList.remove('copied');
                 }, 1200);
             }
         });
 
-        commaCopyBtn.addEventListener('click', async () => {
+        // ---- 逗号拼接分割按钮 ----
+        let commaActiveFormat = 'comma'; // 当前选中的拼接格式
+
+        function getCommaText(format) {
             const lines = getLines().filter(l => l.trim() !== '');
-            if (lines.length === 0) { showToast('没有可拼接的单号喵~'); return; }
-            const commaText = lines.map(l => l.trim()).join(',');
-            const preview = commaText.length > 50 ? commaText.slice(0, 50) + '…' : commaText;
-            const copied = await copyText(commaText, `已拼接 ${lines.length} 条喵~：${preview}`);
+            if (lines.length === 0) return null;
+            const trimmed = lines.map(l => l.trim());
+            if (format === 'newline') return trimmed.map(l => l + ',').join('\n');
+            return trimmed.join(',');
+        }
+
+        /* 更新弹窗内选中态 + 主按钮文案 */
+        function setCommaActiveFormat(format) {
+            commaActiveFormat = format;
+            // 更新主按钮文字
+            commaCopyBtn.innerText = format === 'newline' ? '逗号+换行' : '逗号拼接';
+            // 更新弹窗内 is-active
+            commaPopup.querySelectorAll('.comma-popup-item').forEach(item => {
+                item.classList.toggle('is-active', item.dataset.format === format);
+            });
+        }
+
+        async function doCommaCopy(format) {
+            const text = getCommaText(format);
+            if (!text) { showToast('没有可拼接的单号喵~'); return; }
+            const preview = text.length > 50 ? text.slice(0, 50) + '…' : text;
+            const label = format === 'newline' ? '逗号+换行' : '逗号拼接';
+            const copied = await copyText(text, `已${label} ${getLines().filter(l => l.trim() !== '').length} 条喵~：${preview}`);
             if (copied) {
                 const originalText = commaCopyBtn.innerText;
-                commaCopyBtn.innerText = '已复制！';
-                commaCopyBtn.style.background = 'linear-gradient(135deg, #34c759, #30d158)';
+                commaCopyBtn.innerText = '✓ 已复制！';
+                commaCopyBtn.classList.add('copied');
+                commaSplitGroup.classList.add('copied');
                 setTimeout(() => {
                     commaCopyBtn.innerText = originalText;
-                    commaCopyBtn.style.background = '';
-                }, 1200);
+                    commaCopyBtn.classList.remove('copied');
+                    commaSplitGroup.classList.remove('copied');
+                }, 1300);
+            }
+        }
+
+        function closeCommaPopup() {
+            commaPopup.classList.remove('open');
+            commaSplitGroup.classList.remove('menu-open');
+        }
+
+        function toggleCommaPopup() {
+            const isOpen = commaPopup.classList.toggle('open');
+            if (isOpen) {
+                commaSplitGroup.classList.add('menu-open');
+                // 确保弹窗内高亮与当前激活格式同步
+                setCommaActiveFormat(commaActiveFormat);
+            } else {
+                commaSplitGroup.classList.remove('menu-open');
+            }
+        }
+
+        // Escape 关闭菜单
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && commaPopup.classList.contains('open')) {
+                closeCommaPopup();
+            }
+        });
+
+        // 主按钮：直接复制当前激活格式
+        commaCopyBtn.addEventListener('click', () => doCommaCopy(commaActiveFormat));
+
+        // 主按钮点击：两边一起下沉（呼吸动画）
+        commaCopyBtn.addEventListener('mousedown', () => commaSplitGroup.classList.add('is-sinking'));
+        commaCopyBtn.addEventListener('mouseup', () => commaSplitGroup.classList.remove('is-sinking'));
+        commaCopyBtn.addEventListener('mouseleave', () => commaSplitGroup.classList.remove('is-sinking'));
+
+        // 箭头按钮：展开/收起菜单
+        commaArrowBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCommaPopup();
+        });
+
+        // 菜单项：选择格式（仅切换，不自动复制）
+        commaPopup.addEventListener('click', (e) => {
+            const item = e.target.closest('.comma-popup-item');
+            if (!item) return;
+            const format = item.dataset.format;
+            if (!format) return;
+
+            if (format === commaActiveFormat) {
+                closeCommaPopup();
+                return;
+            }
+
+            // 切换激活格式 + 关闭弹窗
+            setCommaActiveFormat(format);
+            item.classList.add('copied');
+            setTimeout(() => item.classList.remove('copied'), 200);
+            setTimeout(() => closeCommaPopup(), 180);
+        });
+
+        // 点击外部关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!commaPopup.classList.contains('open')) return;
+            if (!commaPopup.contains(e.target) && e.target !== commaArrowBtn) {
+                closeCommaPopup();
             }
         });
 
@@ -3422,12 +3347,171 @@
         const dataToolsOutput = document.getElementById('data-tools-output');
         const dataToolsStatus = document.getElementById('data-tools-status');
 
-        let lastParsedTableData = null;
+        // 图片模式元素
+        const dataToolsDropzone = document.getElementById('data-tools-dropzone');
+        const dataToolsFileInput = document.getElementById('data-tools-file-input');
+        const dataToolsPreviewWrap = document.getElementById('data-tools-preview-wrap');
+        const dataToolsPreviewImg = document.getElementById('data-tools-preview-img');
+        const dataToolsProgress = document.getElementById('data-tools-progress');
+        const dataToolsProgressBar = document.getElementById('data-tools-progress-bar');
 
-        // Client-side smart parser for common Chinese data patterns
+        let lastParsedTableData = null;
+        let currentDataTab = 'text';   // 'text' | 'image'
+        let pendingDataImage = null;   // File 对象
+
+        // ── Tab 切换（GSAP 滑动指示器 + 内容淡入淡出）──
+        let dataToolsIndicator = null;
+        let dataToolsAnimating = false;
+
+        function initDataToolsTabs() {
+            dataToolsIndicator = document.getElementById('data-tools-tabs-indicator');
+            if (!dataToolsIndicator) return;
+            const activeTab = document.querySelector('.data-tools-tab.active');
+            if (activeTab) {
+                gsap.set(dataToolsIndicator, {
+                    x: activeTab.offsetLeft - 4,
+                    width: activeTab.offsetWidth
+                });
+            }
+            // 标签悬停微交互
+            document.querySelectorAll('.data-tools-tab').forEach(function(tab) {
+                tab.addEventListener('mouseenter', function() {
+                    if (tab.classList.contains('active') || dataToolsAnimating) return;
+                    gsap.to(tab, { scale: 1.04, duration: 0.3, ease: 'back.out(1.7)' });
+                });
+                tab.addEventListener('mouseleave', function() {
+                    if (tab.classList.contains('active') || dataToolsAnimating) return;
+                    gsap.to(tab, { scale: 1, duration: 0.3, ease: 'power2.out' });
+                });
+                tab.addEventListener('mousedown', function() {
+                    gsap.to(tab, { scale: 0.95, duration: 0.1, ease: 'power2.in' });
+                });
+                tab.addEventListener('mouseup', function() {
+                    gsap.to(tab, { scale: tab.classList.contains('active') ? 1 : 1.04, duration: 0.25, ease: 'back.out(1.7)' });
+                });
+                tab.addEventListener('click', function() {
+                    if (dataToolsAnimating || tab.classList.contains('active')) return;
+                    switchDataToolsTab(tab);
+                });
+            });
+
+            // 窗口大小变化时重新定位指示器
+            var resizeDebounce = null;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeDebounce);
+                resizeDebounce = setTimeout(function() {
+                    var active = document.querySelector('.data-tools-tab.active');
+                    if (active && dataToolsIndicator) {
+                        var container = document.getElementById('data-tools-tabs');
+                        gsap.set(dataToolsIndicator, {
+                            x: active.offsetLeft - 4,
+                            width: active.offsetWidth
+                        });
+                    }
+                }, 150);
+            });
+        }
+
+        function animateDataToolsIndicator(targetTab, callback) {
+            if (!dataToolsIndicator) { if (callback) callback(); return; }
+            gsap.to(dataToolsIndicator, {
+                x: targetTab.offsetLeft - 4,
+                width: targetTab.offsetWidth,
+                duration: 0.5,
+                ease: 'power3.inOut',
+                overwrite: 'auto',
+                onComplete: callback || null
+            });
+        }
+
+        function switchDataToolsTab(targetTab) {
+            if (dataToolsAnimating) return;
+            dataToolsAnimating = true;
+            const targetPanelId = targetTab.dataset.tab === 'text' ? 'panel-text' : 'panel-image';
+            const leavingPanelId = targetTab.dataset.tab === 'text' ? 'panel-image' : 'panel-text';
+
+            // 更新 tab active 状态
+            document.querySelectorAll('.data-tools-tab').forEach(function(t) {
+                t.classList.toggle('active', t === targetTab);
+            });
+            currentDataTab = targetTab.dataset.tab;
+            dataParseBtn.textContent = currentDataTab === 'text' ? '🤖 智能解析' : '📊 识别图片';
+
+            const leavingPanel = document.getElementById(leavingPanelId);
+            const enteringPanel = document.getElementById(targetPanelId);
+
+            // 1. 指示器滑动
+            animateDataToolsIndicator(targetTab);
+
+            // 2. 离开面板淡出
+            gsap.to(leavingPanel, {
+                opacity: 0, y: -6, duration: 0.2, ease: 'power2.in',
+                onComplete: function() {
+                    leavingPanel.classList.remove('active');
+                    gsap.set(leavingPanel, { clearProps: 'all' });
+
+                    // 3. 进入面板淡入
+                    enteringPanel.classList.add('active');
+                    gsap.fromTo(enteringPanel,
+                        { opacity: 0, y: 6 },
+                        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out',
+                            onComplete: function() {
+                                gsap.set(enteringPanel, { clearProps: 'all' });
+                                dataToolsAnimating = false;
+                            }
+                        }
+                    );
+                }
+            });
+        }
+
+        // 启动标签初始化
+        if (typeof gsap !== 'undefined') {
+            initDataToolsTabs();
+        }
+
+        // ── 图片拖放 + 文件选择 ──
+        ['dragenter', 'dragover'].forEach(ev => {
+            dataToolsDropzone.addEventListener(ev, e => {
+                e.preventDefault();
+                dataToolsDropzone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(ev => {
+            dataToolsDropzone.addEventListener(ev, e => {
+                e.preventDefault();
+                dataToolsDropzone.classList.remove('dragover');
+            });
+        });
+        dataToolsDropzone.addEventListener('drop', e => {
+            const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('image/'));
+            if (file) setDataImage(file);
+        });
+        dataToolsFileInput.addEventListener('change', e => {
+            if (e.target.files[0]) setDataImage(e.target.files[0]);
+            e.target.value = '';
+        });
+
+        function setDataImage(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('请拖入图片文件喵~');
+                return;
+            }
+            pendingDataImage = file;
+            const reader = new FileReader();
+            reader.onload = () => {
+                dataToolsPreviewImg.src = reader.result;
+                dataToolsPreviewWrap.hidden = false;
+            };
+            reader.readAsDataURL(file);
+            dataToolsStatus.textContent = `📸 已加载图片：${file.name} (${(file.size/1024).toFixed(0)}KB)，点击「识别图片」开始`;
+            dataToolsStatus.className = 'data-tools-status';
+        }
+
+        // ── 渲染表格（共用） ──
         function renderDataTable(data) {
             if (!data || !data.rows.length) {
-                dataToolsOutput.innerHTML = '<div class="data-tools-empty">未识别到结构化数据，请尝试调整文本格式</div>';
+                dataToolsOutput.innerHTML = '<div class="data-tools-empty">未识别到结构化数据，请尝试调整文本或更换图片</div>';
                 dataCopyBtn.disabled = true;
                 return;
             }
@@ -3452,16 +3536,10 @@
             return div.innerHTML;
         }
 
-        async function doDataParse() {
-            const text = dataToolsInput.value.trim();
-            if (!text) {
-                dataToolsStatus.textContent = '请先粘贴文本喵~';
-                dataToolsStatus.className = 'data-tools-status error';
-                return;
-            }
-
+        // ── 文本模式：DeepSeek 解析 ──
+        async function doTextParse(text) {
             dataToolsOutput.innerHTML = '<div class="data-tools-empty">🤖 AI 正在分析数据...</div>';
-            dataToolsStatus.textContent = '正在调用 AI 智能识别数据...';
+            dataToolsStatus.textContent = '正在调用 DeepSeek AI 智能识别数据...';
             dataToolsStatus.className = 'data-tools-status';
             dataParseBtn.disabled = true;
             dataParseBtn.textContent = '⏳ 解析中...';
@@ -3497,6 +3575,81 @@
             }
         }
 
+        // ── 图片模式：Mimo v2.5 识别 ──
+        async function doImageParse() {
+            dataToolsOutput.innerHTML = '<div class="data-tools-empty">🤖 Mimo 正在识别图片内容...</div>';
+            dataToolsStatus.textContent = '正在调用 Mimo v2.5 多模态 AI 识别表格...';
+            dataParseBtn.textContent = '⏳ 识别中...';
+
+            // 进度条动画
+            dataToolsProgress.classList.add('active');
+            dataToolsProgressBar.style.width = '30%';
+            dataToolsProgressBar.classList.remove('phase-success');
+
+            try {
+                const formData = new FormData();
+                formData.append('image', pendingDataImage);
+
+                const response = await Auth.fetch('/api/data-parse-image', {
+                    method: 'POST',
+                    body: formData
+                    // 不设 Content-Type，让浏览器自动带 multipart boundary
+                });
+
+                dataToolsProgressBar.style.width = '80%';
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.rows || data.rows.length === 0) {
+                    throw new Error('Mimo 未在图片中识别到表格数据');
+                }
+
+                dataToolsProgressBar.style.width = '100%';
+                dataToolsProgressBar.classList.add('phase-success');
+                setTimeout(() => {
+                    dataToolsProgress.classList.remove('active');
+                    dataToolsProgressBar.style.width = '0';
+                }, 600);
+
+                renderDataTable(data);
+                dataToolsStatus.textContent = `📊 Mimo 识别完成 — ${data.rows.length} 行 ${data.headers.length} 列`;
+                dataToolsStatus.className = 'data-tools-status success';
+            } catch (err) {
+                console.error('图片解析失败:', err);
+                dataToolsProgress.classList.remove('active');
+                dataToolsProgressBar.style.width = '0';
+                dataToolsStatus.textContent = `⚠️ 识别失败：${err.message}`;
+                dataToolsStatus.className = 'data-tools-status error';
+            } finally {
+                dataParseBtn.disabled = false;
+                dataParseBtn.textContent = '📊 识别图片';
+            }
+        }
+
+        // ── 主入口：根据模式分发 ──
+        async function doDataParse() {
+            if (currentDataTab === 'image') {
+                if (!pendingDataImage) {
+                    dataToolsStatus.textContent = '请先拖入图片喵~';
+                    dataToolsStatus.className = 'data-tools-status error';
+                    return;
+                }
+                await doImageParse();
+            } else {
+                const text = dataToolsInput.value.trim();
+                if (!text) {
+                    dataToolsStatus.textContent = '请先粘贴文本喵~';
+                    dataToolsStatus.className = 'data-tools-status error';
+                    return;
+                }
+                await doTextParse(text);
+            }
+        }
+
         function copyTableToClipboard() {
             if (!lastParsedTableData) return;
             const lines = [];
@@ -3515,17 +3668,23 @@
         dataParseBtn.addEventListener('click', doDataParse);
         dataCopyBtn.addEventListener('click', copyTableToClipboard);
         dataClearBtn.addEventListener('click', () => {
-            dataToolsInput.value = '';
-            dataToolsOutput.innerHTML = '<div class="data-tools-empty">👆 粘贴文本后点击「AI 智能解析」，DeepSeek 自动识别并转为表格</div>';
+            if (currentDataTab === 'text') {
+                dataToolsInput.value = '';
+            } else {
+                pendingDataImage = null;
+                dataToolsPreviewWrap.hidden = true;
+                dataToolsPreviewImg.src = '';
+            }
+            dataToolsOutput.innerHTML = '<div class="data-tools-empty">👆 粘贴文本或拖入图片，AI 自动识别并转为表格</div>';
             dataToolsStatus.textContent = '';
             dataToolsStatus.className = 'data-tools-status';
             dataCopyBtn.disabled = true;
             lastParsedTableData = null;
             dataParseBtn.disabled = false;
-            dataParseBtn.textContent = '🤖 智能解析';
+            dataParseBtn.textContent = currentDataTab === 'text' ? '🤖 智能解析' : '📊 识别图片';
         });
 
-        // Auto-parse on Ctrl+Enter in the data input
+        // Ctrl+Enter 触发解析（文本模式）
         dataToolsInput.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -3561,6 +3720,15 @@
                 if (Auth.isLoggedIn()) { loadHistoryFromServer(); }
                 else { renderHistory(); }
             })();
+
+            MiaositeAuth.on(function(event) {
+                if (event === 'login' || event === 'profile:update') {
+                    loadHistoryFromServer();
+                }
+                if (event === 'logout') {
+                    renderHistory();
+                }
+            });
 
             let lastValidContent = '';
             let isCurrentlyEmpty = true;
@@ -3628,12 +3796,33 @@
                 if (!list) return;
                 list.innerHTML = history.map((item, i) => `
                     <div class="history-entry">
-                        <span class="history-entry-content" onclick="loadHistory(${i})" title="点击恢复此记录">${item.content.replace(/\n/g, ' | ')}</span>
+                        <span class="history-entry-content" data-index="${i}" title="点击恢复此记录">${escapeHtml(item.content).replace(/\n/g, ' | ')}</span>
                         <span class="history-entry-time">${item.time}</span>
-                        <button class="history-delete-btn" onclick="deleteHistory(${i})" title="删除此记录">✕</button>
+                        <button class="history-delete-btn" data-index="${i}" title="删除此记录">✕</button>
                     </div>
                 `).join('');
             }
+
+            // 事件委托：历史记录列表的点击处理
+            document.getElementById('history-list').addEventListener('click', function(e) {
+                const contentEl = e.target.closest('.history-entry-content');
+                const deleteBtn = e.target.closest('.history-delete-btn');
+                if (contentEl) {
+                    const idx = parseInt(contentEl.dataset.index);
+                    if (!isNaN(idx) && history[idx]) {
+                        inputArea.value = history[idx].content;
+                        renderBarcodes();
+                        document.getElementById('barcode-output').scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+                if (deleteBtn) {
+                    e.stopPropagation();
+                    const idx = parseInt(deleteBtn.dataset.index);
+                    if (!isNaN(idx) && history[idx]) {
+                        deleteHistory(idx);
+                    }
+                }
+            });
 
             window.loadHistory = function(index) {
                 if (history[index]) {
@@ -3720,234 +3909,100 @@
 
         });
 
-        function goToWiki(e) {
-            window.location.href = '/knowledge.html';
-        }
-
-        function goToChat(e) {
-            window.location.href = '/tools.html';
-        }
     </script>
 
     <!-- 折叠后浮动展开按钮 -->
-    <button class="left-float-paw" id="left-float-paw" title="展开">🌟</button>
-
-    <!-- ==================== 左栏折叠开关 ==================== -->
-    <script>
-    (function() {
-        var sidebar = document.getElementById('left-sidebar');
-        var collapseBtn = document.getElementById('left-collapse-btn');
-        var floatPaw = document.getElementById('left-float-paw');
-        if (!sidebar) return;
-
-        function alignPawToTitle() {
-            var title = document.querySelector('.hero-title');
-            if (!title) return;
-            var rect = title.getBoundingClientRect();
-            // position:absolute 需加上 scrollY 转换为文档坐标
-            floatPaw.style.top = (rect.top + window.scrollY + rect.height / 2 - 18) + 'px';
-        }
-
-        collapseBtn.addEventListener('click', function() {
-            sidebar.classList.add('collapsed');
-            alignPawToTitle();
-            floatPaw.classList.add('show');
-        });
-        floatPaw.addEventListener('click', function() {
-            sidebar.classList.remove('collapsed');
-            floatPaw.classList.remove('show');
-        });
-        window.addEventListener('resize', function() {
-            if (floatPaw.classList.contains('show')) alignPawToTitle();
-        });
-        window.addEventListener('scroll', function() {
-            if (floatPaw.classList.contains('show')) alignPawToTitle();
-        });
-    })();
-    </script>
-
-    <!-- ==================== 「此刻」诗意卡片 ==================== -->
-    <script>
-    (function() {
-        var momentText = document.getElementById('moment-text');
-        var momentDots = document.getElementById('moment-dots');
-        if (!momentText) return;
-
-        var dots = momentDots ? momentDots.querySelectorAll('span') : [];
-        var dotIndex = 0;
-
-        function updateDots() {
-            dots.forEach(function(d, i) {
-                d.classList.toggle('active', i === dotIndex);
-            });
-            dotIndex = (dotIndex + 1) % dots.length;
-        }
-
-        async function refreshMoment() {
-            try {
-                var res = await fetch('/api/this-moment');
-                var data = await res.json();
-                momentText.classList.add('fade-out');
-                await new Promise(function(r) { setTimeout(r, 400); });
-                momentText.textContent = data.text;
-                updateDots();
-                momentText.classList.remove('fade-out');
-            } catch (e) {
-                // 静默失败，保留当前文字
-            }
-        }
-
-        // 首次加载：失败则重试，一直等到真实数据
-        async function initMoment() {
-            try {
-                await refreshMoment();
-            } catch (e) {
-                // 5秒后重试
-                setTimeout(function() { initMoment(); }, 5000);
-            }
-        }
-
-        initMoment();
-        setInterval(refreshMoment, 1200000); // 20分钟刷新
-    })();
-    </script>
-
-    <!-- ==================== 「今天吃什么」食谱推荐 ==================== -->
-    <script>
-    (function() {
-        var moodChips = document.getElementById('mood-chips');
-        var dietChips = document.getElementById('diet-chips');
-        var recipeBtn = document.getElementById('recipe-btn');
-        var ingredientsInput = document.getElementById('recipe-ingredients');
-        var recipeResult = document.getElementById('recipe-result');
-
-        if (!recipeBtn) return;
-
-        // 心情单选
-        if (moodChips) {
-            moodChips.querySelectorAll('.chip').forEach(function(chip) {
-                chip.addEventListener('click', function() {
-                    moodChips.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
-                    chip.classList.add('active');
-                });
-            });
-        }
-
-        // 忌口多选
-        if (dietChips) {
-            dietChips.querySelectorAll('.chip').forEach(function(chip) {
-                chip.addEventListener('click', function() {
-                    chip.classList.toggle('active');
-                });
-            });
-        }
-
-        // 回车快捷触发
-        if (ingredientsInput) {
-            ingredientsInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    recipeBtn.click();
-                }
-            });
-        }
-
-        // 点击决策
-        recipeBtn.addEventListener('click', async function() {
-            var ingredients = ingredientsInput ? ingredientsInput.value.trim() : '';
-            var moodEl = moodChips ? moodChips.querySelector('.chip.active') : null;
-            var mood = moodEl ? moodEl.dataset.mood : '';
-            var dietEls = dietChips ? dietChips.querySelectorAll('.chip.active') : [];
-            var diets = Array.from(dietEls).map(function(c) { return c.dataset.diet; });
-
-            if (!ingredients && !mood && diets.length === 0) {
-                if (typeof showToast === 'function') {
-                    var emptyTips = [
-                        '啥都没选？小橘帮你盲选喵~ 🎲',
-                        '交给命运吧！小橘随便做一道~ 🐱',
-                        '今天让小橘替你决定！✨',
-                        '盲盒模式启动！看看今天吃啥~ 🎁',
-                        '不挑食的好孩子，小橘来安排！🍜'
-                    ];
-                    showToast(emptyTips[Math.floor(Math.random() * emptyTips.length)]);
-                }
-                // 不return，允许空食材盲推
-            }
-
-            var btn = recipeBtn;
-            var origText = btn.textContent;
-            btn.disabled = true;
-            var loadingTexts = [
-                '🐱 小橘翻菜谱中...',
-                '🍳 小橘在翻冰箱...',
-                '🥘 小橘在尝味道...',
-                '🔥 小橘在颠勺中...',
-                '📖 小橘翻祖传菜谱...',
-                '🥢 小橘偷吃了一口...',
-                '🧑‍🍳 小橘戴上厨师帽...',
-                '🍜 小橘正在试菜...'
-            ];
-            btn.textContent = loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
-
-            try {
-                var res = await fetch('/api/recipe-suggest', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ingredients: ingredients, mood: mood, diets: diets })
-                });
-                if (!res.ok) {
-                    var errData = await res.json();
-                    throw new Error(errData.error || '请求失败');
-                }
-                var data = await res.json();
-
-                document.getElementById('dish-name').textContent = data.dish || '';
-
-                document.getElementById('dish-meta').textContent = '⏱️ ' + (data.difficulty || '⭐简单') + ' · ' + (data.time || '15分钟');
-
-                // 安全构建步骤列表（避免 XSS）
-                var stepsContainer = document.getElementById('dish-steps');
-                stepsContainer.innerHTML = '';
-                (data.steps || []).forEach(function(s, i) {
-                    var span = document.createElement('span');
-                    span.textContent = (i + 1) + '. ' + s;
-                    stepsContainer.appendChild(span);
-                    stepsContainer.appendChild(document.createElement('br'));
-                });
-
-                document.getElementById('cat-comment').textContent = data.catComment || '小橘觉得这道菜很不错喵~';
-                recipeResult.classList.add('show');
-                // 首次成功后按钮变「换一个」
-                recipeBtn.textContent = '🔄 换一个';
-            } catch (e) {
-                console.error('Recipe error:', e);
-                if (typeof showToast === 'function') {
-                    showToast('小橘翻菜谱翻到猫砂盆里了，再试试喵~');
-                }
-                btn.disabled = false;
-                btn.textContent = origText;
-                return;
-            }
-
-            btn.disabled = false;
-            // 成功后按钮保持「换一个」（已在上面设置）
-        });
-    })();
-    </script>
-
-    <!-- 全站在线人数 -->
+    <!-- 在线人数 v2：SSE 实时推送 + sendBeacon 心跳 + 轮询兜底 -->
     <script>
     (function() {
         var countEl = document.getElementById('online-count');
         if (!countEl) return;
-        function fetchOnline() {
-            fetch('/api/online-count')
-                .then(function(r) { return r.json(); })
-                .then(function(d) { countEl.textContent = d.onlineCount; })
-                .catch(function() { countEl.textContent = '?'; });
+
+        var FALLBACK = false;
+        var heartbeatTimer = null;
+        var es = null;
+
+        function sendHeartbeat() {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/api/heartbeat', new Blob([''], { type: 'text/plain' }));
+            } else {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/heartbeat', true);
+                xhr.setRequestHeader('Content-Type', 'text/plain');
+                xhr.send('');
+            }
         }
-        fetchOnline();
-        setInterval(fetchOnline, 30000);
+
+        function startHeartbeat() {
+            sendHeartbeat();
+            heartbeatTimer = setInterval(sendHeartbeat, 25000);
+        }
+
+        function connectSSE() {
+            try {
+                es = new EventSource('/api/live-count-stream');
+                es.onmessage = function(e) {
+                    try {
+                        var d = JSON.parse(e.data);
+                        if (countEl && typeof d.onlineCount === 'number') {
+                            countEl.textContent = d.onlineCount;
+                        }
+                    } catch (ignore) {}
+                };
+                es.onerror = function() {
+                    es.close();
+                    es = null;
+                    if (!FALLBACK) startFallback();
+                };
+            } catch (e) {
+                if (!FALLBACK) startFallback();
+            }
+        }
+
+        function startFallback() {
+            FALLBACK = true;
+            function poll() {
+                fetch('/api/online-count')
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (countEl && typeof d.onlineCount === 'number') {
+                            countEl.textContent = d.onlineCount;
+                        }
+                    })
+                    .catch(function() {});
+            }
+            poll();
+            setInterval(poll, 15000);
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                sendHeartbeat();
+                if (!es && !FALLBACK) connectSSE();
+            }
+        });
+
+        window.addEventListener('beforeunload', function() {
+            sendHeartbeat();
+        });
+
+        startHeartbeat();
+        connectSSE();
+    })();
+    </script>
+
+    <!-- 管理入口：仅 manager 用户可见 -->
+    <script>
+    (function() {
+        var btn = document.getElementById('admin-entry');
+        if (!btn) return;
+        var token = localStorage.getItem('miaosite_token');
+        if (token) {
+            try {
+                var payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.username === 'manager') btn.style.display = '';
+            } catch(e) {}
+        }
     })();
     </script>
 
@@ -4050,6 +4105,390 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     // 初始检查（页面可能已滚动）
     updateRing();
+})();
+</script>
+
+<!-- GSAP Animation Engine -->
+<script src="/lib/jsbarcode.min.js?v=1"></script>
+<script src="/lib/gsap.min.js?v=1"></script>
+<script src="/lib/ScrollTrigger.min.js?v=1"></script>
+<script>
+// ==================== 喵码 · GSAP + ScrollTrigger 动画系统 ====================
+(function() {
+if (typeof gsap === 'undefined') return;
+
+gsap.registerPlugin(ScrollTrigger);
+
+// ===== 响应式 + 无障碍 =====
+let reduceMotion = false;
+const mm = gsap.matchMedia();
+
+mm.add({
+  isDesktop: "(min-width: 768px)",
+  isMobile: "(max-width: 767px)",
+  reduceMotion: "(prefers-reduced-motion: reduce)"
+}, (ctx) => {
+  const { isDesktop, reduceMotion: rm } = ctx.conditions || {};
+  reduceMotion = !!rm;
+
+  // ==============================
+  // 1. 🌌 背景光晕 — GSAP 有机浮动
+  // ==============================
+  const orbs = [
+    { el: '.bg-orb--warm', x: 8, y: 10, s: 1.08, dur: 18 },
+    { el: '.bg-orb--pink', x: -6, y: -8, s: 1.10, dur: 22 },
+    { el: '.bg-orb--blue', x: 10, y: -5, s: 1.12, dur: 20 },
+    { el: '.bg-orb--cream', x: -5, y: 6, s: 1.06, dur: 24 }
+  ];
+  orbs.forEach(function(o) {
+    var orb = document.querySelector(o.el);
+    if (!orb) return;
+    gsap.set(orb, { opacity: 0 });
+    if (reduceMotion) { gsap.set(orb, { opacity: 0.5 }); return; }
+    gsap.to(orb, { opacity: 0.5, duration: 1.2, ease: 'power2.out' });
+    gsap.to(orb, {
+      xPercent: o.x, yPercent: o.y, scale: o.s,
+      duration: o.dur, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      delay: Math.random() * o.dur
+    });
+    gsap.to(orb, {
+      rotation: isDesktop ? 8 : 4,
+      duration: o.dur * 1.5, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      delay: Math.random() * o.dur
+    });
+  });
+
+  // ==============================
+  // 2. 🎬 主入场时间线
+  // ==============================
+  var entryTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+  // Nav bar
+  var navBar = document.querySelector('.nav-bar');
+  if (navBar) {
+    entryTl.fromTo(navBar,
+      reduceMotion ? { opacity: 0 } : { y: -24, opacity: 0 },
+      { y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.55 },
+      0.1
+    );
+  }
+
+  // Hero title
+  var heroTitle = document.querySelector('.hero-title');
+  if (heroTitle) {
+    entryTl.fromTo(heroTitle,
+      reduceMotion ? { opacity: 0 } : { y: 16, opacity: 0 },
+      { y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.6 },
+      0.25
+    );
+  }
+
+  // 🐱 Emoji 眨眼 (hero 入场后)
+  var heroEmoji = document.querySelector('.hero-title .emoji');
+  if (heroEmoji) {
+    entryTl.fromTo(heroEmoji,
+      reduceMotion ? { opacity: 0.5 } : { scale: 0.85, opacity: 0.5 },
+      { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' },
+      0.5
+    );
+    if (!reduceMotion) {
+      entryTl.to(heroEmoji, { filter: 'drop-shadow(0 0 10px rgba(255,159,67,0.6))', duration: 0.35 }, '-=0.2');
+      entryTl.to(heroEmoji, { filter: 'drop-shadow(0 0 0px rgba(255,159,67,0))', duration: 0.55, ease: 'power3.in' });
+      entryTl.set(heroEmoji, { filter: '', clearProps: 'filter' });
+    }
+  }
+
+  // Input card
+  var inputCard = document.querySelector('.input-card');
+  if (inputCard) {
+    entryTl.fromTo(inputCard,
+      reduceMotion ? { opacity: 0 } : { scale: 0.94, y: 20, opacity: 0 },
+      { scale: 1, y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.6, ease: 'back.out(1.2)' },
+      0.5
+    );
+  }
+
+  // Stats cards stagger
+  var statCards = document.querySelectorAll('.stat-card');
+  if (statCards.length) {
+    entryTl.fromTo(statCards,
+      reduceMotion ? { opacity: 0 } : { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.45, stagger: 0.06, ease: 'power2.out' },
+      0.75
+    );
+  }
+
+  // ==============================
+  // 3. 📜 卡片滚动揭示 — ScrollTrigger.batch()
+  // ==============================
+  var revealCards = document.querySelectorAll(
+    '.barcode-section, .history-card, .ocr-card, .data-tools-card, .tips-card'
+  );
+  if (revealCards.length && !reduceMotion) {
+    ScrollTrigger.batch(revealCards, {
+      onEnter: function(elements) {
+        gsap.fromTo(elements,
+          { y: 36, opacity: 0 },
+          { y: 0, opacity: 1, stagger: 0.1, duration: 0.65, ease: 'power2.out' }
+        );
+      },
+      start: 'top 90%',
+      once: true
+    });
+  } else if (revealCards.length && reduceMotion) {
+    // reduced motion: just ensure visible
+    gsap.set(revealCards, { opacity: 1 });
+  }
+
+  // ==============================
+  // 4. 🔢 统计数字滚动动画
+  // ==============================
+  var statValues = document.querySelectorAll('.stat-value');
+  var statAnimations = {};
+
+  window.animateStatValue = function(el, newVal, fromVal) {
+    if (!el) return;
+    var oldVal = fromVal !== undefined ? fromVal : (parseInt(el.textContent, 10) || 0);
+    if (oldVal === newVal) return;
+    var key = el.id || el.className;
+    if (statAnimations[key]) statAnimations[key].kill();
+    var obj = { val: oldVal };
+    statAnimations[key] = gsap.to(obj, {
+      val: newVal,
+      duration: reduceMotion ? 0.1 : 0.5,
+      ease: 'power2.out',
+      onUpdate: function() { el.textContent = Math.round(obj.val); }
+    });
+  };
+
+  // Hook into existing updateStats
+  if (typeof updateStats !== 'undefined') {
+    var _statTotal = document.getElementById('stat-total');
+    var _statValid = document.getElementById('stat-valid');
+    var _statDup = document.getElementById('stat-duplicate');
+    var _statInv = document.getElementById('stat-invalid');
+
+    var _origUpdateStats = updateStats;
+    updateStats = function(lines) {
+      // 先读旧值再更新 DOM，否则动画起点=终点
+      var oldVals = {
+        total: parseInt(_statTotal.textContent, 10) || 0,
+        valid: parseInt(_statValid.textContent, 10) || 0,
+        dup:   parseInt(_statDup.textContent, 10) || 0,
+        inv:   parseInt(_statInv.textContent, 10) || 0
+      };
+      _origUpdateStats(lines);
+      var stats = buildStats(lines);
+      window.animateStatValue(_statTotal, stats.total, oldVals.total);
+      window.animateStatValue(_statValid, stats.valid, oldVals.valid);
+      window.animateStatValue(_statDup, stats.duplicate, oldVals.dup);
+      window.animateStatValue(_statInv, stats.invalid, oldVals.inv);
+    };
+  }
+
+  // ==============================
+  // 5. 🧭 导航栏滚动毛玻璃增强
+  // ==============================
+  var navBarEl = document.querySelector('.nav-bar');
+  if (navBarEl && !reduceMotion) {
+    ScrollTrigger.create({
+      start: 'top -20px',
+      end: 'bottom top',
+      onUpdate: function(self) {
+        var p = Math.min(self.progress * 1.5, 1);
+        gsap.to(navBarEl, {
+          '--nav-blur': (8 + p * 16).toFixed(1) + 'px',
+          '--nav-opacity': (0.55 + p * 0.3).toFixed(2),
+          duration: 0.2, overwrite: 'auto'
+        });
+      }
+    });
+    // Init CSS variables
+    navBarEl.style.setProperty('--nav-blur', '8px');
+    navBarEl.style.setProperty('--nav-opacity', '0.55');
+    navBarEl.style.backdropFilter = 'blur(var(--nav-blur, 8px)) saturate(180%)';
+    navBarEl.style.webkitBackdropFilter = 'blur(var(--nav-blur, 8px)) saturate(180%)';
+    navBarEl.style.background = 'rgba(255,255,255, var(--nav-opacity, 0.55))';
+  }
+
+  // ==============================
+  // 6. 🐱 条码卡片舒展入场 (MutationObserver)
+  // ==============================
+  var barcodeOutput = document.getElementById('barcode-output');
+  if (barcodeOutput) {
+    var barcodeObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        m.addedNodes.forEach(function(node) {
+          if (node.nodeType === 1 && node.classList.contains('barcode-item')) {
+            gsap.fromTo(node,
+              reduceMotion ? { opacity: 0 } : { scaleY: 0.85, scaleX: 1.05, opacity: 0 },
+              { scaleY: 1, scaleX: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.2)' }
+            );
+          }
+        });
+      });
+    });
+    barcodeObserver.observe(barcodeOutput, { childList: true });
+  }
+
+  // ==============================
+  // 7. 🐾 按钮悬停微交互
+  // ==============================
+  if (!reduceMotion) {
+    var pawSelectors = '.btn-accent, .btn-ghost, .btn-danger, .btn-info, .btn-comma, .nav-btn-circle, .btn-history-clear, .btn-prefix, .barcode-mini-btn';
+    document.addEventListener('mousemove', function(e) {
+      var btn = e.target.closest(pawSelectors);
+      if (!btn) return;
+      var rect = btn.getBoundingClientRect();
+      var x = e.clientX - rect.left - rect.width / 2;
+      var tilt = (x / (rect.width / 2)) * 1.2;
+      gsap.to(btn, { rotation: tilt, y: -1, duration: 0.25, ease: 'power2.out', overwrite: 'auto' });
+    });
+    document.addEventListener('mouseout', function(e) {
+      var btn = e.target.closest(pawSelectors);
+      if (!btn) return;
+      gsap.to(btn, { rotation: 0, y: 0, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+    });
+  }
+
+  // ==============================
+  // 8. 🖱 卡片悬停微倾斜
+  // ==============================
+  if (!reduceMotion) {
+    document.addEventListener('mousemove', function(e) {
+      var card = e.target.closest('.glass-card');
+      if (!card || card.classList.contains('input-card')) return;
+      var rect = card.getBoundingClientRect();
+      var cx = e.clientX - rect.left - rect.width / 2;
+      var tiltX = (cx / (rect.width / 2)) * 0.5;
+      gsap.to(card, { rotation: tiltX, y: -2, duration: 0.35, ease: 'power2.out', overwrite: 'auto' });
+    });
+    document.addEventListener('mouseout', function(e) {
+      var card = e.target.closest('.glass-card');
+      if (!card || card.classList.contains('input-card')) return;
+      gsap.to(card, { rotation: 0, y: 0, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
+    });
+  }
+
+  // ==============================
+  // 9. 🙀 OCR 好奇歪头
+  // ==============================
+  var ocrTargetMark = document.querySelector('.ocr-target-mark');
+  var curiosityTween = null;
+  if (ocrTargetMark && !reduceMotion) {
+    curiosityTween = gsap.to(ocrTargetMark, {
+      rotation: 5, duration: 3, ease: 'sine.inOut',
+      repeat: -1, yoyo: true, paused: true
+    });
+    curiosityTween.play();
+    var dropzone = document.getElementById('ocr-dropzone');
+    if (dropzone) {
+      dropzone.addEventListener('dragover', function() { if (curiosityTween) curiosityTween.timeScale(3); });
+      dropzone.addEventListener('dragleave', function() { if (curiosityTween) curiosityTween.timeScale(1); });
+      dropzone.addEventListener('drop', function() {
+        if (!curiosityTween) return;
+        gsap.timeline()
+          .to(ocrTargetMark, { scale: 0.8, duration: 0.12, ease: 'power2.in' })
+          .to(ocrTargetMark, { scale: 1.08, duration: 0.15, ease: 'power2.out' })
+          .to(ocrTargetMark, { scale: 1, duration: 0.2, ease: 'power1.out' });
+        curiosityTween.timeScale(1);
+      });
+    }
+  }
+
+  // ==============================
+  // 10. 🐱 Toast 猫蹭动画
+  // ==============================
+  if (typeof showToast === 'function') {
+    var origShowToast = showToast;
+    showToast = function(message) {
+      var toastEl = document.getElementById('toast');
+      if (!toastEl) { origShowToast(message); return; }
+      toastEl.textContent = message;
+      clearTimeout(showToast.timer);
+      toastEl.style.transition = 'none';
+      gsap.set(toastEl, { xPercent: -50, y: 12, opacity: 0 });
+      gsap.to(toastEl, { y: 0, opacity: 1, duration: reduceMotion ? 0.2 : 0.35, ease: 'power2.out' });
+      showToast.timer = setTimeout(function() {
+        gsap.to(toastEl, { y: -6, opacity: 0, duration: reduceMotion ? 0.15 : 0.25, ease: 'power2.in' });
+      }, 1800);
+    };
+  }
+
+  // ==============================
+  // 11. ✈️ 卡片微抖 (全局)
+  // ==============================
+  window.catShake = function(el) {
+    if (reduceMotion || !el) return;
+    gsap.to(el, { x: [-3, 3, -2, 2, 0], duration: 0.3, ease: 'power2.out' });
+  };
+
+  // ==============================
+  // 11.5 👂 猫耳轻动 — wiki/chat 按钮随机微倾斜
+  // ==============================
+  if (!reduceMotion) {
+    var earTwitchTimer = null;
+    function doEarTwitch() {
+      var btns = [document.querySelector('.wiki-btn'), document.querySelector('.chat-btn')].filter(Boolean);
+      if (!btns.length) return;
+      var btn = btns[Math.floor(Math.random() * btns.length)];
+      gsap.timeline()
+        .to(btn, { rotation: -3, duration: 0.35, ease: 'power1.inOut' })
+        .to(btn, { rotation: 3, duration: 0.4, ease: 'power1.inOut' })
+        .to(btn, { rotation: 0, duration: 0.3, ease: 'power1.out' });
+      earTwitchTimer = setTimeout(doEarTwitch, 4000 + Math.random() * 2000);
+    }
+    earTwitchTimer = setTimeout(doEarTwitch, 3000);
+    ['click', 'keydown'].forEach(function(evt) {
+      document.addEventListener(evt, function() {
+        clearTimeout(earTwitchTimer);
+        earTwitchTimer = setTimeout(doEarTwitch, 3000);
+      }, { once: false, passive: true });
+    });
+  }
+
+  // ==============================
+  // 12. 🎯 历史条目点击反馈
+  // ==============================
+  document.addEventListener('click', function(e) {
+    var entry = e.target.closest('.history-entry-content');
+    if (!entry || reduceMotion) return;
+    var row = entry.closest('.history-entry');
+    if (!row) return;
+    gsap.timeline()
+      .to(row, { scaleX: 0.96, duration: 0.1, ease: 'power2.in' })
+      .to(row, { scaleX: 1.02, duration: 0.15, ease: 'power2.out' })
+      .to(row, { scaleX: 1, duration: 0.2, ease: 'power1.out' });
+  });
+
+  // ==============================
+  // 13. 🔦 灯箱绽放入场
+  // ==============================
+  var lightboxEl = document.getElementById('lightbox-overlay');
+  if (lightboxEl) {
+    var lightboxObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        if (m.type === 'attributes' && m.attributeName === 'class') {
+          if (lightboxEl.classList.contains('active')) {
+            gsap.fromTo(lightboxEl,
+              reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94 },
+              { opacity: 1, scale: 1, duration: reduceMotion ? 0.2 : 0.4, ease: 'power2.out' }
+            );
+          }
+        }
+      });
+    });
+    lightboxObserver.observe(lightboxEl, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  console.log("🐱 喵码 GSAP + ScrollTrigger 动画系统就绪喵~");
+
+  // Init AI data tools tabs (if available)
+  if (typeof initDataToolsTabs === 'function') initDataToolsTabs();
+
+}); // end gsap.matchMedia()
 })();
 </script>
 </body>
