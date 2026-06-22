@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="view-transition" content="same-origin">
+<title>喵码管理 · 控制台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+<link rel="stylesheet" href="styles/base.css?v=2">
+<style>
+    /* =========================
+       喵码管理 · 页面特有样式
+       (共享样式见 /styles/base.css)
+       ========================= */
+
+    /* ===== 页面特有卡片覆层 ===== */
+    .admin-glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--glass-shadow);
+        transition: all var(--transition-smooth);
+        padding: 20px;
+    }
+    .admin-glass-card:hover {
+        box-shadow: var(--glass-shadow-hover);
+    }
+
+    /* ===== 页面头部 ===== */
+    .page-header {
+        text-align: center;
+        margin: 8px 0 16px;
+    }
+    .page-header h1 {
+        font-family: var(--font-display);
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: var(--text-primary);
+    }
+    .page-header .subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    /* ===== Tab 导航 ===== */
+    .admin-tabs {
+        display: flex;
+        gap: 6px;
+        padding: 4px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        margin-bottom: 6px;
+    }
+    .admin-tab {
+        flex: 1;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 16px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        white-space: nowrap;
+    }
+    .admin-tab:hover {
+        color: var(--text-primary);
+        background: rgba(255,255,255,0.4);
+    }
+    .admin-tab.active {
+        background: #fff;
+        color: var(--accent);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ===== Tab 面板 ===== */
+    .tab-panel {
+        display: none;
+        animation: tabFadeIn 0.3s ease;
+    }
+    .tab-panel.active {
+        display: block;
+    }
+    @keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== 统计卡片 ===== */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+    .stat-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--glass-shadow);
+        padding: 20px 18px;
+        text-align: center;
+        transition: all var(--transition-smooth);
+    }
+    .stat-card:hover {
+        box-shadow: var(--glass-shadow-hover);
+        transform: translateY(-2px);
+    }
+    .stat-value {
+        font-family: var(--font-display);
+        font-size: 40px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.1;
+    }
+    .stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+        font-weight: 500;
+    }
+
+    /* ===== 表格区 ===== */
+    .table-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--glass-shadow);
+        overflow: hidden;
+        transition: all var(--transition-smooth);
+        margin-bottom: 18px;
+    }
+    .table-card:hover {
+        box-shadow: var(--glass-shadow-hover);
+    }
+    .table-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--glass-border);
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .table-toolbar h2 {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    .refresh-badge {
+        font-size: 11px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .refresh-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: #34c759;
+        animation: pulseSimple 2s ease-in-out infinite;
+    }
+    @keyframes pulseSimple {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    th {
+        text-align: left;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(0,0,0,0.02);
+    }
+    td {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,159,67,0.04); }
+
+    /* ===== 通用组件 ===== */
+    .ip-tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--font-mono);
+        background: rgba(255,159,67,0.1);
+        color: var(--accent);
+    }
+    .ua-text {
+        color: var(--text-secondary);
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .time-badge {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+    .device-key {
+        font-size: 11px;
+        font-family: "SF Mono","Fira Code","Consolas",monospace;
+        color: var(--text-secondary);
+        background: rgba(0,0,0,0.04);
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+    .row-group-0 { background: transparent; }
+    .row-group-1 { background: rgba(255,159,67,0.04); }
+    .row-group-2 { background: rgba(10,189,227,0.04); }
+    .row-group-3 { background: rgba(238,90,111,0.04); }
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .badge-accent { background: rgba(255,159,67,0.12); color: var(--accent); }
+    .badge-info { background: rgba(10,189,227,0.12); color: var(--accent-3); }
+    .badge-danger { background: rgba(238,90,111,0.12); color: var(--accent-2); }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: var(--text-secondary);
+    }
+    .empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    /* ===== 搜索栏 ===== */
+    .search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.5);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 8px 16px;
+        transition: all var(--transition-fast);
+    }
+    .search-bar:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(255,159,67,0.1);
+        background: #fff;
+    }
+    .search-bar input {
+        border: none;
+        background: none;
+        outline: none;
+        font-family: var(--font-body);
+        font-size: 13px;
+        width: 200px;
+        color: var(--text-primary);
+    }
+    .search-bar input::placeholder {
+        color: var(--text-tertiary);
+    }
+    .search-bar .search-icon {
+        font-size: 14px;
+        color: var(--text-tertiary);
+    }
+
+    /* ===== 按钮系统 ===== */
+    .btn-sm {
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: none;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: all var(--transition-fast);
+    }
+    .btn-sm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn-sm:active {
+        transform: scale(0.96);
+    }
+    .btn-accent {
+        background: linear-gradient(135deg, var(--accent), #ffb366);
+        color: #fff;
+    }
+    .btn-danger {
+        background: linear-gradient(135deg, var(--accent-2), #ff8a80);
+        color: #fff;
+    }
+    .btn-ghost {
+        background: rgba(0,0,0,0.04);
+        color: var(--text-secondary);
+    }
+    .btn-ghost:hover {
+        background: rgba(0,0,0,0.08);
+        color: var(--text-primary);
+    }
+
+    /* ===== 分页 ===== */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 20px;
+        border-top: 1px solid var(--glass-border);
+    }
+    .pagination button {
+        padding: 6px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    .pagination button:hover:not(:disabled) {
+        background: #fff;
+        border-color: var(--accent);
+    }
+    .pagination button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .pagination .page-info {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* ===== Section 卡片 ===== */
+    .section-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--glass-shadow);
+        padding: 20px;
+        margin-bottom: 18px;
+    }
+    .section-card h3 {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 14px;
+        color: var(--text-primary);
+    }
+    .danger-zone {
+        border-color: rgba(238,90,111,0.3);
+        background: rgba(255,240,240,0.5);
+    }
+    .danger-zone h3 {
+        color: var(--accent-2);
+    }
+    .danger-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* ===== 信息行 ===== */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.4);
+        border-radius: 10px;
+    }
+    .info-item .key {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    .info-item .val {
+        font-size: 13px;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-family: var(--font-mono);
+    }
+
+    /* ===== 登录弹窗 (页面特有) ===== */
+    .admin-auth-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+    }
+    .admin-auth-overlay.show {
+        display: flex;
+    }
+    .admin-auth-card {
+        background: var(--glass-bg-strong);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--glass-border-strong);
+        border-radius: 24px;
+        padding: 32px;
+        width: 380px;
+        max-width: 90vw;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .admin-auth-card h3 {
+        font-family: var(--font-display);
+        font-size: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+        color: var(--text-primary);
+    }
+    .admin-auth-card input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--glass-border-strong);
+        border-radius: 12px;
+        font-size: 14px;
+        margin-bottom: 12px;
+        background: rgba(255,255,255,0.6);
+        font-family: var(--font-body);
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .admin-auth-card input:focus {
+        border-color: var(--accent);
+    }
+    .admin-auth-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-body);
+        transition: opacity 0.2s, transform 0.2s;
+    }
+    .admin-auth-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    .admin-auth-btn:active {
+        transform: scale(0.98);
+    }
+    .admin-auth-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* ===== 模态弹窗 ===== */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 300;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.show {
+        display: flex;
+    }
+    .modal-card {
+        background: var(--glass-bg-strong);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--glass-border-strong);
+        border-radius: 20px;
+        padding: 28px;
+        width: 480px;
+        max-width: 90vw;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .modal-card h3 {
+        font-family: var(--font-display);
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+    .modal-card label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        margin-top: 12px;
+    }
+    .modal-card input,
+    .modal-card textarea,
+    .modal-card select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--glass-border-strong);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        background: rgba(255,255,255,0.5);
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .modal-card input:focus,
+    .modal-card textarea:focus,
+    .modal-card select:focus {
+        border-color: var(--accent);
+    }
+    .modal-card textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 20px;
+    }
+    .modal-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.06);
+        color: var(--text-secondary);
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+    .modal-close:hover {
+        background: rgba(0,0,0,0.12);
+        color: var(--text-primary);
+    }
+    .modal-card { position: relative; }
+
+    .confirm-warning {
+        padding: 12px 16px;
+        background: rgba(238,90,111,0.08);
+        border: 1px solid rgba(238,90,111,0.2);
+        border-radius: 10px;
+        font-size: 13px;
+        color: var(--accent-2);
+        margin: 12px 0;
+        line-height: 1.5;
+    }
+
+    /* ===== 页脚 ===== */
+    .admin-footer {
+        text-align: center;
+        padding: 32px 20px;
+        color: var(--text-secondary);
+        font-size: 12px;
+    }
+    .admin-footer a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+    .admin-footer a:hover {
+        text-decoration: underline;
+    }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 768px) {
+        .nav-bar { flex-wrap: wrap; gap: 10px; }
+        .nav-actions { flex-wrap: wrap; }
+        .admin-tabs { overflow-x: auto; }
+        .admin-tab { font-size: 12px; padding: 8px 10px; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .stat-value { font-size: 32px; }
+        th:nth-child(4), td:nth-child(4) { display: none; }
+        .app-shell { padding: 12px 14px 30px; }
+        .table-toolbar { padding: 12px 16px; }
+        th, td { padding: 10px 14px; }
+        .search-bar input { width: 140px; }
+    }
+
+    @media (max-width: 480px) {
+        .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .stat-value { font-size: 28px; }
+        .stat-card { padding: 14px 12px; }
+        .page-header h1 { font-size: 22px; }
+        .admin-auth-card { padding: 24px 20px; }
+        .modal-card { padding: 20px; }
+        .admin-tab { font-size: 11px; padding: 6px 8px; }
+        table { font-size: 12px; }
+    }
+
+    /* ===== 内存进度条 ===== */
+    .mem-bar-wrap { margin-top: 8px; }
+    .mem-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 3px; }
+    .mem-bar-outer { height: 8px; border-radius: 4px; background: rgba(0,0,0,0.06); overflow: hidden; }
+    .mem-bar-inner { height: 100%; border-radius: 4px; transition: width var(--transition-smooth); }
+    .mem-bar--warm  { background: linear-gradient(90deg, #ff9f43, #ffb366); }
+    .mem-bar--pink  { background: linear-gradient(90deg, #ee5a6f, #ff8a80); }
+    .mem-bar--green { background: linear-gradient(90deg, #34c759, #30d158); }
+    .mem-bar--blue  { background: linear-gradient(90deg, #0abde3, #48cae4); }
+
+    /* ===== 状态徽章 ===== */
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+    .status-badge--ok    { background: rgba(52,199,89,0.12); color: #34c759; }
+    .status-badge--warn  { background: rgba(255,159,67,0.12); color: #ff9f43; }
+    .status-badge--error { background: rgba(238,90,111,0.12); color: #ee5a6f; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: dotPulse 2s ease-in-out infinite; }
+    .status-dot--green { background: #34c759; box-shadow: 0 0 6px rgba(52,199,89,0.4); }
+    .status-dot--red   { background: #ee5a6f; box-shadow: 0 0 6px rgba(238,90,111,0.4); }
+    @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ===== 实时时钟 ===== */
+    .live-clock { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--text-primary); text-align: center; padding: 6px 0; }
+    .live-clock-date { font-size: 12px; color: var(--text-secondary); text-align: center; }
+
+    /* ===== API 测试面板 ===== */
+    .api-test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+    .api-card {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 18px;
+        background: rgba(255,255,255,0.5);
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        transition: all var(--transition-fast);
+    }
+    .api-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .api-card-indicator {
+        flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px; transition: all 0.3s;
+    }
+    .api-card-indicator--pending { background: rgba(0,0,0,0.05); color: #ccc; }
+    .api-card-indicator--testing { background: rgba(255,159,67,0.1); animation: apiSpin 0.6s linear infinite; }
+    .api-card-indicator--ok  { background: rgba(52,199,89,0.12); color: #34c759; }
+    .api-card-indicator--fail { background: rgba(238,90,111,0.12); color: #ee5a6f; }
+    @keyframes apiSpin { 100% { transform: rotate(360deg); } }
+    .api-card-body { flex: 1; min-width: 0; }
+    .api-card-name { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+    .api-card-url {
+        font-family: var(--font-mono); font-size: 10px;
+        color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .api-card-meta { flex-shrink: 0; text-align: right; }
+    .api-card-latency { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .api-card-latency-unit { font-size: 10px; color: var(--text-secondary); }
+    .api-card-status-text { font-size: 10px; font-weight: 600; margin-top: 1px; }
+    .api-card-status-text--ok { color: #34c759; }
+    .api-card-status-text--fail { color: #ee5a6f; }
+    .api-badge-method {
+        display: inline-block; padding: 2px 6px; border-radius: 4px;
+        font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+        letter-spacing: 0.5px; margin-right: 4px; vertical-align: middle;
+    }
+    .api-badge-method--GET { background: rgba(52,199,89,0.12); color: #34c759; }
+    .api-badge-method--POST { background: rgba(255,159,67,0.12); color: #ff9f43; }
+    .api-badge-method--DELETE { background: rgba(238,90,111,0.12); color: #ee5a6f; }
+
+    /* ===== 日志查看器 ===== */
+    .log-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .log-toolbar select { padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: 8px; font-family: var(--font-body); font-size: 12px; background: rgba(255,255,255,0.5); max-width: 200px; }
+    .log-content { background: rgba(0,0,0,0.03); border-radius: 10px; padding: 14px; max-height: 350px; overflow-y: auto; font-family: var(--font-mono); font-size: 11px; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+    .log-level--INFO  { color: var(--text-primary); }
+    .log-level--WARN  { color: #ff9f43; }
+    .log-level--ERROR { color: #ee5a6f; }
+    .log-level--DEBUG { color: #0abde3; }
+
+    /* ===== 上传管理 ===== */
+    .upload-size { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+
+    /* ===== 切换开关 ===== */
+    .toggle-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+    .toggle-switch { position: relative; width: 44px; height: 24px; background: rgba(0,0,0,0.1); border-radius: 12px; cursor: pointer; transition: background 0.3s; }
+    .toggle-switch.active { background: var(--accent); }
+    .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-switch.active::after { transform: translateX(20px); }
+
+    /* ===== 响应式补充 ===== */
+    @media (max-width: 640px) {
+        .api-test-grid { grid-template-columns: 1fr; }
+        .api-card { padding: 12px 14px; }
+        .api-card-name { font-size: 12px; }
+        .api-card-url { font-size: 9px; }
+    }
+    @media (max-width: 480px) {
+        .log-content { max-height: 200px; font-size: 10px; }
+    }
+
+    /* ===== View Transition ===== */
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root) {
+        animation: vtFadeOut 0.35s cubic-bezier(0.4,0,0.2,1) both;
+    }
+    ::view-transition-new(root) {
+        animation: vtFadeIn 0.35s cubic-bezier(0.4,0,0.2,1) 0.05s both;
+    }
+    @keyframes vtFadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to   { opacity: 0; transform: scale(0.98); }
+    }
+    @keyframes vtFadeIn {
+        from { opacity: 0; transform: scale(1.01); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+</style>
+</head>
+<body>
+
+<!-- ===== 动态柔光背景 ===== -->
+<div class="bg-atmosphere" aria-hidden="true">
+    <div class="bg-orb bg-orb--warm"></div>
+    <div class="bg-orb bg-orb--pink"></div>
+    <div class="bg-orb bg-orb--blue"></div>
+    <div class="bg-orb bg-orb--cream"></div>
+</div>
+<div class="bg-grain" aria-hidden="true"></div>
+
+<!-- ===== 主布局 ===== -->
+<div class="app-shell">
+
+    <!-- 顶部导航 -->
+    <nav class="nav-bar">
+        <div class="nav-brand">
+            <div class="nav-logo">🐱</div>
+            <div>
+                <div class="nav-title">喵码管理</div>
+                <div class="nav-subtitle" id="nav-subtitle">在线用户实时监控</div>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <span class="online-badge" id="online-badge" title="全站在线人数">
+                <span class="dot"></span>
+                <span id="online-count">-</span> 喵在线
+            </span>
+            <a href="/knowledge.html" class="nav-btn-circle btn-wiki" title="知识库 Wiki">📚</a>
+            <a href="/tools.html" class="nav-btn-circle btn-chat" title="AI 工具箱">🐱</a>
+            <a href="/" class="nav-btn-circle btn-home" title="回到首页">🏠</a>
+            <span id="user-area"></span>
+        </div>
+    </nav>
+
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <h1>📊 管理控制台</h1>
+        <div class="subtitle">用户管理 · 内容审核 · 系统监控</div>
+    </div>
+
+    <!-- Tab 导航 -->
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="overview" onclick="switchTab('overview')">📊 总览</button>
+        <button class="admin-tab" data-tab="users" onclick="switchTab('users')">👥 用户管理</button>
+        <button class="admin-tab" data-tab="content" onclick="switchTab('content')">📝 内容管理</button>
+        <button class="admin-tab" data-tab="system" onclick="switchTab('system')">⚙️ 系统</button>
+    </div>
+
+    <!-- ==================== 总览 Tab ==================== -->
+    <div class="tab-panel active" id="panel-overview">
+        <div class="stat-grid" id="overview-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-online">-</div>
+                <div class="stat-label">独立设备</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-sessions">-</div>
+                <div class="stat-label">活跃会话</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-users">-</div>
+                <div class="stat-label">注册用户</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-articles">-</div>
+                <div class="stat-label">知识文章</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-conversations">-</div>
+                <div class="stat-label">AI 对话</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-prompts">-</div>
+                <div class="stat-label">提示词模板</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-barcodes">-</div>
+                <div class="stat-label">条码历史</div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-toolbar">
+                <h2>在线会话详情</h2>
+                <div class="refresh-badge">
+                    <span class="refresh-dot"></span>
+                    每 5s 自动刷新 · <span id="update-time">--</span>
+                </div>
+            </div>
+            <div id="table-content">
+                <div class="empty-state">
+                    <div class="icon">🔒</div>
+                    <div>请先登录查看在线用户详情喵~</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 用户管理 Tab ==================== -->
+    <div class="tab-panel" id="panel-users">
+        <div class="table-card">
+            <div class="table-toolbar">
+                <h2>用户列表</h2>
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="user-search" placeholder="搜索用户名或邮箱…" oninput="onUserSearch()">
+                </div>
+            </div>
+            <div id="user-table-content">
+                <div class="empty-state"><div class="icon">👥</div><div>加载中…</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 内容管理 Tab ==================== -->
+    <div class="tab-panel" id="panel-content">
+        <!-- 文章 -->
+        <div class="table-card">
+            <div class="table-toolbar">
+                <h2>知识文章</h2>
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="article-search" placeholder="搜索标题或内容…" oninput="onArticleSearch()">
+                </div>
+            </div>
+            <div id="article-table-content">
+                <div class="empty-state"><div class="icon">📝</div><div>加载中…</div></div>
+            </div>
+            <div id="article-pagination"></div>
+        </div>
+
+        <!-- 内置种子提示词卡片 -->
+        <div class="table-card" style="margin-top: 18px;">
+            <div class="table-toolbar">
+                <h2>🌱 内置种子卡片</h2>
+                <span style="font-size:11px;color:var(--text-secondary);">tools.html 技能提示词 · 只读</span>
+            </div>
+            <div id="seed-table-content">
+                <div class="empty-state"><div class="icon">🌱</div><div>加载中…</div></div>
+            </div>
+        </div>
+
+        <!-- 提示词卡片（用户） -->
+        <div class="table-card" style="margin-top: 18px;">
+            <div class="table-toolbar">
+                <h2>💬 提示词卡片</h2>
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="prompt-search" placeholder="搜索标题或内容…" oninput="onPromptSearch()">
+                </div>
+            </div>
+            <div id="prompt-table-content">
+                <div class="empty-state"><div class="icon">💬</div><div>加载中…</div></div>
+            </div>
+            <div id="prompt-pagination"></div>
+        </div>
+
+    </div>
+
+    <!-- ==================== 系统 Tab ==================== -->
+    <div class="tab-panel" id="panel-system">
+
+        <!-- 1. 增强系统信息 -->
+        <div class="section-card">
+            <h3>🖥️ 系统信息
+                <span style="float:right;font-size:12px;font-weight:400;">
+                    <label class="toggle-row" style="display:inline-flex;">
+                        <span>自动刷新</span>
+                        <span class="toggle-switch" id="auto-refresh-toggle" onclick="toggleAutoRefresh()" title="每10秒自动刷新系统指标"></span>
+                    </label>
+                </span>
+            </h3>
+            <div style="text-align:center;margin-bottom:12px;">
+                <div class="live-clock" id="live-clock">--:--:--</div>
+                <div class="live-clock-date" id="live-clock-date"></div>
+            </div>
+            <div class="info-grid" id="system-info">
+                <div class="info-item"><span class="key">加载中…</span></div>
+            </div>
+            <div style="margin-top:14px;" id="memory-gauges"></div>
+        </div>
+
+        <!-- 2. 服务健康 -->
+        <div class="section-card" id="health-card">
+            <h3>💚 服务健康</h3>
+            <div id="health-content">
+                <div class="info-item"><span class="key">加载中…</span></div>
+            </div>
+        </div>
+
+        <!-- 3. API 状态检测 -->
+        <div class="section-card">
+            <h3>🔌 API 状态检测</h3>
+            <div class="api-test-grid" id="api-test-grid">
+                <!-- JS 填充 -->
+            </div>
+            <div style="text-align:right;margin-top:8px;">
+                <button class="btn-sm btn-ghost" onclick="testAllAPIs()">🔄 全部重测</button>
+            </div>
+        </div>
+
+        <!-- 4. 日志查看器 -->
+        <div class="section-card">
+            <h3>📋 日志查看器</h3>
+            <div class="log-toolbar">
+                <select id="log-date-select" onchange="loadLog()">
+                    <option value="">选择日期…</option>
+                </select>
+                <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
+                    过滤：<select id="log-level-filter" onchange="renderLogContent()" style="padding:4px 8px;border-radius:6px;border:1px solid var(--glass-border);font-size:11px;background:rgba(255,255,255,0.5);">
+                        <option value="all">全部</option>
+                        <option value="INFO">INFO</option>
+                        <option value="WARN">WARN</option>
+                        <option value="ERROR">ERROR</option>
+                    </select>
+                </label>
+            </div>
+            <div class="log-content" id="log-content">
+                <span style="color:var(--text-tertiary);">选择一个日期查看日志喵~</span>
+            </div>
+        </div>
+
+        <!-- 5. 上传文件管理（只读） -->
+        <div class="section-card">
+            <h3>📎 上传文件管理 <span style="font-size:12px;color:var(--text-secondary);" id="uploads-summary"></span></h3>
+            <table id="uploads-table">
+                <thead><tr><th>文件名</th><th>大小</th><th>修改时间</th></tr></thead>
+                <tbody><tr><td colspan="3">加载中…</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- 6. 数据文件（增强版带下载） -->
+        <div class="section-card">
+            <h3>📁 数据文件</h3>
+            <table id="data-files-table">
+                <thead><tr><th>文件名</th><th>大小</th><th>操作</th></tr></thead>
+                <tbody><tr><td colspan="3">加载中…</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- 7. 扩展危险操作 -->
+        <div class="section-card danger-zone">
+            <h3>⚠️ 危险操作</h3>
+            <div class="danger-actions">
+                <button class="btn-sm btn-danger js-clear-conversations">🗑️ 清空所有对话</button>
+                <button class="btn-sm btn-danger js-clear-barcodes">🗑️ 清空条码历史</button>
+                <button class="btn-sm btn-danger js-clear-prompts">🗑️ 清空提示词</button>
+                <button class="btn-sm btn-danger js-clear-preferences">🗑️ 清空用户偏好</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="admin-footer">
+        © 2026 喵码 miaojiaozhu.com ·
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">湘ICP备2026021704号-1</a>
+    </footer>
+
+</div>
+
+<!-- ===== 登录弹窗 ===== -->
+<div class="admin-auth-overlay" id="auth-overlay">
+    <div class="admin-auth-card">
+        <h3 id="auth-title">🔐 管理员验证</h3>
+        <form id="auth-form" autocomplete="off">
+            <input type="password" id="auth-password" placeholder="请输入管理员密码" required>
+            <button type="submit" class="admin-auth-btn" id="auth-submit-btn">验证</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===== 编辑用户弹窗 ===== -->
+<div class="modal-overlay" id="edit-user-modal">
+    <div class="modal-card">
+        <button class="modal-close" onclick="hideModal('edit-user-modal')">✕</button>
+        <h3>✏️ 编辑用户</h3>
+        <input type="hidden" id="edit-user-id">
+        <label for="edit-user-name">用户名</label>
+        <input type="text" id="edit-user-name" placeholder="用户名 (2-20 字符)" maxlength="20">
+        <label for="edit-user-email">邮箱</label>
+        <input type="email" id="edit-user-email" placeholder="邮箱地址">
+        <div class="modal-actions">
+            <button class="btn-sm btn-ghost" onclick="hideModal('edit-user-modal')">取消</button>
+            <button class="btn-sm btn-accent" onclick="saveUserEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 编辑文章弹窗 ===== -->
+<div class="modal-overlay" id="edit-article-modal">
+    <div class="modal-card">
+        <button class="modal-close" onclick="hideModal('edit-article-modal')">✕</button>
+        <h3>✏️ 编辑文章</h3>
+        <input type="hidden" id="edit-article-id">
+        <label for="edit-article-title">标题</label>
+        <input type="text" id="edit-article-title" placeholder="文章标题">
+        <label for="edit-article-category">分类</label>
+        <select id="edit-article-category">
+            <option value="logistics">快递物流</option>
+            <option value="tech">技术</option>
+            <option value="literature">文学</option>
+            <option value="humanities">人文</option>
+            <option value="lifestyle">生活</option>
+            <option value="business">商业</option>
+        </select>
+        <label for="edit-article-tags">标签 (逗号分隔)</label>
+        <input type="text" id="edit-article-tags" placeholder="标签1, 标签2, …">
+        <label for="edit-article-content">内容</label>
+        <textarea id="edit-article-content" placeholder="Markdown 格式的文章内容"></textarea>
+        <div class="modal-actions">
+            <button class="btn-sm btn-ghost" onclick="hideModal('edit-article-modal')">取消</button>
+            <button class="btn-sm btn-accent" onclick="saveArticleEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 确认弹窗（通用） ===== -->
+<div class="modal-overlay" id="confirm-modal">
+    <div class="modal-card">
+        <button class="modal-close" onclick="hideModal('confirm-modal')">✕</button>
+        <h3 id="confirm-title">⚠️ 确认操作</h3>
+        <p id="confirm-message" style="font-size:14px;color:var(--text-secondary);line-height:1.5;"></p>
+        <div class="confirm-warning" id="confirm-warning" style="display:none;"></div>
+        <div class="modal-actions">
+            <button class="btn-sm btn-ghost" onclick="hideModal('confirm-modal')">取消</button>
+            <button class="btn-sm btn-danger" id="confirm-ok-btn" onclick="doConfirm()">确认</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 种子提示词查看弹窗 ===== -->
+<div class="modal-overlay" id="seed-view-modal">
+    <div class="modal-card">
+        <button class="modal-close" onclick="hideModal('seed-view-modal')">✕</button>
+        <h3 id="seed-view-title">🌱 种子提示词</h3>
+        <pre id="seed-view-content" style="white-space:pre-wrap;font-size:12px;line-height:1.6;max-height:60vh;overflow-y:auto;background:rgba(0,0,0,0.03);padding:16px;border-radius:10px;font-family:var(--font-body);"></pre>
+    </div>
+</div>
+
+<!-- Toast 容器 -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/lib/gsap.min.js?v=1"></script>
+<script>
+// GSAP 加载诊断 — 加载失败时输出明确错误信息
+if (typeof gsap === 'undefined') {
+    console.error('❌ [GSAP] 加载失败！请在 Network 面板检查 /lib/gsap.min.js 的 HTTP 状态码');
+    console.error('❌ [GSAP] 排查提示：1) 硬刷新 Ctrl+Shift+R  2) 检查服务器上 lib/ 目录是否存在');
+}
+</script>
+<script>
+// ==================== GSAP 页面入场动画（页面加载即执行，无需登录） ====================
+// ⚠️ 只用 gsap.to() / gsap.set()，绝不用 gsap.from() — 后者动画卡住会导致元素永久透明
+(function() {
+    if (typeof gsap === 'undefined') return;
+
+    // 1. 🌌 背景光晕 — 柔和浮动（与 index.html 完全一致的安全模式）
+    var orbs = [
+        { el: '.bg-orb--warm',  x: 8,  y: 10, s: 1.06, dur: 18 },
+        { el: '.bg-orb--pink',  x: -6, y: -8, s: 1.08, dur: 22 },
+        { el: '.bg-orb--blue',  x: 10, y: -5, s: 1.10, dur: 20 },
+        { el: '.bg-orb--cream', x: -5, y: 6,  s: 1.05, dur: 24 }
+    ];
+    orbs.forEach(function(o) {
+        var orb = document.querySelector(o.el);
+        if (!orb) return;
+        gsap.set(orb, { opacity: 0 });
+        gsap.to(orb, {
+            opacity: 0.45, duration: 1.5, ease: 'power2.out'
+        });
+        gsap.to(orb, {
+            xPercent: o.x, yPercent: o.y, scale: o.s,
+            duration: o.dur, ease: 'sine.inOut',
+            repeat: -1, yoyo: true,
+            delay: Math.random() * o.dur
+        });
+        gsap.to(orb, {
+            rotation: 6,
+            duration: o.dur * 1.5, ease: 'sine.inOut',
+            repeat: -1, yoyo: true,
+            delay: Math.random() * o.dur
+        });
+    });
+
+    console.log('✅ GSAP 背景光晕动画已启动');
+})();
+</script>
+<script>
+(function() {
+    'use strict';
+
+    // ==============================
+    // 管理员控制台 — 完整脚本
+    // admin token 仅存 JS 变量，页面刷新即失效
+    // ==============================
+
+    // 早期诊断：GSAP 是否可用
+    var GSAP_OK = typeof gsap !== 'undefined';
+    if (!GSAP_OK) {
+        console.warn('⚠️ GSAP 不可用，动画将静默降级。请检查 /lib/gsap.min.js 是否正确部署。');
+    }
+
+    var adminToken = null;
+    var _tabsLoaded = {};
+    var _userSearchTimer = null;
+    var _articleSearchTimer = null;
+    var _confirmCallback = null;
+    var _autoRefreshTimer = null;
+    var _autoRefreshOn = false;
+    var _liveClockTimer = null;
+    var _logContentCache = null;
+    
+    // ===== 工具函数 =====
+    // HTML 安全转义 — 同时适用于文本内容和属性值上下文
+    // & 必须最先替换，防止对已转义实体的 & 二次编码
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 邮箱脱敏：user@example.com → u***@example.com
+    function maskEmail(email) {
+        if (!email || email.indexOf('@') === -1) return escHtml(email);
+        var parts = email.split('@');
+        var name = parts[0];
+        var domain = parts[1];
+        if (name.length <= 1) return name + '***@' + escHtml(domain);
+        return name.charAt(0) + '***@' + escHtml(domain);
+    }
+    
+    function formatDuration(seconds) {
+        if (seconds < 60) return seconds + ' 秒';
+        if (seconds < 3600) return Math.floor(seconds / 60) + ' 分 ' + (seconds % 60) + ' 秒';
+        var h = Math.floor(seconds / 3600);
+        var m = Math.floor((seconds % 3600) / 60);
+        return h + ' 小时 ' + m + ' 分';
+    }
+    
+    function formatDate(d) {
+        if (!d) return '-';
+        if (typeof d === 'number') {
+            return new Date(d).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+        }
+        return d;
+    }
+    
+    function formatUptime(sec) {
+        var d = Math.floor(sec / 86400);
+        var h = Math.floor((sec % 86400) / 3600);
+        var m = Math.floor((sec % 3600) / 60);
+        var parts = [];
+        if (d > 0) parts.push(d + ' 天');
+        if (h > 0) parts.push(h + ' 小时');
+        if (m > 0) parts.push(m + ' 分');
+        return parts.join(' ') || '不到 1 分钟';
+    }
+    
+    // ===== API 封装 =====
+    function apiGet(url) {
+        return fetch(url, { headers: { 'Authorization': 'Bearer ' + adminToken } }).then(function(r) {
+            if (r.status === 401 || r.status === 403) { forceReauth(); throw new Error('expired'); }
+            return r.json();
+        });
+    }
+    
+    function apiPost(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken },
+            body: JSON.stringify(data)
+        }).then(function(r) {
+            if (r.status === 401 || r.status === 403) { forceReauth(); throw new Error('expired'); }
+            return r.json();
+        });
+    }
+    
+    function apiPut(url, data) {
+        return fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken },
+            body: JSON.stringify(data)
+        }).then(function(r) {
+            if (r.status === 401 || r.status === 403) { forceReauth(); throw new Error('expired'); }
+            return r.json();
+        });
+    }
+    
+    function apiDelete(url) {
+        return fetch(url, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        }).then(function(r) {
+            if (r.status === 401 || r.status === 403) { forceReauth(); throw new Error('expired'); }
+            return r.json();
+        });
+    }
+    
+    function forceReauth() {
+        adminToken = null;
+        localStorage.removeItem("miaosite_admin_token");
+        document.getElementById("auth-overlay").classList.add("show");
+        document.getElementById("auth-submit-btn").disabled = false;
+        document.getElementById("auth-submit-btn").textContent = "验证";
+        showToast("管理员验证已过期，请重新登录喵~", "error");
+    }
+
+    // ===== Toast =====
+    function showToast(msg, type) {
+        var c = document.getElementById('toast-container');
+        var el = document.createElement('div');
+        el.className = 'toast ' + (type || 'info');
+        el.textContent = msg;
+        c.appendChild(el);
+        requestAnimationFrame(function() { el.classList.add('show'); });
+        setTimeout(function() {
+            el.classList.remove('show');
+            setTimeout(function() { el.remove(); }, 350);
+        }, 3000);
+    }
+    
+    // ===== Modal =====
+    function showModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+    
+    function hideModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+    
+    function showConfirm(title, message, warning, callback) {
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        var warnEl = document.getElementById('confirm-warning');
+        if (warning) {
+            warnEl.textContent = warning;
+            warnEl.style.display = 'block';
+        } else {
+            warnEl.style.display = 'none';
+        }
+        _confirmCallback = callback;
+        showModal('confirm-modal');
+    }
+    
+    function doConfirm() {
+        hideModal('confirm-modal');
+        if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
+    }
+    
+    // ===== Tab 切换 =====
+    function switchTab(name) {
+        var tabs = document.querySelectorAll('.admin-tab');
+        var panels = document.querySelectorAll('.tab-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        document.querySelector('[data-tab="' + name + '"]').classList.add('active');
+        document.getElementById('panel-' + name).classList.add('active');
+    
+        if (name === 'overview') {
+            document.getElementById('nav-subtitle').textContent = '在线用户实时监控';
+            if (!_tabsLoaded[name]) { _tabsLoaded[name] = true; loadOverviewStats(); }
+        } else if (name === 'users') {
+            document.getElementById('nav-subtitle').textContent = '用户管理';
+            if (!_tabsLoaded[name]) { _tabsLoaded[name] = true; loadUsers(); }
+        } else if (name === 'content') {
+            document.getElementById('nav-subtitle').textContent = '内容审核';
+            if (!_tabsLoaded[name]) { _tabsLoaded[name] = true; loadArticles(1); loadSeeds(); loadPrompts(1); }
+        } else if (name === 'system') {
+            document.getElementById('nav-subtitle').textContent = '系统监控';
+            if (!_tabsLoaded[name]) { _tabsLoaded[name] = true; loadSystem(); }
+        }
+    }
+    
+    // ===== GSAP 计数动画 =====
+    function animateCounter(el, target) {
+        if (typeof gsap === 'undefined') { el.textContent = target; return; }
+        var obj = { val: 0 };
+        gsap.to(obj, {
+            val: target,
+            duration: 1.2,
+            ease: 'power2.out',
+            onUpdate: function() { el.textContent = Math.round(obj.val); }
+        });
+    }
+    
+    // ===== 管理员登录 =====
+    (function() {
+        var overlay = document.getElementById("auth-overlay");
+        var form = document.getElementById("auth-form");
+        var savedToken = localStorage.getItem("miaosite_admin_token");
+
+        // 已有有效 admin token → 自动恢复，无需重新输入密码
+        if (savedToken) {
+            adminToken = savedToken;
+            fetch("/api/admin/stats", { headers: { "Authorization": "Bearer " + adminToken } })
+                .then(function(r) {
+                    if (r.ok) {
+                        overlay.classList.remove("show");
+                        document.getElementById("user-area").innerHTML =
+                            '<button class="nav-btn btn-user" onclick="doLogout()">👤 manager</button>';
+                        startDashboard();
+                    } else {
+                        localStorage.removeItem("miaosite_admin_token");
+                        adminToken = null;
+                        overlay.classList.add("show");
+                    }
+                }).catch(function() {
+                    overlay.classList.add("show");
+                });
+        } else {
+            overlay.classList.add("show");
+        }
+
+        overlay.addEventListener("click", function(e) {
+            if (e.target === overlay) return;
+        });
+
+        form.addEventListener("submit", function(e) {
+            e.preventDefault();
+            var password = document.getElementById("auth-password").value;
+            var btn = document.getElementById("auth-submit-btn");
+            btn.disabled = true;
+            btn.textContent = "验证中…";
+
+            fetch("/api/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: password })
+            }).then(function(r) { return r.json(); })
+              .then(function(d) {
+                  if (d.token) {
+                      adminToken = d.token;
+                      localStorage.setItem("miaosite_admin_token", d.token);
+                      overlay.classList.remove("show");
+                      document.getElementById("user-area").innerHTML =
+                          '<button class="nav-btn btn-user" onclick="doLogout()">👤 ' + escHtml(d.username) + '</button>';
+                      startDashboard();
+                  } else {
+                      alert(d.error || "验证失败喵~");
+                      btn.disabled = false;
+                      btn.textContent = "验证";
+                  }
+              }).catch(function() {
+                  alert("网络错误喵~");
+                  btn.disabled = false;
+                  btn.textContent = "验证";
+              });
+        });
+    })();
+    
+    window.doLogout = function() {
+        adminToken = null;
+        localStorage.removeItem('miaosite_admin_token');
+        _tabsLoaded = {};
+        document.getElementById('user-area').innerHTML = '';
+        document.getElementById('table-content').innerHTML =
+            '<div class="empty-state"><div class="icon">🔒</div><div>已退出，刷新页面重新验证喵~</div></div>';
+        document.getElementById('nav-subtitle').textContent = '在线用户实时监控';
+        showToast('已退出登录喵~', 'info');
+    };
+    
+    // ===== 在线人数（SSE） =====
+    (function() {
+        var countEl = document.getElementById('online-count');
+        if (!countEl) return;
+        var FALLBACK = false, es = null;
+    
+        function sendHeartbeat() {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/api/heartbeat', new Blob([''], { type: 'text/plain' }));
+            }
+        }
+        setInterval(sendHeartbeat, 25000);
+        sendHeartbeat();
+    
+        function connectSSE() {
+            try {
+                es = new EventSource('/api/live-count-stream');
+                es.onmessage = function(e) {
+                    try {
+                        var d = JSON.parse(e.data);
+                        if (countEl && typeof d.onlineCount === 'number') countEl.textContent = d.onlineCount;
+                    } catch(ignore) {}
+                };
+                es.onerror = function() { es.close(); es = null; if (!FALLBACK) startFallback(); };
+            } catch(e) { if (!FALLBACK) startFallback(); }
+        }
+    
+        function startFallback() {
+            FALLBACK = true;
+            function poll() {
+                fetch('/api/online-count').then(function(r){return r.json()})
+                    .then(function(d){ if(countEl && typeof d.onlineCount==='number') countEl.textContent = d.onlineCount; })
+                    .catch(function(){});
+            }
+            poll(); setInterval(poll, 15000);
+        }
+        connectSSE();
+    })();
+    
+    // ===== 总览 Tab =====
+    function loadOverviewStats() {
+        if (!adminToken) return;
+        apiGet('/api/admin/stats').then(function(d) {
+            animateCounter(document.getElementById('stat-users'), d.stats.users);
+            animateCounter(document.getElementById('stat-articles'), d.stats.articles);
+            animateCounter(document.getElementById('stat-conversations'), d.stats.conversations);
+            animateCounter(document.getElementById('stat-prompts'), d.stats.prompts);
+            animateCounter(document.getElementById('stat-barcodes'), d.stats.barcodeHistory);
+        }).catch(function(e) {
+            if (e.message !== 'expired') console.error('Stats load failed:', e);
+        });
+    }
+    
+    function refreshTable() {
+        if (!adminToken) return;
+    
+        apiGet('/api/admin/online-users').then(function(d) {
+            document.getElementById('stat-online').textContent = d.uniqueDevices;
+            document.getElementById('stat-sessions').textContent = d.total;
+            document.getElementById('update-time').textContent = d.updatedAt;
+    
+            if (d.users.length === 0) {
+                document.getElementById('table-content').innerHTML =
+                    '<div class="empty-state"><div class="icon">😴</div><div>暂无在线用户喵~</div></div>';
+                return;
+            }
+    
+            var keyColors = {}, colorIdx = 0;
+            d.users.forEach(function(u) { if (!(u.deviceKey in keyColors)) keyColors[u.deviceKey] = colorIdx++; });
+            var html = '<table><thead><tr><th>IP 地址</th><th>在线时长</th><th>设备指纹</th><th>User-Agent</th><th>最后心跳</th></tr></thead><tbody>';
+            d.users.forEach(function(u) {
+                html += '<tr class="row-group-' + (keyColors[u.deviceKey] % 4) + '">';
+                html += '<td><span class="ip-tag">' + escHtml(u.ip) + '</span></td>';
+                html += '<td class="time-badge">' + formatDuration(u.onlineSeconds) + '</td>';
+                html += '<td><code class="device-key">' + escHtml(u.deviceKey) + '</code></td>';
+                html += '<td><span class="ua-text" title="' + escHtml(u.userAgent) + '">' + escHtml(u.userAgent) + '</span></td>';
+                html += '<td class="time-badge">' + escHtml(u.lastHeartbeat) + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('table-content').innerHTML = html;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    // ===== 用户管理 Tab =====
+    function loadUsers() {
+        if (!adminToken) return;
+        var search = document.getElementById('user-search').value;
+    
+        var url = '/api/admin/users';
+        if (search) url += '?search=' + encodeURIComponent(search);
+    
+        apiGet(url).then(function(d) {
+            if (d.users.length === 0) {
+                document.getElementById('user-table-content').innerHTML =
+                    '<div class="empty-state"><div class="icon">🔍</div><div>' + (search ? '没有匹配的用户喵~' : '暂无注册用户喵~') + '</div></div>';
+                return;
+            }
+    
+            var html = '<table><thead><tr><th>用户名</th><th>邮箱</th><th>状态</th><th>注册时间</th><th>最近登录</th><th>文章</th><th>对话</th><th>操作</th></tr></thead><tbody>';
+            d.users.forEach(function(u) {
+                html += '<tr>';
+                html += '<td><strong>' + escHtml(u.username) + '</strong>' + (u.username === 'manager' ? ' <span class="badge badge-accent">管理员</span>' : '') + '</td>';
+                html += '<td style="font-size:12px;color:var(--text-secondary);">' + maskEmail(u.email) + '</td>';
+                // 在线状态
+                if (u.isOnline) {
+                    html += '<td><span class="status-badge status-badge--ok" style="font-size:11px;padding:2px 10px;">';
+                    html += '<span class="status-dot status-dot--green"></span> 在线';
+                    html += ' <span style="font-weight:400;margin-left:2px;">' + formatDuration(u.onlineSeconds) + '</span>';
+                    html += '</span></td>';
+                } else {
+                    html += '<td><span style="color:#999;font-size:11px;">⚫ 离线</span></td>';
+                }
+                html += '<td class="time-badge">' + formatDate(u.createdAt) + '</td>';
+                html += '<td class="time-badge" title="登录次数：' + (u.loginCount || 0) + '">' + (u.lastLoginAt ? formatDate(u.lastLoginAt) : '-') + '</td>';
+                html += '<td><span class="badge badge-info">' + u.articleCount + '</span></td>';
+                html += '<td><span class="badge badge-accent">' + u.conversationCount + '</span></td>';
+                html += '<td style="white-space:nowrap;">';
+                html += '<button class="btn-sm btn-ghost js-edit-user" style="margin-right:4px;" data-user-id="' + escHtml(u.id) + '" data-username="' + escHtml(u.username) + '" data-email="' + escHtml(u.email) + '">✏️</button>';
+                if (u.username !== 'manager') {
+                    html += '<button class="btn-sm btn-danger js-delete-user" data-user-id="' + escHtml(u.id) + '" data-username="' + escHtml(u.username) + '">🗑️</button>';
+                }
+                html += '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('user-table-content').innerHTML = html;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            document.getElementById('user-table-content').innerHTML =
+                '<div class="empty-state"><div class="icon">⚠️</div><div>加载失败，请重试喵~</div></div>';
+        });
+    }
+    
+    function onUserSearch() {
+        clearTimeout(_userSearchTimer);
+        _userSearchTimer = setTimeout(loadUsers, 300);
+    }
+    
+    function openEditUser(id, name, email) {
+        document.getElementById('edit-user-id').value = id;
+        document.getElementById('edit-user-name').value = name;
+        document.getElementById('edit-user-email').value = email;
+        showModal('edit-user-modal');
+    }
+    
+    function saveUserEdit() {
+        var id = document.getElementById('edit-user-id').value;
+        var username = document.getElementById('edit-user-name').value.trim();
+        var email = document.getElementById('edit-user-email').value.trim();
+    
+        apiPut('/api/admin/users/' + id, { username: username, email: email }).then(function(d) {
+            if (d.error) { showToast(d.error, 'error'); return; }
+            hideModal('edit-user-modal');
+            showToast('用户已更新喵~', 'success');
+            loadUsers();
+            _tabsLoaded['overview'] = false; // 刷新统计
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            showToast('编辑失败喵~', 'error');
+        });
+    }
+    
+    function confirmDeleteUser(id, name) {
+        showConfirm(
+            '确认删除用户',
+            '确定要删除用户「' + name + '」吗？',
+            '⚠️ 此操作将同时删除该用户的所有文章、对话、提示词和条码历史数据，不可恢复！',
+            function() { doDeleteUser(id); }
+        );
+    }
+    
+    function doDeleteUser(id) {
+        apiDelete('/api/admin/users/' + id).then(function(d) {
+            if (d.error) { showToast(d.error, 'error'); return; }
+            showToast('用户「' + d.deleted.user + '」及其数据已删除喵~', 'success');
+            loadUsers();
+            _tabsLoaded['overview'] = false;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            showToast('删除失败喵~', 'error');
+        });
+    }
+    
+    // ===== 内容管理 Tab =====
+    var _articlePage = 1;
+    
+    function loadArticles(page) {
+        if (!adminToken) return;
+        _articlePage = page || 1;
+        var search = document.getElementById('article-search').value;
+        var url = '/api/admin/articles?page=' + _articlePage + '&limit=20';
+        if (search) url += '&search=' + encodeURIComponent(search);
+    
+        apiGet(url).then(function(d) {
+            if (d.articles.length === 0) {
+                document.getElementById('article-table-content').innerHTML =
+                    '<div class="empty-state"><div class="icon">🔍</div><div>' + (search ? '没有匹配的文章喵~' : '暂无文章喵~') + '</div></div>';
+                document.getElementById('article-pagination').innerHTML = '';
+                return;
+            }
+    
+            var html = '<table><thead><tr><th>标题</th><th>作者</th><th>分类</th><th>浏览</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+            d.articles.forEach(function(a) {
+                html += '<tr>';
+                html += '<td><strong>' + escHtml(a.title || '无标题') + '</strong></td>';
+                html += '<td style="font-size:12px;">' + escHtml(a.authorName || '?') + '</td>';
+                html += '<td><span class="badge badge-accent">' + escHtml(a.category || '?') + '</span></td>';
+                html += '<td>' + (a.views || 0) + '</td>';
+                html += '<td class="time-badge">' + formatDate(a.createdAt) + '</td>';
+                html += '<td style="white-space:nowrap;">';
+                html += '<button class="btn-sm btn-ghost js-edit-article" style="margin-right:4px;" data-article-id="' + escHtml(a.id) + '">✏️</button>';
+                html += '<button class="btn-sm btn-danger js-delete-article" data-article-id="' + escHtml(a.id) + '" data-title="' + escHtml(a.title || '无标题') + '">🗑️</button>';
+                html += '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('article-table-content').innerHTML = html;
+    
+            // 分页
+            var pagHtml = '';
+            pagHtml += '<button ' + (_articlePage <= 1 ? 'disabled' : '') + ' class="js-article-page" data-page="' + (_articlePage - 1) + '">上一页</button>';
+            pagHtml += '<span class="page-info">第 ' + d.page + ' / ' + d.totalPages + ' 页（共 ' + d.total + ' 篇）</span>';
+            pagHtml += '<button ' + (_articlePage >= d.totalPages ? 'disabled' : '') + ' class="js-article-page" data-page="' + (_articlePage + 1) + '">下一页</button>';
+            document.getElementById('article-pagination').innerHTML = '<div class="pagination">' + pagHtml + '</div>';
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    function onArticleSearch() {
+        clearTimeout(_articleSearchTimer);
+        _articleSearchTimer = setTimeout(function() { loadArticles(1); }, 300);
+    }
+    
+    function openEditArticle(id) {
+        apiGet('/api/admin/articles?limit=200').then(function(d) {
+            var a = d.articles.find(function(x) { return x.id === id; });
+            if (!a) { showToast('文章不存在喵~', 'error'); return; }
+            document.getElementById('edit-article-id').value = a.id;
+            document.getElementById('edit-article-title').value = a.title || '';
+            document.getElementById('edit-article-category').value = a.category || 'logistics';
+            document.getElementById('edit-article-tags').value = (a.tags || []).join(', ');
+            document.getElementById('edit-article-content').value = a.content || '';
+            showModal('edit-article-modal');
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    function saveArticleEdit() {
+        var id = document.getElementById('edit-article-id').value;
+        var data = {
+            title: document.getElementById('edit-article-title').value.trim(),
+            category: document.getElementById('edit-article-category').value,
+            tags: document.getElementById('edit-article-tags').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean),
+            content: document.getElementById('edit-article-content').value
+        };
+    
+        apiPut('/api/admin/articles/' + id, data).then(function(d) {
+            if (d.error) { showToast(d.error, 'error'); return; }
+            hideModal('edit-article-modal');
+            showToast('文章已更新喵~', 'success');
+            loadArticles(_articlePage);
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            showToast('编辑失败喵~', 'error');
+        });
+    }
+    
+    function confirmDeleteArticle(id, title) {
+        showConfirm(
+            '确认删除文章',
+            '确定要删除文章「' + title + '」吗？此操作不可恢复。',
+            null,
+            function() { doDeleteArticle(id); }
+        );
+    }
+    
+    function doDeleteArticle(id) {
+        apiDelete('/api/admin/articles/' + id).then(function(d) {
+            if (d.error) { showToast(d.error, 'error'); return; }
+            showToast('文章已删除喵~', 'success');
+            loadArticles(_articlePage);
+            _tabsLoaded['overview'] = false;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    // ===== 系统 Tab =====
+    function loadSystem() {
+        if (!adminToken) return;
+        startLiveClock();
+        loadSystemInfo();
+        loadHealth();
+        loadAPITestPanel();
+        loadLogFileList();
+        loadUploads();
+        loadDataFiles();
+    }
+    
+    // ===== System: Live Clock =====
+    function startLiveClock() {
+        if (_liveClockTimer) return;
+        function tick() {
+            var now = new Date();
+            var clockEl = document.getElementById('live-clock');
+            var dateEl = document.getElementById('live-clock-date');
+            if (clockEl) clockEl.textContent = now.toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
+            if (dateEl) dateEl.textContent = now.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai', year:'numeric', month:'long', day:'numeric', weekday:'long' });
+        }
+        tick();
+        _liveClockTimer = setInterval(tick, 1000);
+    }
+    
+    // ===== System: Auto-refresh Toggle =====
+    function toggleAutoRefresh() {
+        _autoRefreshOn = !_autoRefreshOn;
+        var el = document.getElementById('auto-refresh-toggle');
+        el.classList.toggle('active', _autoRefreshOn);
+        if (_autoRefreshOn) {
+            _autoRefreshTimer = setInterval(function() {
+                loadSystemInfo();
+                loadHealth();
+            }, 10000);
+            showToast('已开启自动刷新（每10秒）喵~', 'info');
+        } else {
+            clearInterval(_autoRefreshTimer);
+            _autoRefreshTimer = null;
+            showToast('已关闭自动刷新喵~', 'info');
+        }
+    }
+    
+    // ===== System: Rich System Info =====
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+        return (bytes / 1073741824).toFixed(2) + ' GB';
+    }
+    
+    function loadSystemInfo() {
+        if (!adminToken) return;
+        apiGet('/api/admin/stats').then(function(d) {
+            var sys = d.system;
+            var mem = sys.memoryUsage;
+    
+            var heapUsedMB = Math.round(mem.heapUsed / 1024 / 1024);
+            var heapTotalMB = Math.round(mem.heapTotal / 1024 / 1024);
+            var rssMB = Math.round(mem.rss / 1024 / 1024);
+            var heapPercent = Math.round(mem.heapUsed / mem.heapTotal * 100);
+            var totalmemMB = sys.totalmem ? Math.round(sys.totalmem / 1048576) : 0;
+            var freememMB = sys.freemem ? Math.round(sys.freemem / 1048576) : 0;
+            var memUsagePercent = sys.totalmem ? Math.round((sys.totalmem - sys.freemem) / sys.totalmem * 100) : 0;
+    
+            var html = '';
+            html += '<div class="info-item"><span class="key">Node.js 版本</span><span class="val">' + escHtml(sys.nodeVersion) + '</span></div>';
+            html += '<div class="info-item"><span class="key">运行时长</span><span class="val">' + formatUptime(sys.uptime) + '</span></div>';
+            if (sys.platform) html += '<div class="info-item"><span class="key">操作系统</span><span class="val">' + escHtml(sys.platform) + ' / ' + escHtml(sys.arch) + '</span></div>';
+            if (sys.cpus) html += '<div class="info-item"><span class="key">CPU 核心数</span><span class="val">' + sys.cpus + '</span></div>';
+            if (sys.hostname) html += '<div class="info-item"><span class="key">主机名</span><span class="val">' + escHtml(sys.hostname) + '</span></div>';
+            if (sys.loadavg) html += '<div class="info-item"><span class="key">系统负载 (1/5/15)</span><span class="val">' + sys.loadavg.map(function(v){return v.toFixed(2);}).join(' / ') + '</span></div>';
+            html += '<div class="info-item"><span class="key">堆内存</span><span class="val">' + heapUsedMB + ' / ' + heapTotalMB + ' MB (' + heapPercent + '%)</span></div>';
+            html += '<div class="info-item"><span class="key">进程 RSS</span><span class="val">' + rssMB + ' MB</span></div>';
+            if (sys.totalmem) html += '<div class="info-item"><span class="key">系统总内存</span><span class="val">' + totalmemMB + ' MB</span></div>';
+            if (sys.freemem) html += '<div class="info-item"><span class="key">系统空闲内存</span><span class="val">' + freememMB + ' MB (' + memUsagePercent + '% 已用)</span></div>';
+            document.getElementById('system-info').innerHTML = html;
+    
+            // 内存进度条
+            var gaugesHtml = '';
+            gaugesHtml += buildMemBar('堆内存', heapPercent, 'warm');
+            gaugesHtml += buildMemBar('系统内存', memUsagePercent || 0, 'pink');
+            gaugesHtml += buildMemBar('RSS 占比', sys.totalmem ? Math.round(mem.rss / sys.totalmem * 100) : 0, 'green');
+            document.getElementById('memory-gauges').innerHTML = gaugesHtml;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    function buildMemBar(label, percent, colorClass) {
+        var displayPercent = Math.min(percent, 100);
+        return '<div class="mem-bar-wrap">' +
+            '<div class="mem-bar-label"><span>' + escHtml(label) + '</span><span>' + percent + '%</span></div>' +
+            '<div class="mem-bar-outer"><div class="mem-bar-inner mem-bar--' + colorClass + '" style="width:' + displayPercent + '%"></div></div>' +
+            '</div>';
+    }
+    
+    // ===== System: Health Check =====
+    function loadHealth() {
+        if (!adminToken) return;
+        var startTime = Date.now();
+        fetch('/api/health').then(function(r) { return r.json(); }).then(function(d) {
+            var latency = Date.now() - startTime;
+            var statusClass = d.status === 'ok' ? 'ok' : 'error';
+            var html = '';
+            html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">';
+            html += '<span class="status-badge status-badge--' + statusClass + '">';
+            html += '<span class="status-dot status-dot--' + (d.status === 'ok' ? 'green' : 'red') + '"></span>';
+            html += d.status === 'ok' ? '运行正常' : '异常';
+            html += '</span>';
+            html += '<span style="font-size:12px;color:var(--text-secondary);">延迟: ' + latency + 'ms</span>';
+            html += '</div>';
+            html += '<div class="info-grid">';
+            html += '<div class="info-item"><span class="key">运行时长</span><span class="val">' + formatUptime(Math.floor(d.uptime)) + '</span></div>';
+            html += '<div class="info-item"><span class="key">内存占用</span><span class="val">' + escHtml(d.memory) + '</span></div>';
+            html += '<div class="info-item"><span class="key">服务器时间</span><span class="val">' + escHtml(d.time) + '</span></div>';
+            html += '</div>';
+            document.getElementById('health-content').innerHTML = html;
+        }).catch(function() {
+            document.getElementById('health-content').innerHTML =
+                '<div class="info-item"><span class="key" style="color:#ee5a6f;">健康检查失败喵~</span></div>';
+        });
+    }
+    
+    // ===== System: API Status Panel =====
+    var _apiEndpoints = [
+        { name: 'Stats',    url: '/api/admin/stats',        method: 'GET',  desc: '仪表盘统计' },
+        { name: 'Health',   url: '/api/health',             method: 'GET',  desc: '服务健康检查' },
+        { name: 'Mimo',     url: '/api/admin/mimo-health',     method: 'GET',  desc: 'Mimo AI (OCR/视觉)' },
+        { name: 'DeepSeek', url: '/api/admin/deepseek-health', method: 'GET',  desc: 'DeepSeek AI (对话)' },
+        { name: 'Online',   url: '/api/admin/online-users', method: 'GET',  desc: '在线用户列表' },
+        { name: 'Seeds',    url: '/api/admin/seed-prompts', method: 'GET',  desc: '内置种子卡片' },
+        { name: 'Users',    url: '/api/admin/users',        method: 'GET',  desc: '注册用户列表' },
+        { name: 'Logs',     url: '/api/admin/system/logs',  method: 'GET',  desc: '日志文件列表' }
+    ];
+    
+    function loadAPITestPanel() {
+        var html = '';
+        _apiEndpoints.forEach(function(ep, i) {
+            html += '<div class="api-card" id="api-card-' + i + '">';
+            html += '<div class="api-card-indicator api-card-indicator--pending" id="api-indicator-' + i + '">⏳</div>';
+            html += '<div class="api-card-body">';
+            html += '<div class="api-card-name"><span class="api-badge-method api-badge-method--' + ep.method + '">' + escHtml(ep.method) + '</span>' + escHtml(ep.desc) + '</div>';
+            html += '<div class="api-card-url">' + escHtml(ep.url) + '</div>';
+            html += '</div>';
+            html += '<div class="api-card-meta" id="api-meta-' + i + '">';
+            html += '<div class="api-card-status-text" style="color:var(--text-tertiary);">等待测试</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+        document.getElementById('api-test-grid').innerHTML = html;
+        // 入场动画（gsap.set + gsap.to 安全模式，避免 gsap.from 卡住导致透明）
+        if (typeof gsap !== 'undefined') {
+            gsap.set('.api-card', { opacity: 0, y: 16 });
+            gsap.to('.api-card', { duration: 0.5, opacity: 1, y: 0, stagger: 0.06, ease: 'power2.out' });
+        }
+        testAllAPIs();
+    }
+    
+    function testAllAPIs() {
+        _apiEndpoints.forEach(function(ep, i) {
+            var card = document.getElementById('api-card-' + i);
+            var indicator = document.getElementById('api-indicator-' + i);
+            var meta = document.getElementById('api-meta-' + i);
+            if (!indicator) return;
+    
+            // 测试中状态
+            indicator.className = 'api-card-indicator api-card-indicator--testing';
+            indicator.textContent = '🔄';
+            meta.innerHTML = '<div class="api-card-latency" style="color:var(--text-secondary);">...</div>';
+    
+            var opts = { headers: {} };
+            if (adminToken) opts.headers['Authorization'] = 'Bearer ' + adminToken;
+            var start = Date.now();
+    
+            fetch(ep.url, opts).then(function(r) {
+                var latency = Date.now() - start;
+                var ok = r.status >= 200 && r.status < 500;
+    
+                indicator.className = 'api-card-indicator ' + (ok ? 'api-card-indicator--ok' : 'api-card-indicator--fail');
+                indicator.textContent = ok ? '✅' : '⚠️';
+    
+                meta.innerHTML = '<div class="api-card-latency">' + latency + '<span class="api-card-latency-unit">ms</span></div>';
+                meta.innerHTML += '<div class="api-card-status-text ' + (ok ? 'api-card-status-text--ok' : 'api-card-status-text--fail') + '">' + (ok ? '正常' : r.status) + '</div>';
+    
+                // 弹入动画
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(indicator, { scale: 0.5 }, { scale: 1, duration: 0.35, ease: 'back.out(1.7)' });
+                }
+            }).catch(function() {
+                indicator.className = 'api-card-indicator api-card-indicator--fail';
+                indicator.textContent = '❌';
+                meta.innerHTML = '<div class="api-card-latency" style="color:#ee5a6f;">-</div>';
+                meta.innerHTML += '<div class="api-card-status-text api-card-status-text--fail">超时</div>';
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(indicator, { scale: 0.5 }, { scale: 1, duration: 0.35, ease: 'back.out(1.7)' });
+                }
+            });
+        });
+    }
+    
+    // ===== System: Log Viewer =====
+    function loadLogFileList() {
+        if (!adminToken) return;
+        apiGet('/api/admin/system/logs').then(function(d) {
+            var sel = document.getElementById('log-date-select');
+            sel.innerHTML = '<option value="">选择日期…</option>';
+            (d.files || []).forEach(function(f) {
+                sel.innerHTML += '<option value="' + escHtml(f.name) + '">' + escHtml(f.name) + ' (' + formatBytes(f.size) + ')</option>';
+            });
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    function loadLog() {
+        if (!adminToken) return;
+        var file = document.getElementById('log-date-select').value;
+        if (!file) {
+            document.getElementById('log-content').innerHTML = '<span style="color:var(--text-tertiary);">请选择一个日志文件喵~</span>';
+            _logContentCache = null;
+            return;
+        }
+        apiGet('/api/admin/system/logs?file=' + encodeURIComponent(file) + '&limit=500').then(function(d) {
+            _logContentCache = d.content;
+            renderLogContent();
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            document.getElementById('log-content').innerHTML = '<span style="color:#ee5a6f;">加载日志失败喵~</span>';
+        });
+    }
+    
+    function renderLogContent() {
+        var content = _logContentCache || '';
+        var filter = document.getElementById('log-level-filter').value;
+        if (!content) {
+            document.getElementById('log-content').innerHTML = '<span style="color:var(--text-tertiary);">暂无日志内容喵~</span>';
+            return;
+        }
+        var lines = content.split('\n');
+        var result = '';
+        lines.forEach(function(line) {
+            if (!line.trim()) { result += '\n'; return; }
+            if (filter !== 'all') {
+                if (line.indexOf('[' + filter + ']') === -1) return;
+            }
+            var cssClass = 'log-level--INFO';
+            if (line.indexOf('[WARN]') !== -1 || line.indexOf('[WARNING]') !== -1) cssClass = 'log-level--WARN';
+            else if (line.indexOf('[ERROR]') !== -1) cssClass = 'log-level--ERROR';
+            else if (line.indexOf('[DEBUG]') !== -1) cssClass = 'log-level--DEBUG';
+            result += '<span class="' + cssClass + '">' + escHtml(line) + '</span>\n';
+        });
+        document.getElementById('log-content').innerHTML = result || '<span style="color:var(--text-tertiary);">没有匹配的日志行喵~</span>';
+    }
+    
+    // ===== System: Uploads Management (read-only) =====
+    function loadUploads() {
+        if (!adminToken) return;
+        apiGet('/api/admin/system/uploads').then(function(d) {
+            document.getElementById('uploads-summary').textContent =
+                '(' + d.count + ' 个文件，合计 ' + (d.totalSize || '0 B') + ')';
+            if (!d.files || d.files.length === 0) {
+                document.getElementById('uploads-table').querySelector('tbody').innerHTML =
+                    '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary);">暂无上传文件喵~</td></tr>';
+                return;
+            }
+            var tbody = '';
+            d.files.forEach(function(f) {
+                tbody += '<tr>';
+                tbody += '<td><a href="' + escHtml(f.url) + '" target="_blank" style="color:var(--accent);text-decoration:none;">' + escHtml(f.name) + '</a></td>';
+                tbody += '<td class="upload-size">' + escHtml(f.sizeFormatted) + '</td>';
+                tbody += '<td class="time-badge">' + escHtml(f.modified) + '</td>';
+                tbody += '</tr>';
+            });
+            document.getElementById('uploads-table').querySelector('tbody').innerHTML = tbody;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            document.getElementById('uploads-table').querySelector('tbody').innerHTML =
+                '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary);">加载失败喵~</td></tr>';
+        });
+    }
+    
+    // ===== System: Enhanced Data Files (with download) =====
+    function loadDataFiles() {
+        if (!adminToken) return;
+        apiGet('/api/admin/stats').then(function(d) {
+            var sizes = d.dataSizes;
+            var files = Object.keys(sizes).sort();
+            var tbody = '';
+            files.forEach(function(f) {
+                tbody += '<tr>';
+                tbody += '<td>' + escHtml(f) + '</td>';
+                tbody += '<td style="font-family:var(--font-mono);">' + escHtml(sizes[f]) + '</td>';
+                tbody += '<td><button class="btn-sm btn-ghost js-download-file" data-filename="' + escHtml(f) + '">📥 下载</button></td>';
+                tbody += '</tr>';
+            });
+            document.getElementById('data-files-table').querySelector('tbody').innerHTML = tbody;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    function downloadDataFile(filename) {
+        if (!adminToken) return;
+        fetch('/api/admin/system/export/' + encodeURIComponent(filename), {
+            headers: { 'Authorization': 'Bearer ' + adminToken }
+        }).then(function(r) {
+            if (!r.ok) throw new Error('Download failed');
+            return r.blob();
+        }).then(function(blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('正在下载 ' + filename + '…', 'success');
+        }).catch(function() {
+            showToast('下载失败喵~', 'error');
+        });
+    }
+    
+    // ===== System: Expanded Danger Zone =====
+    function confirmClearConversations() {
+        showConfirm(
+            '清空所有对话',
+            '确定要清空所有用户的 AI 对话记录吗？此操作不可恢复。',
+            '⚠️ 将删除所有对话历史，包括猫娘模式和编程模式的所有对话。',
+            function() {
+                apiPost('/api/admin/system/clear-conversations').then(function(d) {
+                    if (d.error) { showToast(d.error, 'error'); return; }
+                    showToast(d.message || '已清空所有对话喵~', 'success');
+                    _tabsLoaded['overview'] = false;
+                }).catch(function(e) {
+                    if (e.message === 'expired') return;
+                });
+            }
+        );
+    }
+    
+    function confirmClearBarcodes() {
+        showConfirm(
+            '清空条码历史',
+            '确定要清空所有用户的条码生成历史吗？此操作不可恢复。',
+            null,
+            function() {
+                apiPost('/api/admin/system/clear-barcodes').then(function(d) {
+                    if (d.error) { showToast(d.error, 'error'); return; }
+                    showToast(d.message || '已清空所有条码历史喵~', 'success');
+                    _tabsLoaded['overview'] = false;
+                }).catch(function(e) {
+                    if (e.message === 'expired') return;
+                });
+            }
+        );
+    }
+    
+    function confirmClearPrompts() {
+        showConfirm(
+            '清空所有提示词',
+            '确定要清空所有用户的提示词卡片吗？此操作不可恢复。',
+            '⚠️ 将删除所有用户自定义的提示词（内置种子卡片不受影响）。',
+            function() {
+                apiPost('/api/admin/system/clear-prompts').then(function(d) {
+                    if (d.error) { showToast(d.error, 'error'); return; }
+                    showToast(d.message || '已清空所有提示词喵~', 'success');
+                    _tabsLoaded['overview'] = false;
+                }).catch(function(e) {
+                    if (e.message === 'expired') return;
+                });
+            }
+        );
+    }
+    
+    function confirmClearPreferences() {
+        showConfirm(
+            '清空所有用户偏好',
+            '确定要清空所有用户的阅读偏好数据吗？此操作不可恢复。',
+            '⚠️ 将清除所有用户的文章置顶记录和阅读进度。',
+            function() {
+                apiPost('/api/admin/system/clear-preferences').then(function(d) {
+                    if (d.error) { showToast(d.error, 'error'); return; }
+                    showToast(d.message || '已清空所有用户偏好喵~', 'success');
+                    _tabsLoaded['overview'] = false;
+                }).catch(function(e) {
+                    if (e.message === 'expired') return;
+                });
+            }
+        );
+    }
+    
+    // ===== 种子提示词管理 =====
+    function loadSeeds() {
+        if (!adminToken) return;
+        apiGet('/api/admin/seed-prompts').then(function(d) {
+            if (!d || d.length === 0) {
+                document.getElementById('seed-table-content').innerHTML =
+                    '<div class="empty-state"><div class="icon">🌱</div><div>暂无种子提示词喵~</div></div>';
+                return;
+            }
+    
+            var html = '<table><thead><tr><th></th><th>名称</th><th>描述</th><th>操作</th></tr></thead><tbody>';
+            d.forEach(function(s) {
+                html += '<tr>';
+                html += '<td style="font-size:20px;width:40px;text-align:center;">' + escHtml(s.icon) + '</td>';
+                html += '<td><strong>' + escHtml(s.title) + '</strong><br><span style="font-size:10px;color:var(--text-tertiary);">key: ' + escHtml(s.key) + '</span></td>';
+                html += '<td style="font-size:12px;color:var(--text-secondary);">' + escHtml(s.desc) + '</td>';
+                html += '<td><button class="btn-sm btn-ghost js-view-seed" data-seed-id="' + escHtml(s.id) + '">📋 查看</button></td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('seed-table-content').innerHTML = html;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            document.getElementById('seed-table-content').innerHTML =
+                '<div class="empty-state"><div class="icon">⚠️</div><div>加载失败，请重试喵~</div></div>';
+        });
+    }
+    
+    var _seedCache = null;
+    
+    function viewSeedPrompt(id) {
+        // 懒加载种子数据
+        if (_seedCache) {
+            showSeedModal(id);
+            return;
+        }
+        apiGet('/api/admin/seed-prompts').then(function(d) {
+            _seedCache = d;
+            showSeedModal(id);
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+            showToast('加载种子提示词失败喵~', 'error');
+        });
+    }
+    
+    function showSeedModal(id) {
+        var seed = _seedCache.find(function(s) { return s.id === id; });
+        if (!seed) { showToast('提示词不存在喵~', 'error'); return; }
+        document.getElementById('seed-view-title').textContent = seed.icon + ' ' + seed.title;
+        document.getElementById('seed-view-content').textContent = seed.content || '（无内容）';
+        showModal('seed-view-modal');
+    }
+    
+    // ===== 提示词管理（用户）=====
+    var _promptPage = 1;
+    var _promptSearchTimer = null;
+    
+    function loadPrompts(page) {
+        if (!adminToken) return;
+        _promptPage = page || 1;
+        var search = document.getElementById('prompt-search').value;
+        var url = '/api/admin/prompts?page=' + _promptPage + '&limit=20';
+        if (search) url += '&search=' + encodeURIComponent(search);
+    
+        apiGet(url).then(function(d) {
+            if (d.prompts.length === 0) {
+                document.getElementById('prompt-table-content').innerHTML =
+                    '<div class="empty-state"><div class="icon">🔍</div><div>' + (search ? '没有匹配的提示词喵~' : '暂无用户提示词喵~') + '</div></div>';
+                document.getElementById('prompt-pagination').innerHTML = '';
+                return;
+            }
+    
+            var html = '<table><thead><tr><th>标题</th><th>作者</th><th>类型</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+            d.prompts.forEach(function(p) {
+                html += '<tr>';
+                html += '<td><strong>' + escHtml(p.title) + '</strong>' + (p.pinned ? ' <span class="badge badge-accent">📌 置顶</span>' : '') + '</td>';
+                html += '<td style="font-size:12px;">' + escHtml(p.authorName) + '</td>';
+                html += '<td>' + (p.seedVersion ? '<span class="badge badge-info">种子 v' + escHtml(p.seedVersion) + '</span>' : '<span class="badge badge-accent">自定义</span>') + '</td>';
+                html += '<td class="time-badge">' + formatDate(p.createdAt) + '</td>';
+                html += '<td style="white-space:nowrap;">';
+                html += '<button class="btn-sm btn-danger js-delete-prompt" data-prompt-id="' + escHtml(p.id) + '" data-title="' + escHtml(p.title) + '">🗑️</button>';
+                html += '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('prompt-table-content').innerHTML = html;
+    
+            var pagHtml = '';
+            pagHtml += '<button ' + (_promptPage <= 1 ? 'disabled' : '') + ' class="js-prompt-page" data-page="' + (_promptPage - 1) + '">上一页</button>';
+            pagHtml += '<span class="page-info">第 ' + d.page + ' / ' + d.totalPages + ' 页（共 ' + d.total + ' 条）</span>';
+            pagHtml += '<button ' + (_promptPage >= d.totalPages ? 'disabled' : '') + ' class="js-prompt-page" data-page="' + (_promptPage + 1) + '">下一页</button>';
+            document.getElementById('prompt-pagination').innerHTML = '<div class="pagination">' + pagHtml + '</div>';
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    function onPromptSearch() {
+        clearTimeout(_promptSearchTimer);
+        _promptSearchTimer = setTimeout(function() { loadPrompts(1); }, 300);
+    }
+    
+    function confirmDeletePrompt(id, title) {
+        showConfirm(
+            '确认删除提示词',
+            '确定要删除提示词「' + title + '」吗？此操作不可恢复。',
+            null,
+            function() { doDeletePrompt(id); }
+        );
+    }
+    
+    function doDeletePrompt(id) {
+        apiDelete('/api/admin/prompts/' + id).then(function(d) {
+            if (d.error) { showToast(d.error, 'error'); return; }
+            showToast('提示词已删除喵~', 'success');
+            loadPrompts(_promptPage);
+            _tabsLoaded['overview'] = false;
+        }).catch(function(e) {
+            if (e.message === 'expired') return;
+        });
+    }
+    
+    // ===== 启动面板 =====
+    function startDashboard() {
+        _tabsLoaded['overview'] = true;
+        loadOverviewStats();
+        refreshTable();
+        setInterval(refreshTable, 5000);
+    }
+
+    // ===== 事件委托：用户表格 (编辑 / 删除) =====
+    document.getElementById('user-table-content').addEventListener('click', function(e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        if (btn.classList.contains('js-edit-user')) {
+            openEditUser(btn.dataset.userId, btn.dataset.username, btn.dataset.email);
+        } else if (btn.classList.contains('js-delete-user')) {
+            confirmDeleteUser(btn.dataset.userId, btn.dataset.username);
+        }
+    });
+
+    // ===== 事件委托：文章表格 (编辑 / 删除) + 分页 =====
+    document.getElementById('article-table-content').addEventListener('click', function(e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        if (btn.classList.contains('js-edit-article')) {
+            openEditArticle(btn.dataset.articleId);
+        } else if (btn.classList.contains('js-delete-article')) {
+            confirmDeleteArticle(btn.dataset.articleId, btn.dataset.title);
+        }
+    });
+    document.getElementById('article-pagination').addEventListener('click', function(e) {
+        var btn = e.target.closest('.js-article-page');
+        if (btn && !btn.disabled) loadArticles(parseInt(btn.dataset.page));
+    });
+
+    // ===== 事件委托：提示词表格 (删除) + 分页 =====
+    document.getElementById('prompt-table-content').addEventListener('click', function(e) {
+        var btn = e.target.closest('.js-delete-prompt');
+        if (btn) confirmDeletePrompt(btn.dataset.promptId, btn.dataset.title);
+    });
+    document.getElementById('prompt-pagination').addEventListener('click', function(e) {
+        var btn = e.target.closest('.js-prompt-page');
+        if (btn && !btn.disabled) loadPrompts(parseInt(btn.dataset.page));
+    });
+
+    // ===== 事件委托：种子提示词表格 (查看) =====
+    document.getElementById('seed-table-content').addEventListener('click', function(e) {
+        var btn = e.target.closest('.js-view-seed');
+        if (btn) viewSeedPrompt(btn.dataset.seedId);
+    });
+
+    // ===== 事件委托：数据文件下载 =====
+    document.getElementById('data-files-table').addEventListener('click', function(e) {
+        var btn = e.target.closest('.js-download-file');
+        if (btn) downloadDataFile(btn.dataset.filename);
+    });
+
+    // ===== 事件委托：危险操作区 =====
+    document.querySelector('.danger-actions').addEventListener('click', function(e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+        if (btn.classList.contains('js-clear-conversations')) confirmClearConversations();
+        else if (btn.classList.contains('js-clear-barcodes')) confirmClearBarcodes();
+        else if (btn.classList.contains('js-clear-prompts')) confirmClearPrompts();
+        else if (btn.classList.contains('js-clear-preferences')) confirmClearPreferences();
+    });
+
+    // ===== 暴露 onclick / oninput / onchange 需要的函数到全局 =====
+    // (仅暴露硬编码 HTML 中仍然需要的函数)
+    window.switchTab = switchTab;
+    window.onUserSearch = onUserSearch;
+    window.onArticleSearch = onArticleSearch;
+    window.onPromptSearch = onPromptSearch;
+    window.hideModal = hideModal;
+    window.showModal = showModal;
+    window.showConfirm = showConfirm;
+    window.doConfirm = doConfirm;
+    window.toggleAutoRefresh = toggleAutoRefresh;
+    window.testAllAPIs = testAllAPIs;
+    window.loadLog = loadLog;
+    window.renderLogContent = renderLogContent;
+
+})();
+</script>
+</body>
+</html>
