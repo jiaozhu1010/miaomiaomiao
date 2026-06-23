@@ -1,0 +1,22 @@
+/* =========================
+   雨滴覆盖层 (Raindrop FX Overlay)
+   全站雨天效果 — 固定覆盖层, 不阻挡交互
+   配合 JS 中 canvas.style.mixBlendMode = 'screen' 实现暗底透明
+   ========================= */
+
+.raindrop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+}
+
+.raindrop-overlay canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* mix-blend-mode 由 JS 动态设置到 canvas 元素上 */
+}

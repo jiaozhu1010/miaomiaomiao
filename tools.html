@@ -8,11 +8,21 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="/styles/base.css?v=2">
     <link rel="stylesheet" href="/styles/auth.css">
+    <link rel="stylesheet" href="/styles/raindrop-overlay.css">
     <style>
         /* =========================
            喵码 AI 工具箱 · 页面特有样式
            (共享样式见 /styles/base.css)
            ========================= */
+
+        /* ===== 页面背景 — 柔和黄色光晕 + 噪点纹理 ===== */
+        .tools-bg-glow { position:fixed; inset:0; z-index:0; pointer-events:none;
+            background: radial-gradient(circle at center, #FFF991 0%, transparent 70%);
+            opacity:0.6; mix-blend-mode:multiply; }
+        .tools-bg-noise { position:fixed; inset:0; z-index:1; pointer-events:none;
+            background:#ffffff;
+            background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.35) 1px, transparent 0);
+            background-size:20px 20px; }
 
         /* ===== Bento 仪表盘 — Grid 密集环绕 ===== */
         /* 桌面: 5列网格，对话卡居中占 3列×3行，其余卡片 dense 自动填空四周 */
@@ -292,14 +302,9 @@
     </style>
 </head>
 <body>
-    <!-- 背景 -->
-    <div class="bg-atmosphere">
-        <div class="bg-orb bg-orb--warm"></div>
-        <div class="bg-orb bg-orb--pink"></div>
-        <div class="bg-orb bg-orb--blue"></div>
-        <div class="bg-orb bg-orb--cream"></div>
-    </div>
-    <div class="bg-grain"></div>
+    <!-- 背景 — 柔和黄色光晕 + 噪点纹理 -->
+    <div class="tools-bg-glow"></div>
+    <div class="tools-bg-noise"></div>
 
     <div class="app-shell">
         <!-- 顶栏 -->
@@ -520,6 +525,8 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="/lib/miaosite-auth.js"></script>
+    <script src="/lib/gsap.min.js?v=1"></script>
+    <script src="/lib/ScrollTrigger.min.js?v=1"></script>
     <script>
     // 主题初始化
     (function(){ var c=localStorage.getItem('miaosite_theme')||'orange'; document.documentElement.setAttribute('data-theme-color',c); })();
@@ -2552,5 +2559,167 @@ if ('serviceWorker' in navigator) {
 <script>
   document.write('<script src="/www/auth/assets/miaosite-auth.js?v=' + Date.now() + '"><\/script>');
 </script>
+
+<!-- ==================== 喵码 · GSAP + ScrollTrigger 动画系统 ==================== -->
+<script>
+(function() {
+if (typeof gsap === 'undefined') return;
+
+gsap.registerPlugin(ScrollTrigger);
+
+// ===== 响应式 + 无障碍 =====
+var reduceMotion = false;
+var mm = gsap.matchMedia();
+
+mm.add({
+  isDesktop: "(min-width: 768px)",
+  isMobile: "(max-width: 767px)",
+  reduceMotion: "(prefers-reduced-motion: reduce)"
+}, function(ctx) {
+  var conds = ctx.conditions || {};
+  var isDesktop = !!conds.isDesktop;
+  reduceMotion = !!conds.reduceMotion;
+
+  // ==============================
+  // 1. 🌌 背景光晕 — GSAP 有机浮动
+  // ==============================
+  var orbs = [
+    { el: '.bg-orb--warm', x: 8, y: 10, s: 1.08, dur: 18 },
+    { el: '.bg-orb--pink', x: -6, y: -8, s: 1.10, dur: 22 },
+    { el: '.bg-orb--blue', x: 10, y: -5, s: 1.12, dur: 20 },
+    { el: '.bg-orb--cream', x: -5, y: 6, s: 1.06, dur: 24 }
+  ];
+  orbs.forEach(function(o) {
+    var orb = document.querySelector(o.el);
+    if (!orb) return;
+    gsap.set(orb, { opacity: 0 });
+    if (reduceMotion) { gsap.set(orb, { opacity: 0.5 }); return; }
+    gsap.to(orb, { opacity: 0.5, duration: 1.2, ease: 'power2.out' });
+    gsap.to(orb, {
+      xPercent: o.x, yPercent: o.y, scale: o.s,
+      duration: o.dur, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      delay: Math.random() * o.dur
+    });
+    gsap.to(orb, {
+      rotation: isDesktop ? 8 : 4,
+      duration: o.dur * 1.5, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      delay: Math.random() * o.dur
+    });
+  });
+
+  // ==============================
+  // 2. 🎬 主入场时间线
+  // ==============================
+  var entryTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+  // Nav bar
+  var navBar = document.querySelector('.nav-bar');
+  if (navBar) {
+    entryTl.fromTo(navBar,
+      reduceMotion ? { opacity: 0 } : { y: -24, opacity: 0 },
+      { y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.55 },
+      0.1
+    );
+  }
+
+  // Chat card — 主输入区弹性入场
+  var chatCard = document.querySelector('.chat-card');
+  if (chatCard) {
+    entryTl.fromTo(chatCard,
+      reduceMotion ? { opacity: 0 } : { scale: 0.94, y: 20, opacity: 0 },
+      { scale: 1, y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.6, ease: 'back.out(1.2)' },
+      0.4
+    );
+  }
+
+  // Skill cards — 交错入场
+  var skillCards = document.querySelectorAll('.skill-card');
+  if (skillCards.length) {
+    entryTl.fromTo(skillCards,
+      reduceMotion ? { opacity: 0 } : { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' },
+      0.65
+    );
+  }
+
+  // ==============================
+  // 3. 📜 滚动揭示
+  // ==============================
+  var revealCards = document.querySelectorAll('.skill-card');
+  if (revealCards.length && !reduceMotion) {
+    ScrollTrigger.batch(revealCards, {
+      onEnter: function(elements) {
+        gsap.fromTo(elements,
+          { y: 28, opacity: 0 },
+          { y: 0, opacity: 1, stagger: 0.06, duration: 0.5, ease: 'power2.out' }
+        );
+      },
+      start: 'top 92%',
+      once: true
+    });
+  } else if (revealCards.length && reduceMotion) {
+    gsap.set(revealCards, { opacity: 1 });
+  }
+
+  // ==============================
+  // 4. 🧊 导航栏滚动毛玻璃增强
+  // ==============================
+  if (navBar && !reduceMotion) {
+    ScrollTrigger.create({
+      start: 'top -20px',
+      end: 'bottom top',
+      onUpdate: function(self) {
+        var p = Math.min(self.progress * 1.5, 1);
+        gsap.to(navBar, {
+          '--nav-blur': (8 + p * 16).toFixed(1) + 'px',
+          '--nav-opacity': (0.55 + p * 0.3).toFixed(2),
+          duration: 0.2, overwrite: 'auto'
+        });
+      }
+    });
+    navBar.style.setProperty('--nav-blur', '8px');
+    navBar.style.setProperty('--nav-opacity', '0.55');
+    navBar.style.backdropFilter = 'blur(var(--nav-blur, 8px)) saturate(180%)';
+    navBar.style.webkitBackdropFilter = 'blur(var(--nav-blur, 8px)) saturate(180%)';
+    navBar.style.background = 'rgba(255,255,255, var(--nav-opacity, 0.55))';
+  }
+
+  console.log("🐱 工具箱 GSAP + ScrollTrigger 动画系统就绪喵~");
+
+}); // end gsap.matchMedia()
+})();
+</script>
+
+<!-- 天气状态共享 + 雨滴覆盖层 -->
+<script src="/lib/weather-state.js?v=1"></script>
+<script src="/lib/raindrop-fx.js?v=1"></script>
+<script src="/lib/raindrop-overlay.js?v=1"></script>
+<script>
+(function() {
+    if (!window.WeatherState || !window.RaindropOverlay) return;
+    var state = window.WeatherState.getRainState();
+    if (state === true) {
+        window._rainOverlay = new window.RaindropOverlay();
+        window._rainOverlay.start();
+    } else if (state === null) {
+        // 无缓存, 异步检查天气
+        fetch('/api/weather?city=苏州')
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(d) {
+                if (d && d.current && window.WeatherState.isRainyIcon(d.current.iconCode)) {
+                    window.WeatherState.setRainState(true);
+                    window._rainOverlay = new window.RaindropOverlay();
+                    window._rainOverlay.start();
+                } else if (d && d.current) {
+                    window.WeatherState.setRainState(false);
+                }
+            })
+            .catch(function() {});
+    }
+})();
+</script>
+
 </body>
 </html>

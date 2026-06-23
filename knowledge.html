@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/lib/katex.min.css?v=1">
     <link rel="stylesheet" href="/styles/base.css?v=2">
     <link rel="stylesheet" href="/styles/auth.css">
+    <link rel="stylesheet" href="/styles/raindrop-overlay.css">
     <style>
         /* ============================================================
            知识库 — 页面特有样式 (共享样式见 /styles/base.css)
@@ -1878,12 +1879,38 @@
             .tut-nav { flex-direction: column; gap: 10px; }
             .tut-nav-btn { width: 100%; justify-content: center; }
         }
+
+        /* ============================================================
+           入场动画预隐藏 — 防止动画前页面闪现
+           GSAP 入口动画系统会自动揭示这些元素
+           ============================================================ */
+        .nav-bar,
+        .mode-tabs,
+        .content-sidebar .glass-card,
+        .article-card,
+        .action-bar,
+        .pagination {
+            opacity: 0;
+        }
+        /* 无 JS 回退：若 GSAP 未加载则正常显示 */
+        noscript .nav-bar,
+        noscript .mode-tabs,
+        noscript .content-sidebar .glass-card,
+        noscript .article-card,
+        noscript .action-bar,
+        noscript .pagination {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
 
     <!-- 背景氛围 — 网格 + 柔黄光晕 -->
     <div class="bg-atmosphere">
+        <div class="bg-orb bg-orb--warm"></div>
+        <div class="bg-orb bg-orb--pink"></div>
+        <div class="bg-orb bg-orb--blue"></div>
+        <div class="bg-orb bg-orb--cream"></div>
         <div class="bg-grid"></div>
         <div class="bg-grain"></div>
     </div>
@@ -3618,6 +3645,8 @@
             if (state._sidebarBackup) {
                 articleSidebar.innerHTML = state._sidebarBackup;
                 state._sidebarBackup = null;
+                // 恢复的 DOM 节点覆盖 CSS 预隐藏 opacity:0
+                articleSidebar.querySelectorAll('.glass-card').forEach(function(c) { c.style.opacity = '1'; });
             }
             // 恢复文章列表：清除内联样式，让 CSS 接管
             var listEl = document.getElementById('article-list');
@@ -3664,6 +3693,8 @@
                 + '</div></div>'
                 + '<h3 style="font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 6px 4px;">📑 目录</h3>'
                 + '<div id="tut-section-list"></div>';
+            // 新 DOM 节点覆盖 CSS 预隐藏 opacity:0
+            articleSidebar.querySelectorAll('.glass-card').forEach(function(c) { c.style.opacity = '1'; });
             // 始终重新加载教程数据
             checkTutorialStatus();
         }
@@ -4319,11 +4350,198 @@ if ('serviceWorker' in navigator) {
 <script src="/lib/katex.min.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
 <script src="/lib/gsap.min.js?v=1"></script>
+<script src="/lib/ScrollTrigger.min.js?v=1"></script>
 
 <!-- React Auth Flip Card -->
 <div id="auth-root"></div>
 <script>
   document.write('<script src="/www/auth/assets/miaosite-auth.js?v=' + Date.now() + '"><\/script>');
 </script>
+
+<!-- ==================== 喵码 · GSAP + ScrollTrigger 动画系统 ==================== -->
+<script>
+(function() {
+if (typeof gsap === 'undefined') return;
+
+gsap.registerPlugin(ScrollTrigger);
+
+// ===== 响应式 + 无障碍 =====
+var reduceMotion = false;
+var mm = gsap.matchMedia();
+
+// ===== 安全回退：3s 后若动画未执行则强制显示所有元素 =====
+var safetyTimer = setTimeout(function() {
+  gsap.set('.nav-bar, .mode-tabs, .content-sidebar .glass-card, .article-card, .action-bar, .pagination', { opacity: 1 });
+}, 3000);
+
+mm.add({
+  isDesktop: "(min-width: 768px)",
+  isMobile: "(max-width: 767px)",
+  reduceMotion: "(prefers-reduced-motion: reduce)"
+}, function(ctx) {
+  clearTimeout(safetyTimer); // 动画已执行，取消安全回退
+  var conds = ctx.conditions || {};
+  var isDesktop = !!conds.isDesktop;
+  reduceMotion = !!conds.reduceMotion;
+
+  // ==============================
+  // 1. 🌌 背景光晕 — GSAP 有机浮动 (入场完成后启动，避免资源竞争)
+  // ==============================
+  var orbs = [
+    { el: '.bg-orb--warm', x: 8, y: 10, s: 1.08, dur: 18 },
+    { el: '.bg-orb--pink', x: -6, y: -8, s: 1.10, dur: 22 },
+    { el: '.bg-orb--blue', x: 10, y: -5, s: 1.12, dur: 20 },
+    { el: '.bg-orb--cream', x: -5, y: 6, s: 1.06, dur: 24 }
+  ];
+  orbs.forEach(function(o) {
+    var orb = document.querySelector(o.el);
+    if (!orb) return;
+    gsap.set(orb, { opacity: 0, willChange: 'transform, opacity' });
+    if (reduceMotion) { gsap.set(orb, { opacity: 0.5 }); return; }
+    // 延迟 1.0s，等主入场动画完成后才启动光晕
+    gsap.to(orb, { opacity: 0.5, duration: 1.2, ease: 'power2.out', delay: 1.0 });
+    gsap.to(orb, {
+      xPercent: o.x, yPercent: o.y, scale: o.s,
+      duration: o.dur, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      delay: 1.0 + Math.random() * o.dur
+    });
+    gsap.to(orb, {
+      rotation: isDesktop ? 8 : 4,
+      duration: o.dur * 1.5, ease: 'sine.inOut',
+      repeat: -1, yoyo: true,
+      delay: 1.0 + Math.random() * o.dur
+    });
+  });
+
+  // ==============================
+  // 2. 🎬 主入场时间线 (GPU 加速，缩短时长，清理残留样式)
+  // ==============================
+  var entryTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+  // Nav bar — 从上轻快滑入
+  var navBar = document.querySelector('.nav-bar');
+  if (navBar) {
+    entryTl.fromTo(navBar,
+      reduceMotion ? { opacity: 0 } : { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.45, force3D: true,
+        onComplete: function() { gsap.set(navBar, { clearProps: 'transform,willChange' }); } },
+      0.05
+    );
+  }
+
+  // Mode tabs — 轻微上浮
+  var modeTabs = document.querySelector('.mode-tabs');
+  if (modeTabs) {
+    entryTl.fromTo(modeTabs,
+      reduceMotion ? { opacity: 0 } : { y: 8, opacity: 0 },
+      { y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.4, force3D: true,
+        onComplete: function() { gsap.set(modeTabs, { clearProps: 'transform,willChange' }); } },
+      0.2
+    );
+  }
+
+  // Sidebar cards — 从左侧交错滑入，节奏加快
+  var sidebarCards = document.querySelectorAll('.content-sidebar .glass-card');
+  sidebarCards.forEach(function(el) { gsap.set(el, { willChange: 'transform, opacity' }); });
+  if (sidebarCards.length) {
+    entryTl.fromTo(sidebarCards,
+      reduceMotion ? { opacity: 0 } : { x: -14, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.35, stagger: 0.06, ease: 'power3.out', force3D: true,
+        onComplete: function() { gsap.set(sidebarCards, { clearProps: 'transform,willChange' }); } },
+      0.35
+    );
+  }
+
+  // Article cards — 从下方交错滑入，更快节奏
+  var articleCards = document.querySelectorAll('.article-card');
+  articleCards.forEach(function(el) { gsap.set(el, { willChange: 'transform, opacity' }); });
+  if (articleCards.length) {
+    entryTl.fromTo(articleCards,
+      reduceMotion ? { opacity: 0 } : { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.35, stagger: 0.04, ease: 'power3.out', force3D: true,
+        onComplete: function() { gsap.set(articleCards, { clearProps: 'transform,willChange' }); } },
+      0.5
+    );
+  }
+
+  // ==============================
+  // 3. 📜 滚动揭示 (仅对未入场元素，避免与 entryTl 重复)
+  // ==============================
+  var scrollRevealTargets = document.querySelectorAll('.section-group, .action-bar, .pagination');
+  if (scrollRevealTargets.length && !reduceMotion) {
+    ScrollTrigger.batch(scrollRevealTargets, {
+      onEnter: function(elements) {
+        gsap.fromTo(elements,
+          { y: 22, opacity: 0 },
+          { y: 0, opacity: 1, stagger: 0.05, duration: 0.45, ease: 'power3.out', force3D: true,
+            onComplete: function() { gsap.set(elements, { clearProps: 'transform' }); } }
+        );
+      },
+      start: 'top 94%',
+      once: true
+    });
+  } else if (scrollRevealTargets.length && reduceMotion) {
+    gsap.set(scrollRevealTargets, { opacity: 1 });
+  }
+
+  // ==============================
+  // 4. 🧊 导航栏滚动毛玻璃增强
+  // ==============================
+  if (navBar && !reduceMotion) {
+    ScrollTrigger.create({
+      start: 'top -20px',
+      end: 'bottom top',
+      onUpdate: function(self) {
+        var p = Math.min(self.progress * 1.5, 1);
+        gsap.to(navBar, {
+          '--nav-blur': (8 + p * 16).toFixed(1) + 'px',
+          '--nav-opacity': (0.55 + p * 0.3).toFixed(2),
+          duration: 0.2, overwrite: 'auto'
+        });
+      }
+    });
+    navBar.style.setProperty('--nav-blur', '8px');
+    navBar.style.setProperty('--nav-opacity', '0.55');
+    navBar.style.backdropFilter = 'blur(var(--nav-blur, 8px)) saturate(180%)';
+    navBar.style.webkitBackdropFilter = 'blur(var(--nav-blur, 8px)) saturate(180%)';
+    navBar.style.background = 'rgba(255,255,255, var(--nav-opacity, 0.55))';
+  }
+
+  console.log("🐱 知识库 GSAP + ScrollTrigger 动画系统就绪喵~");
+
+}); // end gsap.matchMedia()
+})();
+</script>
+
+<!-- 天气状态共享 + 雨滴覆盖层 -->
+<script src="/lib/weather-state.js?v=1"></script>
+<script src="/lib/raindrop-fx.js?v=1"></script>
+<script src="/lib/raindrop-overlay.js?v=1"></script>
+<script>
+(function() {
+    if (!window.WeatherState || !window.RaindropOverlay) return;
+    var state = window.WeatherState.getRainState();
+    if (state === true) {
+        window._rainOverlay = new window.RaindropOverlay();
+        window._rainOverlay.start();
+    } else if (state === null) {
+        // 无缓存, 异步检查天气
+        fetch('/api/weather?city=苏州')
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(d) {
+                if (d && d.current && window.WeatherState.isRainyIcon(d.current.iconCode)) {
+                    window.WeatherState.setRainState(true);
+                    window._rainOverlay = new window.RaindropOverlay();
+                    window._rainOverlay.start();
+                } else if (d && d.current) {
+                    window.WeatherState.setRainState(false);
+                }
+            })
+            .catch(function() {});
+    }
+})();
+</script>
+
 </body>
 </html>

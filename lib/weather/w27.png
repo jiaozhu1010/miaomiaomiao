@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>错误-404</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta content="yes" name="apple-touch-fullscreen"/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="mojichina" />
+<link rel="stylesheet" type="text/css" href="http://cdn2.moji002.com/webpush/err/css/global.css">
+<link rel="stylesheet" type="text/css" href="http://cdn2.moji002.com/webpush/err/css/index.css">
+<link rel="stylesheet" type="text/css" href="http://cdn2.moji002.com/webpush/err/css/gmu.css">
+</head>
+<body>
+<section class="error-404">
+    <div class="error-404-in">
+        <div class="e404">
+            <div class="img"></div>
+        </div>
+        <div class="ta-c"><button class="btn btn-info"  onclick="javascript:history.back();">返回上一页</button></div>
+    </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raindrop FX Test</title>
+    <style>
+        body { margin: 0; background: #1a1a2e; color: #fff; font-family: sans-serif; }
+        #log { padding: 20px; }
+        .err { color: #ff6b6b; }
+        .ok { color: #51cf66; }
+        .info { color: #74c0fc; }
+        #canvas-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+        #canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    </style>
+</head>
+<body>
+    <div id="log"></div>
+    <div id="canvas-wrap"></div>
+
+    <script src="lib/raindrop-fx.js"></script>
+    <script>
+    var logEl = document.getElementById('log');
+    function log(msg, cls) {
+        var div = document.createElement('div');
+        div.className = cls || 'info';
+        div.textContent = '[Test] ' + msg;
+        logEl.appendChild(div);
+        console.log('[Test]', msg);
+    }
+
+    log('1. RaindropFX 类型: ' + typeof RaindropFX);
+
+    if (typeof RaindropFX === 'undefined') {
+        log('FAIL: RaindropFX 未定义!', 'err');
+    } else {
+        log('OK: RaindropFX 已加载', 'ok');
+
+        // 检查它的属性
+        var proto = RaindropFX.prototype;
+        log('2. 原型方法: ' + Object.getOwnPropertyNames(proto).join(', '));
+
+        // 创建 canvas
+        var wrap = document.getElementById('canvas-wrap');
+        var canvas = document.createElement('canvas');
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.display = 'block';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        wrap.appendChild(canvas);
+        log('3. Canvas 创建: ' + canvas.width + 'x' + canvas.height);
+
+        // 尝试构造
+        try {
+            log('4. 正在 new RaindropFX...');
+            var fx = new RaindropFX({
+                canvas: canvas,
+                spawnLimit: 100,
+                backgroundBlurSteps: 0
+            });
+            log('OK: RaindropFX 实例已创建', 'ok');
+
+            // 检查实例
+            log('5. 实例方法: start=' + typeof fx.start + ' stop=' + typeof fx.stop);
+
+            // 尝试 start
+            try {
+                log('6. 正在调用 fx.start()...');
+                var result = fx.start();
+                log('7. start() 返回值类型: ' + typeof result);
+                log('8. start() 返回值: ' + result);
+
+                if (result && typeof result.then === 'function') {
+                    log('9. start() 返回 Promise, 等待中...');
+                    result.then(function() {
+                        log('SUCCESS! 雨滴效果已启动', 'ok');
+                    }).catch(function(err) {
+                        log('FAIL: start() Promise 被拒绝: ' + err.message, 'err');
+                        console.error(err);
+                    });
+                } else {
+                    log('9. start() 不返回 Promise, 假定同步成功', 'ok');
+                }
+            } catch (err) {
+                log('FAIL: start() 抛出异常: ' + err.message, 'err');
+                console.error(err);
+            }
+        } catch (err) {
+            log('FAIL: new RaindropFX() 抛出异常: ' + err.message, 'err');
+            console.error(err);
+
+            // 尝试逐步构造来定位问题
+            log('--- 诊断 ---');
+            log('Canvas WebGL支持: ' + (!!canvas.getContext('webgl2')), 'info');
+            var gl = canvas.getContext('webgl2');
+            if (gl) {
+                log('WebGL版本: ' + gl.getParameter(gl.VERSION));
+                log('WebGL渲染器: ' + gl.getParameter(gl.RENDERER));
+            }
+        }
+    }
+    </script>
+</body>
+</html>

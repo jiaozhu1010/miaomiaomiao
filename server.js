@@ -3572,6 +3572,11 @@ let momentCache = null;
 let momentCacheTime = 0;
 const MOMENT_CACHE_TTL = 1200000; // 20分钟
 
+let weatherCacheData = null;
+let weatherCacheTime = 0;
+let weatherCacheCity = null;
+const WEATHER_CACHE_TTL = 1800000; // 30分钟
+
 app.get('/api/this-moment', async (req, res) => {
     try {
         const now = Date.now();
@@ -3662,6 +3667,188 @@ app.get('/api/this-moment', async (req, res) => {
             return res.json(momentCache);
         }
         res.status(503).json({ error: '此刻的数据正在路上喵~' });
+    }
+});
+
+// =========================
+// 🌤️ 天气代理 — 和风天气 (QWeather)
+// =========================
+const QWEATHER_HOST = process.env.QWEATHER_HOST || 'n25u9xq2p9.re.qweatherapi.com';
+const QWEATHER_KEY = process.env.QWEATHER_KEY || '116b8170e83a49178a998fe3d6c03cef';
+const QWEATHER_BASE = `https://${QWEATHER_HOST}`;
+
+// 获取城市坐标（Open-Meteo 免费可靠）
+async function qwCityLookup(city) {
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=zh`;
+    const res = await fetch(geoUrl, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`);
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) {
+        throw new Error(`找不到城市「${city}」`);
+    }
+    return {
+        name: data.results[0].name || city,
+        lon: data.results[0].longitude.toFixed(2),
+        lat: data.results[0].latitude.toFixed(2)
+    };
+}
+
+app.get('/api/weather', async (req, res) => {
+    try {
+        const now = Date.now();
+        const city = req.query.city || '苏州';
+
+        if (weatherCacheData && weatherCacheCity === city && (now - weatherCacheTime) < WEATHER_CACHE_TTL) {
+            return res.json(weatherCacheData);
+        }
+
+        // Step 1: 城市名 → 经纬度
+        const loc = await qwCityLookup(city);
+        const locId = `${loc.lon},${loc.lat}`;
+
+        // Step 2: 计算昨天、前天日期
+        const today = new Date();
+        const yday = new Date(today); yday.setDate(yday.getDate() - 1);
+        const dby = new Date(today); dby.setDate(dby.getDate() - 2);
+        const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+
+        // Step 3: 并行获取历史 + 实时 + 7天预报 + 24小时逐时
+        const headers = { 'X-QW-Api-Key': QWEATHER_KEY };
+        const [yesRes, dbyRes, nowRes, dayRes, hourRes] = await Promise.all([
+            fetch(`${QWEATHER_BASE}/v7/historical/weather?location=${locId}&date=${fmt(yday)}`, { headers, signal: AbortSignal.timeout(5000) }),
+            fetch(`${QWEATHER_BASE}/v7/historical/weather?location=${locId}&date=${fmt(dby)}`, { headers, signal: AbortSignal.timeout(5000) }),
+            fetch(`${QWEATHER_BASE}/v7/weather/now?location=${locId}`, { headers, signal: AbortSignal.timeout(5000) }),
+            fetch(`${QWEATHER_BASE}/v7/weather/7d?location=${locId}`, { headers, signal: AbortSignal.timeout(5000) }),
+            fetch(`${QWEATHER_BASE}/v7/weather/24h?location=${locId}`, { headers, signal: AbortSignal.timeout(5000) })
+        ]);
+
+        const [yesData, dbyData, nowData, dayData, hourData] = await Promise.all([
+            yesRes.json(), dbyRes.json(), nowRes.json(), dayRes.json(), hourRes.json()
+        ]);
+
+        if (nowData.code !== '200') throw new Error(`QWeather now API error: ${nowData.code}`);
+        if (dayData.code !== '200') throw new Error(`QWeather 7d API error: ${dayData.code}`);
+        if (hourData.code !== '200') throw new Error(`QWeather 24h API error: ${hourData.code}`);
+
+        // 解析实时天气
+        const nw = nowData.now;
+
+        // 昨天、前天（历史）
+        // 注：QWeather historical daily 不含 textDay/iconDay，用逐时中最常见的天气作为代表
+        function histDay(hData, dateStr) {
+            if (hData.code !== '200' || !hData.weatherDaily) return null;
+            const d = hData.weatherDaily;
+            // 从逐时数据中统计最常见天气
+            let iconCode = '';
+            let weatherDesc = '';
+            if (hData.weatherHourly && hData.weatherHourly.length > 0) {
+                const counts = {};
+                let best = null;
+                for (const h of hData.weatherHourly) {
+                    const k = h.icon;
+                    counts[k] = (counts[k] || 0) + 1;
+                    if (!best || counts[k] > counts[best]) { best = k; weatherDesc = h.text; iconCode = h.icon; }
+                }
+            }
+            const dd = new Date(dateStr);
+            return {
+                date: dateStr,
+                weekday: ['周日','周一','周二','周三','周四','周五','周六'][dd.getDay()],
+                high: parseFloat(d.tempMax || 0),
+                low: parseFloat(d.tempMin || 0),
+                weatherDesc: weatherDesc || '--',
+                iconCode: iconCode || ''
+            };
+        }
+
+        const histDays = [
+            histDay(dbyData, fmt(dby)),
+            histDay(yesData, fmt(yday))
+        ].filter(Boolean);
+
+        // 解析未来每日预报
+        const futureDaily = dayData.daily.map(d => {
+            const dd = new Date(d.fxDate);
+            return {
+                date: d.fxDate,
+                weekday: ['周日','周一','周二','周三','周四','周五','周六'][dd.getDay()],
+                high: parseFloat(d.tempMax),
+                low: parseFloat(d.tempMin),
+                weatherDesc: d.textDay,
+                iconCode: d.iconDay || ''
+            };
+        });
+
+        // 合并历史+未来，再按日期排序确保严格时间顺序
+        const daily = [...histDays, ...futureDaily].sort((a, b) => a.date.localeCompare(b.date));
+
+        // 解析逐小时预报 + 72小时预报（跨天），按时间严格排序
+        let allHourly = [...hourData.hourly];
+        // 尝试获取72小时预报以覆盖前天→今天→后天
+        try {
+            const h72Res = await fetch(`${QWEATHER_BASE}/v7/weather/72h?location=${locId}`, { headers, signal: AbortSignal.timeout(5000) });
+            if (h72Res.ok) {
+                const h72Data = await h72Res.json();
+                if (h72Data.code === '200' && h72Data.hourly) {
+                    // 72h 可能和 24h 有重叠，用 fxTime 去重
+                    const seen = new Set(allHourly.map(h => h.fxTime));
+                    for (const h of h72Data.hourly) {
+                        if (!seen.has(h.fxTime)) { allHourly.push(h); seen.add(h.fxTime); }
+                    }
+                }
+            }
+        } catch (_) { /* 72h 不可用时保持 24h 数据 */ }
+
+        // 按时间排序，只保留昨天/今天/明天
+        allHourly.sort((a, b) => a.fxTime.localeCompare(b.fxTime));
+        const ydayStr = fmt(yday);
+        const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+        const tmrwStr = fmt(tomorrow);
+        const keepDates = new Set([fmt(dby), ydayStr, fmt(today), tmrwStr]);
+        allHourly = allHourly.filter(h => {
+            const d = h.fxTime.slice(0, 10).replace(/-/g, '');
+            return keepDates.has(d);
+        });
+
+        const hourly = allHourly.map(h => {
+            const timeStr = h.fxTime.slice(11, 16);
+            const dateStr = h.fxTime.slice(0, 10);
+            return {
+                time: timeStr,
+                date: dateStr,
+                temperature: parseFloat(h.temp),
+                weatherDesc: h.text,
+                iconCode: h.icon || ''
+            };
+        });
+
+        const result = {
+            city: loc.name || city,
+            country: loc.country || 'CN',
+            source: 'qweather',
+            current: {
+                temperature: parseFloat(nw.temp),
+                humidity: parseInt(nw.humidity) || 0,
+                windSpeed: parseFloat(nw.windScale) || 0,
+                windDir: nw.windDir || '',
+                weatherDesc: nw.text,
+                iconCode: nw.icon || ''
+            },
+            daily: daily,
+            hourly: hourly,
+            timestamp: now
+        };
+
+        weatherCacheData = result;
+        weatherCacheTime = now;
+        weatherCacheCity = city;
+        res.json(result);
+    } catch (err) {
+        console.error('Weather API failed:', err.message);
+        if (weatherCacheData && weatherCacheCity === city) {
+            return res.json(weatherCacheData);
+        }
+        res.status(503).json({ error: '天气数据暂时不可用喵~' });
     }
 });
 
