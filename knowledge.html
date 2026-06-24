@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/lib/katex.min.css?v=1">
     <link rel="stylesheet" href="/styles/base.css?v=2">
     <link rel="stylesheet" href="/styles/auth.css">
-    <link rel="stylesheet" href="/styles/raindrop-overlay.css">
+    <link rel="stylesheet" href="/styles/raindrop-overlay.css?v=9">
     <style>
         /* ============================================================
            知识库 — 页面特有样式 (共享样式见 /styles/base.css)
@@ -192,26 +192,6 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.4; transform: scale(0.65); }
         }
-        /* 导航圆形按钮 */
-        .nav-btn-circle { position:relative; width:42px; height:42px; border:1px solid rgba(255,255,255,0.6);
-            border-radius:50%; color:#fff; cursor:pointer; font-size:20px; box-shadow:0 4px 16px rgba(0,0,0,0.12);
-            transition:all var(--transition-bounce); display:flex; align-items:center; justify-content:center; text-decoration:none; }
-        .nav-btn-circle:hover { transform:translateY(-3px) scale(1.1); }
-        .nav-btn-circle:active { transform:translateY(1px) scale(0.94); }
-        .nav-btn-circle::after { position:absolute; bottom:-36px; left:50%; transform:translateX(-50%) translateY(4px);
-            background:rgba(30,30,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-            color:#fff; font-size:11px; font-weight:500; padding:5px 12px; border-radius:10px;
-            white-space:nowrap; opacity:0; pointer-events:none; transition:all var(--transition-fast); }
-        .nav-btn-circle:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
-        .btn-home { background:linear-gradient(135deg,var(--accent-3),#48cae4); box-shadow:0 4px 16px rgba(10,189,227,0.25); animation:glowBlue 3.5s ease-in-out infinite; }
-        .btn-home::after { content:'回到首页'; }
-        .btn-home:hover { box-shadow:0 8px 24px rgba(10,189,227,0.4); animation:none; }
-        @keyframes glowBlue { 0%,100%{box-shadow:0 4px 16px rgba(10,189,227,0.25),0 0 0 0 rgba(10,189,227,0.3)} 50%{box-shadow:0 4px 16px rgba(10,189,227,0.25),0 0 0 12px rgba(10,189,227,0)} }
-        .btn-chat { background:linear-gradient(135deg,#ff8a80,#ff5252); box-shadow:0 4px 16px rgba(255,82,82,0.25); animation:glowRed 3s ease-in-out infinite; }
-        .btn-chat::after { content:'找小橘聊天~'; }
-        .btn-chat:hover { box-shadow:0 8px 24px rgba(255,82,82,0.4); animation:none; }
-        @keyframes glowRed { 0%,100%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 0 rgba(255,82,82,0.3)} 50%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 12px rgba(255,82,82,0)} }
-
         /* ============================================================
            主布局 — 两列 (左侧栏 + 内容区)
            ============================================================ */
@@ -1488,7 +1468,6 @@
             .nav-logo {
                 font-size: 22px;
             }
-            .nav-btn-circle { width:36px; height:36px; font-size:18px; }
             .main-layout {
                 grid-template-columns: 1fr;
             }
@@ -1555,7 +1534,6 @@
         /* 手机 */
         @media (max-width: 480px) {
             .app-shell { padding:8px 8px 24px; gap:10px; }
-            .nav-btn-circle { width:34px; height:34px; font-size:17px; }
             .content-sidebar {
                 width: 85vw;
             }
@@ -1960,8 +1938,22 @@
                     <span id="online-count">-</span> 喵在线
                 </span>
                 <a href="admin.html" class="admin-btn" id="admin-entry" style="display:none" title="在线用户管理">📊</a>
-                <a href="/" class="nav-btn-circle btn-home" title="回到首页">🏠</a>
-                <a href="/tools.html" class="nav-btn-circle btn-chat" title="AI 工具箱">🐱</a>
+                <nav class="nav-pill" role="tablist" aria-label="页面导航">
+                    <div class="nav-pill-indicator" id="nav-pill-indicator"></div>
+                    <div class="nav-pill-lamp" id="nav-pill-lamp"></div>
+                    <a href="/knowledge.html" class="nav-pill-tab active" data-page="wiki" role="tab" aria-selected="true">
+                        <span class="nav-pill-icon">📚</span>
+                        <span class="nav-pill-label">知识库</span>
+                    </a>
+                    <a href="/" class="nav-pill-tab" data-page="home" role="tab" aria-selected="false">
+                        <span class="nav-pill-icon">🐱</span>
+                        <span class="nav-pill-label">喵码</span>
+                    </a>
+                    <a href="/tools.html" class="nav-pill-tab" data-page="tools" role="tab" aria-selected="false">
+                        <span class="nav-pill-icon">🤖</span>
+                        <span class="nav-pill-label">AI 工具</span>
+                    </a>
+                </nav>
                 <button class="nav-btn btn-user" id="btn-user" type="button">
                     👤 <span id="user-label">登录</span>
                 </button>
@@ -4508,6 +4500,100 @@ mm.add({
     navBar.style.background = 'rgba(255,255,255, var(--nav-opacity, 0.55))';
   }
 
+  // ==============================
+  // 6. 💊 玻璃药片导航 · 魔法指示器
+  // ==============================
+  var navPill = document.querySelector('.nav-pill');
+  var pillIndicator = document.getElementById('nav-pill-indicator');
+  var pillLamp = document.getElementById('nav-pill-lamp');
+
+  function updatePillIndicator(animate) {
+    if (!pillIndicator || !navPill) return;
+    var activeTab = navPill.querySelector('.nav-pill-tab.active');
+    if (!activeTab) return;
+    var targetX = activeTab.offsetLeft;
+    var targetW = activeTab.offsetWidth;
+    var lampW = Math.max(28, Math.round(targetW * 0.55));
+    var lampX = targetX + (targetW - lampW) / 2;
+    if (typeof gsap !== 'undefined' && animate !== false) {
+      gsap.to(pillIndicator, { opacity: 1,
+        x: targetX, width: targetW,
+        duration: 0.55, ease: 'elastic.out(1, 0.6)', overwrite: 'auto'
+      });
+      if (pillLamp) {
+        gsap.to(pillLamp, {
+          opacity: 1, x: lampX, width: lampW,
+          duration: 0.55, ease: 'elastic.out(1, 0.6)', overwrite: 'auto'
+        });
+      }
+    } else {
+      gsap.set(pillIndicator, { opacity: 1, x: targetX, width: targetW });
+      if (pillLamp) {
+        gsap.set(pillLamp, { opacity: 1, x: lampX, width: lampW });
+      }
+    }
+  }
+
+  if (pillIndicator && navPill) {
+    var activeTab = navPill.querySelector('.nav-pill-tab.active');
+    if (activeTab && typeof gsap !== 'undefined') {
+      var iw = activeTab.offsetWidth;
+      var lw = Math.max(28, Math.round(iw * 0.55));
+      gsap.set(pillIndicator, { opacity: 1, x: activeTab.offsetLeft, width: iw });
+      if (pillLamp) {
+        gsap.set(pillLamp, { opacity: 1, x: activeTab.offsetLeft + (iw - lw) / 2, width: lw });
+      }
+    }
+  }
+
+  var pillResizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(pillResizeTimer);
+    pillResizeTimer = setTimeout(function() { updatePillIndicator(false); }, 150);
+  });
+
+  if (!reduceMotion && navPill && window.matchMedia('(hover: hover)').matches) {
+    navPill.addEventListener('mousemove', function(e) {
+      var tabs = navPill.querySelectorAll('.nav-pill-tab');
+      tabs.forEach(function(tab) {
+        var rect = tab.getBoundingClientRect();
+        var tabCenterX = rect.left + rect.width / 2;
+        var tabCenterY = rect.top + rect.height / 2;
+        var dist = Math.hypot(e.clientX - tabCenterX, e.clientY - tabCenterY);
+        var maxDist = 120;
+        if (dist < maxDist) {
+          var s = 1 + (1 - dist / maxDist) * 0.08;
+          gsap.to(tab, { scale: s, duration: 0.2, ease: 'power2.out', overwrite: 'auto' });
+        } else {
+          gsap.to(tab, { scale: 1, duration: 0.3, ease: 'power2.out', overwrite: 'auto' });
+        }
+      });
+    });
+    navPill.addEventListener('mouseleave', function() {
+      gsap.to(navPill.querySelectorAll('.nav-pill-tab'), {
+        scale: 1, duration: 0.35, ease: 'power2.out', overwrite: 'auto'
+      });
+    });
+  }
+
+  if (document.startViewTransition && pillIndicator) {
+    window.addEventListener('pageswap', function() {
+      gsap.to(pillIndicator, { scaleX: 0.85, duration: 0.2, ease: 'power2.in', overwrite: 'auto' });
+      if (pillLamp) gsap.to(pillLamp, { scaleX: 0.7, opacity: 0.3, duration: 0.2, ease: 'power2.in', overwrite: 'auto' });
+    });
+    window.addEventListener('pagereveal', function() {
+      updatePillIndicator(false);
+      gsap.fromTo(pillIndicator,
+        { scaleX: 0.85 },
+        { opacity: 1, scaleX: 1, duration: 0.35, ease: 'back.out(1.7)', overwrite: 'auto' }
+      );
+      if (pillLamp) gsap.fromTo(pillLamp,
+        { scaleX: 0.7, opacity: 0.3 },
+        { opacity: 1, scaleX: 1, duration: 0.4, ease: 'back.out(1.7)', overwrite: 'auto' }
+      );
+    });
+  }
+
   console.log("🐱 知识库 GSAP + ScrollTrigger 动画系统就绪喵~");
 
 }); // end gsap.matchMedia()
@@ -4517,7 +4603,7 @@ mm.add({
 <!-- 天气状态共享 + 雨滴覆盖层 -->
 <script src="/lib/weather-state.js?v=1"></script>
 <script src="/lib/raindrop-fx.js?v=1"></script>
-<script src="/lib/raindrop-overlay.js?v=1"></script>
+<script src="/lib/raindrop-overlay.js?v=9"></script>
 <script>
 (function() {
     if (!window.WeatherState || !window.RaindropOverlay) return;

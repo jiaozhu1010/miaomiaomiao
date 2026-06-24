@@ -785,9 +785,22 @@
                 <span class="dot"></span>
                 <span id="online-count">-</span> 喵在线
             </span>
-            <a href="/knowledge.html" class="nav-btn-circle btn-wiki" title="知识库 Wiki">📚</a>
-            <a href="/tools.html" class="nav-btn-circle btn-chat" title="AI 工具箱">🐱</a>
-            <a href="/" class="nav-btn-circle btn-home" title="回到首页">🏠</a>
+            <nav class="nav-pill" role="tablist" aria-label="页面导航">
+                <div class="nav-pill-indicator" id="nav-pill-indicator"></div>
+                <div class="nav-pill-lamp" id="nav-pill-lamp"></div>
+                <a href="/knowledge.html" class="nav-pill-tab" data-page="wiki" role="tab" aria-selected="false">
+                    <span class="nav-pill-icon">📚</span>
+                    <span class="nav-pill-label">知识库</span>
+                </a>
+                <a href="/" class="nav-pill-tab" data-page="home" role="tab" aria-selected="false">
+                    <span class="nav-pill-icon">🐱</span>
+                    <span class="nav-pill-label">喵码</span>
+                </a>
+                <a href="/tools.html" class="nav-pill-tab" data-page="tools" role="tab" aria-selected="false">
+                    <span class="nav-pill-icon">🤖</span>
+                    <span class="nav-pill-label">AI 工具</span>
+                </a>
+            </nav>
             <span id="user-area"></span>
         </div>
     </nav>

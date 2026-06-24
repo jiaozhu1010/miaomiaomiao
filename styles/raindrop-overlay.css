@@ -1,22 +1,164 @@
-/* =========================
-   雨滴覆盖层 (Raindrop FX Overlay)
-   全站雨天效果 — 固定覆盖层, 不阻挡交互
-   配合 JS 中 canvas.style.mixBlendMode = 'screen' 实现暗底透明
-   ========================= */
+/* Raindrop FX full-screen canvas overlay. */
 
 .raindrop-overlay {
   position: fixed;
   inset: 0;
-  z-index: 99998;
+  z-index: 1;
   pointer-events: none;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
   background: transparent;
+  opacity: 0.94;
+  mix-blend-mode: normal;
+  contain: layout paint style;
 }
 
-.raindrop-overlay canvas {
+.raindrop-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(195, 225, 235, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(9, 24, 33, 0.04), rgba(7, 19, 28, 0.16)),
+    radial-gradient(ellipse at center, transparent 54%, rgba(2, 12, 19, 0.16) 100%);
+}
+
+.raindrop-fx-canvas {
   display: block;
   width: 100%;
   height: 100%;
-  /* mix-blend-mode 由 JS 动态设置到 canvas 元素上 */
+  filter: saturate(108%) contrast(116%);
+}
+
+html.miaosite-rainy-glass {
+  --rain-glass-bg: linear-gradient(145deg, rgba(20, 12, 8, 0.045), rgba(255, 255, 255, 0.025));
+  --rain-glass-bg-hover: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
+  --rain-glass-border: rgba(255, 255, 255, 0.34);
+  --rain-glass-border-strong: rgba(255, 255, 255, 0.45);
+  --rain-glass-shadow: 0 8px 30px 0 rgba(40, 2, 60, 0.2);
+  --rain-glass-shadow-hover: 0 16px 48px rgba(40, 2, 60, 0.28);
+  --rain-glass-text: rgba(255, 255, 255, 0.96);
+  --rain-glass-text-secondary: rgba(255, 255, 255, 0.74);
+  --rain-glass-text-tertiary: rgba(255, 255, 255, 0.54);
+}
+
+html.miaosite-rainy-glass :is(
+  .glass-card,
+  .skill-card,
+  .chat-card,
+  .article-card,
+  .detail-card,
+  .editor-card,
+  .section-group,
+  .stat-card,
+  .weather-day-item,
+  .weather-hour-item,
+  .reader-panel,
+  .prompt-modal-card
+) {
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-hover: rgba(255, 255, 255, 0.075);
+  --glass-bg-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: var(--rain-glass-border);
+  --glass-border-strong: var(--rain-glass-border-strong);
+  --glass-shadow: var(--rain-glass-shadow);
+  --glass-shadow-hover: var(--rain-glass-shadow-hover);
+  --text-primary: var(--rain-glass-text);
+  --text-secondary: var(--rain-glass-text-secondary);
+  --text-tertiary: var(--rain-glass-text-tertiary);
+  background: var(--rain-glass-bg) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(112%) !important;
+  backdrop-filter: blur(4px) saturate(112%) !important;
+  border-color: var(--rain-glass-border) !important;
+  box-shadow: var(--rain-glass-shadow) !important;
+  color: var(--rain-glass-text);
+  text-shadow: 0 1px 10px rgba(40, 24, 18, 0.28);
+}
+
+html.miaosite-rainy-glass :is(
+  .glass-card,
+  .skill-card,
+  .chat-card,
+  .article-card,
+  .detail-card,
+  .editor-card,
+  .section-group,
+  .stat-card,
+  .weather-day-item,
+  .weather-hour-item,
+  .reader-panel,
+  .prompt-modal-card
+):hover {
+  background: var(--rain-glass-bg-hover) !important;
+  box-shadow: var(--rain-glass-shadow-hover) !important;
+}
+
+html.miaosite-rainy-glass :is(
+  .data-tools-tabs,
+  .mode-tabs,
+  .action-bar,
+  .pagination,
+  .ocr-dropzone,
+  .weather-city-dropdown,
+  .chat-history-menu,
+  .skill-quick-menu
+) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(112%) !important;
+  backdrop-filter: blur(4px) saturate(112%) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 8px 26px rgba(40, 2, 60, 0.16) !important;
+  color: var(--rain-glass-text);
+}
+
+html.miaosite-rainy-glass :is(
+  .stat-card,
+  .weather-day-item,
+  .weather-hour-item,
+  .card-badge,
+  .file-chip,
+  .chat-file-label,
+  .chat-history-btn,
+  .result-toggle button,
+  .result-actions button,
+  .reader-panel-footer button,
+  .prompt-modal-footer button,
+  .article-card-tag,
+  .read-status-btn,
+  .card-action-btn,
+  .weather-detail-row,
+  .weather-city-trigger,
+  .weather-city-option
+) {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: inherit;
+}
+
+html.miaosite-rainy-glass :is(
+  input,
+  textarea,
+  select,
+  .chat-textarea,
+  .code-textarea,
+  .card-prompt-preview,
+  .msg-bubble.ai,
+  .thinking-content,
+  pre,
+  code
+) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: var(--text-primary, var(--rain-glass-text));
+}
+
+html.miaosite-rainy-glass :is(input, textarea, select, .chat-textarea)::placeholder {
+  color: rgba(255, 255, 255, 0.44);
+}
+
+html.miaosite-rainy-glass .msg-bubble.user {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: var(--rain-glass-text);
 }
