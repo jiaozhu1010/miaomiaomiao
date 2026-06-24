@@ -2129,6 +2129,197 @@
         #view-knowledge .page-btn { padding: 6px 10px; font-size: 12px; }
     }
     </style>
+
+    <!-- ==================== AI 工具箱 (#view-tools) 特有样式 ==================== -->
+    <style>
+    #view-tools .bento-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; grid-auto-flow:dense; gap:16px; align-items:start; }
+    #view-tools .chat-card { grid-column:2/5; grid-row:2/6; }
+    #view-tools .skill-card { background:var(--glass-bg); backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); border:1.5px solid var(--glass-border); border-radius:var(--radius-lg); box-shadow:var(--glass-shadow); padding:16px 18px; cursor:pointer; transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.35s cubic-bezier(0.25, 0.1, 0.25, 1); display:flex; flex-direction:column; gap:6px; min-height:100px; position:relative; overflow:hidden; }
+    #view-tools .skill-card:hover { box-shadow:var(--glass-shadow-hover); transform:translateY(-2px); }
+    #view-tools .skill-card .card-icon { font-size:24px; line-height:1; }
+    #view-tools .skill-card .card-title { font-family:var(--font-display); font-size:14px; font-weight:700; color:var(--text-primary); }
+    #view-tools .skill-card .card-desc { font-size:11px; color:var(--text-secondary); line-height:1.4; }
+    #view-tools .skill-card .card-badge { display:inline-block; font-size:9px; padding:2px 7px; border-radius:8px; font-weight:600; align-self:flex-start; background:rgba(0,0,0,0.05); color:var(--text-secondary); }
+    #view-tools .skill-card .card-prompt-preview { font-size:10px; color:var(--text-tertiary); background:rgba(0,0,0,0.03); padding:0 8px; border-radius:6px; max-height:0; overflow:hidden; line-height:1.4; white-space:pre-wrap; opacity:0; transition:opacity 0.3s, max-height 0.4s, padding 0.3s; cursor:pointer; position:relative; }
+    #view-tools .skill-card .card-prompt-preview:hover { background:rgba(0,0,0,0.05); }
+    #view-tools .skill-card.selected { border-color:rgba(0,0,0,0); box-shadow: 0 0 0 2px var(--select-glow, var(--accent)), var(--glass-shadow-hover); transform:translateY(-3px); }
+    #view-tools .skill-card.selected::after { content:''; position:absolute; inset:-4px; border-radius:22px; border:2px solid var(--select-glow, var(--accent)); animation: pulseRipple 0.6s ease-out; pointer-events:none; }
+    @keyframes pulseRipple { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1.06)} }
+    #view-tools .skill-card.selected .card-prompt-preview { max-height:400px; opacity:1; padding:6px 8px; }
+    #view-tools .skill-card .select-indicator { position:absolute; top:10px; right:12px; font-size:14px; opacity:0; transform:scale(0.5); transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    #view-tools .skill-card.selected .select-indicator { opacity:1; transform:scale(1); }
+    #view-tools .skill-card .card-prompt-more { display:none; font-size:10px; color:var(--accent-3); margin-top:4px; text-align:right; font-weight:600; }
+    #view-tools .skill-card.selected .card-prompt-more { display:block; }
+    #view-tools .skill-card[data-skill="writing"] { --select-glow: #ff9f43; }
+    #view-tools .skill-card[data-skill="translate"] { --select-glow: #6366f1; }
+    #view-tools .skill-card[data-skill="knowledge"] { --select-glow: #a78bfa; }
+    #view-tools .skill-card[data-skill="excel"] { --select-glow: #34c759; }
+    #view-tools .skill-card[data-skill="brainstorm"] { --select-glow: #f59e0b; }
+    #view-tools .skill-card[data-skill="weekly"] { --select-glow: #ec4899; }
+    #view-tools .skill-card[data-skill="markdown"] { --select-glow: #8b5cf6; }
+    #view-tools .skill-card[data-skill="summary"] { --select-glow: #3b82f6; }
+    #view-tools .skill-card[data-skill="custom"] { --select-glow: #f59e0b; }
+    #view-tools .chat-card { background:rgba(255,255,255,0.72); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border:1px solid rgba(255,255,255,0.6); border-radius:28px; box-shadow:0 4px 24px rgba(0,0,0,0.04),0 16px 48px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.6); padding:18px 22px; cursor:default; display:flex; flex-direction:column; gap:10px; max-height:420px; }
+    #view-tools .chat-card:hover { box-shadow:0 6px 32px rgba(0,0,0,0.06),0 20px 56px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.6); }
+    #view-tools .chat-card .chat-toolbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
+    #view-tools .chat-card .chat-file-label { cursor:pointer; font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:14px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.35); transition:var(--transition-fast); }
+    #view-tools .chat-card .chat-file-label:hover { background:rgba(255,255,255,0.65); border-color:rgba(0,0,0,0.12); transform:translateY(-1px); }
+    #view-tools .chat-card .chat-file-label input { display:none; }
+    #view-tools .chat-card .chat-history-btn { padding:5px 10px; border-radius:14px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.35); font-size:12px; cursor:pointer; transition:var(--transition-fast); display:flex; align-items:center; gap:4px; color:var(--text-secondary); white-space:nowrap; }
+    #view-tools .chat-card .chat-history-btn:hover { background:rgba(255,255,255,0.65); border-color:rgba(0,0,0,0.12); transform:translateY(-1px); }
+    #view-tools .chat-card .chat-history-menu { display:none; position:absolute; top:100%; right:0; margin-top:6px; min-width:220px; background:var(--glass-bg-strong); backdrop-filter:blur(24px); border:1px solid var(--glass-border); border-radius:var(--radius); box-shadow:var(--glass-shadow-hover); z-index:100; overflow:hidden; }
+    #view-tools .chat-card .chat-history-menu.show { display:block; animation:menuIn 0.2s ease; }
+    @keyframes menuIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    #view-tools .chat-card .chat-history-new { width:100%; padding:10px 14px; border:none; background:none; font-size:12px; cursor:pointer; text-align:left; color:var(--accent-3); font-weight:600; border-bottom:1px solid rgba(0,0,0,0.05); transition:background 0.15s; }
+    #view-tools .chat-card .chat-history-new:hover { background:rgba(10,189,227,0.08); }
+    #view-tools .chat-card .chat-history-list { max-height:240px; overflow-y:auto; }
+    #view-tools .chat-card .chat-history-item { display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer; transition:background 0.15s; font-size:12px; gap:6px; }
+    #view-tools .chat-card .chat-history-item:hover { background:rgba(0,0,0,0.04); }
+    #view-tools .chat-card .chat-history-item.active { background:rgba(255,159,67,0.08); color:var(--accent); font-weight:600; }
+    #view-tools .chat-card .chat-history-item .chat-title-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-primary); }
+    #view-tools .chat-card .chat-history-item .chat-time-text { font-size:10px; color:var(--text-tertiary); flex-shrink:0; }
+    #view-tools .chat-card .chat-history-item .chat-del-btn { opacity:0; background:none; border:none; cursor:pointer; font-size:13px; color:var(--accent-2); padding:2px 4px; border-radius:4px; transition:opacity 0.15s; flex-shrink:0; }
+    #view-tools .chat-card .chat-history-item:hover .chat-del-btn { opacity:1; }
+    #view-tools .chat-card .chat-history-item .chat-del-btn:hover { background:rgba(238,90,111,0.1); }
+    #view-tools .chat-card .skill-quick-menu { display:none; position:absolute; bottom:100%; left:8px; margin-bottom:8px; min-width:160px; background:var(--glass-bg-strong); backdrop-filter:blur(24px); border:1px solid var(--glass-border); border-radius:var(--radius); box-shadow:var(--glass-shadow-hover); z-index:50; overflow:hidden; }
+    #view-tools .chat-card .skill-quick-menu.show { display:block; animation:menuIn 0.15s ease; }
+    #view-tools .chat-card .skill-quick-item { display:flex; align-items:center; gap:8px; padding:9px 14px; cursor:pointer; font-size:12px; transition:background 0.12s; color:var(--text-primary); }
+    #view-tools .chat-card .skill-quick-item:hover { background:rgba(255,159,67,0.08); }
+    #view-tools .chat-card .skill-quick-item span:first-child { font-size:16px; width:22px; text-align:center; }
+    #view-tools .chat-card .file-preview { display:none; flex-wrap:wrap; gap:6px; flex-shrink:0; }
+    #view-tools .chat-card .file-preview.show { display:flex; }
+    #view-tools .chat-card .file-chip { display:flex; align-items:center; gap:4px; padding:3px 10px; border-radius:12px; background:rgba(0,0,0,0.05); font-size:11px; }
+    #view-tools .chat-card .file-chip .file-remove { cursor:pointer; font-size:14px; color:var(--accent-2); }
+    #view-tools .chat-card .chat-input-row { position:relative; display:flex; flex-shrink:0; }
+    #view-tools .chat-card .chat-textarea { flex:1; min-height:80px; max-height:200px; padding:16px 52px 16px 18px; border-radius:20px; border:1px solid rgba(0,0,0,0.06); background:rgba(0,0,0,0.02); font-family:var(--font-body); font-size:15px; resize:none; line-height:1.65; transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease; }
+    #view-tools .chat-card .chat-textarea:focus { border-color:rgba(255,159,67,0.3); background:rgba(255,255,255,0.8); box-shadow: 0 0 0 4px rgba(255,159,67,0.06); }
+    #view-tools .chat-card .chat-textarea::placeholder { color:var(--text-tertiary); font-weight:400; }
+    #view-tools .chat-card .chat-textarea.has-skill { padding-left:30px; }
+    #view-tools .chat-card .skill-dot { display:none; position:absolute; left:16px; top:20px; width:8px; height:8px; border-radius:50%; z-index:2; pointer-events:none; box-shadow: 0 0 6px 1px var(--skill-dot-color, var(--accent)); }
+    #view-tools .chat-card .skill-dot.show { display:block; }
+    #view-tools .chat-card .chat-send-btn { position:absolute; right:10px; bottom:10px; min-width:38px; height:38px; padding:0 16px; border-radius:19px; border:none; font-size:14px; font-weight:600; cursor:pointer; line-height:1; transition: all 0.25s cubic-bezier(0.25,0.1,0.25,1); color:#fff; background:var(--accent); z-index:2; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 2px 8px rgba(255,159,67,0.25); }
+    #view-tools .chat-card .chat-send-btn:hover { background:#f59030; transform:scale(1.05); box-shadow:0 4px 16px rgba(255,159,67,0.35); }
+    #view-tools .chat-card .chat-send-btn:active { transform:scale(0.94); }
+    #view-tools .chat-card .chat-send-btn.stop { min-width:80px; background:#fff; color:var(--accent-2); border:1.5px solid rgba(238,90,111,0.3); box-shadow:0 2px 12px rgba(238,90,111,0.15); animation: stopPulse 2s ease-in-out infinite; }
+    #view-tools .chat-card .chat-send-btn.stop:hover { background:#fff5f5; border-color:var(--accent-2); box-shadow:0 4px 20px rgba(238,90,111,0.25); }
+    @keyframes stopPulse { 0%,100%{box-shadow:0 2px 12px rgba(238,90,111,0.15)} 50%{box-shadow:0 4px 20px rgba(238,90,111,0.3)} }
+    #view-tools .chat-card .loading-dots { display:none; flex-direction:column; gap:8px; padding:4px 0; flex-shrink:0; }
+    #view-tools .chat-card .loading-dots.show { display:flex; }
+    #view-tools .chat-card .loading-dots .sk-line { height:10px; border-radius:5px; background:linear-gradient(90deg,rgba(0,0,0,0.04) 25%,rgba(0,0,0,0.08) 50%,rgba(0,0,0,0.04) 75%); background-size:200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
+    #view-tools .chat-card .loading-dots .sk-line:nth-child(1) { width:70%; }
+    #view-tools .chat-card .loading-dots .sk-line:nth-child(2) { width:90%; }
+    #view-tools .chat-card .loading-dots .sk-line:nth-child(3) { width:50%; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    #view-tools .chat-card .loading-status { text-align:center; font-size:11px; color:var(--text-tertiary); padding-top:2px; }
+    #view-tools .chat-card .chat-result { display:none; flex-direction:column; gap:8px; flex:1; min-height:0; overflow:hidden; }
+    #view-tools .chat-card .chat-result.show { display:flex; }
+    #view-tools .chat-card .result-content { font-size:13px; line-height:1.7; color:var(--text-primary); }
+    #view-tools .chat-card .msg-list { display:flex; flex-direction:column; gap:10px; flex:1; overflow-y:auto; padding-right:4px; min-height:80px; scrollbar-width:thin; scrollbar-color:rgba(0,0,0,0.12) transparent; }
+    #view-tools .chat-card .msg-list::-webkit-scrollbar { width:5px; }
+    #view-tools .chat-card .msg-list::-webkit-scrollbar-track { background:transparent; }
+    #view-tools .chat-card .msg-list::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.12); border-radius:10px; }
+    #view-tools .chat-card .msg-list::-webkit-scrollbar-thumb:hover { background:rgba(0,0,0,0.22); }
+    #view-tools .chat-card .msg-bubble { max-width:88%; padding:9px 14px; border-radius:16px; font-size:13px; line-height:1.6; word-break:break-word; position:relative; animation: bubbleIn 0.25s ease; }
+    @keyframes bubbleIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    #view-tools .chat-card .msg-bubble.user { align-self:flex-end; background:linear-gradient(135deg,#e8f4fd,#dcecfb); border-bottom-right-radius:4px; color:var(--text-primary); }
+    #view-tools .chat-card .msg-bubble.ai { align-self:flex-start; background:rgba(0,0,0,0.03); border-bottom-left-radius:4px; color:var(--text-primary); }
+    #view-tools .chat-card .msg-bubble .ai-label { font-size:10px; color:var(--text-tertiary); margin-bottom:3px; }
+    #view-tools .chat-card .msg-bubble .bubble-actions { display:none; gap:3px; position:absolute; top:-8px; right:6px; }
+    #view-tools .chat-card .msg-bubble:hover .bubble-actions { display:flex; }
+    #view-tools .chat-card .msg-bubble .bubble-actions button { width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,0.1); background:rgba(255,255,255,0.92); font-size:11px; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; line-height:1; }
+    #view-tools .chat-card .msg-bubble .bubble-actions button:hover { background:#fff; transform:scale(1.15); }
+    #view-tools .chat-card .msg-bubble .thinking-block { margin-bottom:6px; font-size:11px; }
+    #view-tools .chat-card .msg-bubble .thinking-block summary { cursor:pointer; color:var(--text-tertiary); font-style:italic; user-select:none; }
+    #view-tools .chat-card .msg-bubble .thinking-block .thinking-content { max-height:200px; overflow-y:auto; margin-top:4px; padding:8px 10px; background:rgba(0,0,0,0.02); border-radius:6px; font-family:var(--font-mono); font-size:11px; white-space:pre-wrap; line-height:1.5; color:var(--text-tertiary); }
+    #view-tools .chat-card .msg-bubble h1 { font-size:18px; font-weight:700; margin:10px 0 6px; line-height:1.3; }
+    #view-tools .chat-card .msg-bubble h2 { font-size:16px; font-weight:700; margin:8px 0 5px; line-height:1.3; }
+    #view-tools .chat-card .msg-bubble h3 { font-size:14px; font-weight:700; margin:7px 0 4px; line-height:1.3; }
+    #view-tools .chat-card .msg-bubble h4 { font-size:13px; font-weight:700; margin:6px 0 3px; line-height:1.3; }
+    #view-tools .chat-card .msg-bubble blockquote { margin:6px 0; padding:6px 12px; border-left:3px solid var(--accent); background:rgba(255,159,67,0.06); border-radius:0 4px 4px 0; font-style:italic; }
+    #view-tools .chat-card .msg-bubble hr { border:none; border-top:1px solid rgba(0,0,0,0.08); margin:10px 0; }
+    #view-tools .chat-card .msg-bubble ul, #view-tools .chat-card .msg-bubble ol { margin:5px 0; padding-left:20px; }
+    #view-tools .chat-card .msg-bubble li { margin:2px 0; line-height:1.5; }
+    #view-tools .chat-card .msg-bubble ul li { list-style-type:disc; }
+    #view-tools .chat-card .msg-bubble ol li { list-style-type:decimal; }
+    #view-tools .chat-card .msg-bubble pre { background:rgba(0,0,0,0.04); border-radius:8px; padding:10px; overflow-x:auto; font-size:12px; font-family:var(--font-mono); margin:6px 0; }
+    #view-tools .chat-card .msg-bubble code { font-family:var(--font-mono); font-size:12px; background:rgba(0,0,0,0.05); padding:1px 4px; border-radius:4px; }
+    #view-tools .chat-card .msg-bubble pre code { background:none; padding:0; }
+    #view-tools .chat-card .msg-bubble table { border-collapse:collapse; width:100%; margin:6px 0; font-size:12px; }
+    #view-tools .chat-card .msg-bubble th, #view-tools .chat-card .msg-bubble td { border:1px solid rgba(0,0,0,0.1); padding:5px 8px; text-align:left; }
+    #view-tools .chat-card .msg-bubble th { background:rgba(0,0,0,0.03); font-weight:600; }
+    #view-tools .chat-card .result-content pre { background:rgba(0,0,0,0.04); border-radius:8px; padding:12px; overflow-x:auto; font-size:12px; font-family:var(--font-mono); margin:8px 0; }
+    #view-tools .chat-card .result-content code { font-family:var(--font-mono); font-size:12px; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; }
+    #view-tools .chat-card .result-content pre code { background:none; padding:0; }
+    #view-tools .chat-card .result-content table { border-collapse:collapse; width:100%; margin:8px 0; font-size:12px; }
+    #view-tools .chat-card .result-content th, #view-tools .chat-card .result-content td { border:1px solid rgba(0,0,0,0.1); padding:6px 10px; text-align:left; }
+    #view-tools .chat-card .result-content th { background:rgba(0,0,0,0.03); font-weight:600; }
+    #view-tools .chat-card .result-content h1 { font-size:20px; font-weight:700; margin:14px 0 8px; color:var(--text-primary); line-height:1.3; }
+    #view-tools .chat-card .result-content h2 { font-size:17px; font-weight:700; margin:12px 0 6px; color:var(--text-primary); line-height:1.3; }
+    #view-tools .chat-card .result-content h3 { font-size:15px; font-weight:700; margin:10px 0 4px; color:var(--text-primary); line-height:1.3; }
+    #view-tools .chat-card .result-content h4 { font-size:14px; font-weight:700; margin:8px 0 4px; color:var(--text-secondary); line-height:1.3; }
+    #view-tools .chat-card .result-content blockquote { margin:8px 0; padding:8px 14px; border-left:3px solid var(--accent); background:rgba(255,159,67,0.06); border-radius:0 6px 6px 0; color:var(--text-secondary); font-style:italic; }
+    #view-tools .chat-card .result-content hr { border:none; border-top:1px solid rgba(0,0,0,0.08); margin:12px 0; }
+    #view-tools .chat-card .result-content ul, #view-tools .chat-card .result-content ol { margin:6px 0; padding-left:22px; }
+    #view-tools .chat-card .result-content li { margin:3px 0; line-height:1.6; }
+    #view-tools .chat-card .result-content ul li { list-style-type:disc; }
+    #view-tools .chat-card .result-content ol li { list-style-type:decimal; }
+    #view-tools .chat-card .result-content .code-lang { font-size:10px; color:var(--text-tertiary); float:right; margin-top:-2px; }
+    #view-tools .chat-card .result-toggle { display:none; justify-content:center; gap:6px; padding:2px 0 0; }
+    #view-tools .chat-card .result-toggle.show { display:flex; }
+    #view-tools .chat-card .result-toggle button { font-size:11px; padding:4px 14px; border-radius:12px; border:1px solid rgba(0,0,0,0.1); background:rgba(255,255,255,0.5); cursor:pointer; font-weight:600; transition:var(--transition-fast); color:var(--accent-3); }
+    #view-tools .chat-card .result-toggle button:hover { background:rgba(10,189,227,0.08); transform:translateY(-1px); }
+    #view-tools .chat-card .result-actions { display:flex; gap:8px; }
+    #view-tools .chat-card .result-actions button { padding:5px 12px; border-radius:14px; border:1px solid rgba(0,0,0,0.1); background:rgba(255,255,255,0.5); font-size:11px; cursor:pointer; transition:var(--transition-fast); color:var(--text-secondary); }
+    #view-tools .chat-card .result-actions button:hover { background:rgba(255,255,255,0.8); }
+    #view-tools .reader-overlay { position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.4); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); display:none; align-items:center; justify-content:center; animation:fadeIn 0.2s ease; }
+    #view-tools .reader-overlay.show { display:flex; }
+    #view-tools .reader-panel { background:rgba(255,255,255,0.94); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); border:1px solid rgba(0,0,0,0.06); border-radius:var(--radius-lg); width:720px; max-width:94vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 24px 64px rgba(0,0,0,0.12); animation:modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1); overflow:hidden; }
+    #view-tools .reader-panel-header { display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid rgba(0,0,0,0.06); flex-shrink:0; }
+    #view-tools .reader-panel-header span { font-family:var(--font-display); font-size:15px; font-weight:700; color:var(--text-primary); flex:1; }
+    #view-tools .reader-panel-close { width:30px; height:30px; border-radius:50%; border:none; background:rgba(0,0,0,0.05); color:var(--text-secondary); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:var(--transition-fast); flex-shrink:0; }
+    #view-tools .reader-panel-close:hover { background:rgba(0,0,0,0.12); color:var(--text-primary); }
+    #view-tools .reader-panel-body { flex:1; overflow-y:auto; padding:22px 24px; }
+    #view-tools .reader-panel-footer { display:flex; gap:8px; padding:12px 20px; border-top:1px solid rgba(0,0,0,0.06); flex-shrink:0; }
+    #view-tools .reader-panel-footer button { padding:7px 14px; border-radius:var(--radius-sm); border:1px solid rgba(0,0,0,0.1); background:rgba(255,255,255,0.6); font-size:12px; cursor:pointer; transition:var(--transition-fast); color:var(--text-secondary); }
+    #view-tools .reader-panel-footer button:hover { background:rgba(255,255,255,0.9); border-color:var(--accent); color:var(--accent); }
+    #view-tools .reader-panel-footer button.copy-btn { background:linear-gradient(135deg,var(--accent-3),#48cae4); color:#fff; border:none; font-weight:600; }
+    #view-tools .reader-panel-footer button.copy-btn:hover { transform:translateY(-1px); }
+    #view-tools .prompt-modal-overlay { position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,0.45); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:none; align-items:center; justify-content:center; animation:fadeIn 0.2s ease; }
+    #view-tools .prompt-modal-overlay.show { display:flex; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    #view-tools .prompt-modal-card { background:rgba(255,255,255,0.92); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); border:1px solid rgba(0,0,0,0.06); border-radius:var(--radius-lg); width:660px; max-width:92vw; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.15); animation:modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1); overflow:hidden; }
+    @keyframes modalIn { from{opacity:0;transform:scale(0.92) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    #view-tools .prompt-modal-header { display:flex; align-items:center; gap:10px; padding:18px 22px; border-bottom:1px solid rgba(0,0,0,0.06); flex-shrink:0; }
+    #view-tools .prompt-modal-icon { font-size:24px; }
+    #view-tools .prompt-modal-title { font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--text-primary); flex:1; }
+    #view-tools .prompt-modal-close { width:32px; height:32px; border-radius:50%; border:none; background:rgba(0,0,0,0.05); color:var(--text-secondary); cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; transition:var(--transition-fast); flex-shrink:0; }
+    #view-tools .prompt-modal-close:hover { background:rgba(0,0,0,0.12); color:var(--text-primary); }
+    #view-tools .prompt-modal-body { flex:1; overflow-y:auto; padding:20px 22px; }
+    #view-tools .prompt-modal-body pre { font-family:var(--font-body); font-size:13px; line-height:1.8; color:var(--text-primary); white-space:pre-wrap; word-break:break-word; margin:0; background:none; padding:0; }
+    #view-tools .prompt-modal-body pre .hl-section { color:var(--accent); font-weight:700; }
+    #view-tools .prompt-modal-body pre .hl-bullet { color:var(--text-secondary); }
+    #view-tools .prompt-modal-body pre .hl-bold { font-weight:700; color:var(--text-primary); }
+    #view-tools .prompt-modal-footer { display:flex; gap:8px; padding:14px 22px; border-top:1px solid rgba(0,0,0,0.06); flex-shrink:0; }
+    #view-tools .prompt-modal-footer button { padding:8px 16px; border-radius:var(--radius-sm); border:1px solid rgba(0,0,0,0.1); background:rgba(255,255,255,0.6); font-size:12px; cursor:pointer; transition:var(--transition-fast); color:var(--text-secondary); display:flex; align-items:center; gap:4px; }
+    #view-tools .prompt-modal-footer button:hover { background:rgba(255,255,255,0.9); border-color:var(--accent); color:var(--accent); }
+    #view-tools .prompt-modal-footer button.copy-btn { background:linear-gradient(135deg,var(--accent-3),#48cae4); color:#fff; border:none; font-weight:600; }
+    #view-tools .prompt-modal-footer button.copy-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(10,189,227,0.3); }
+    #view-tools .prompt-modal-footer button.copy-btn.copied { background:linear-gradient(135deg,#34c759,#5dd675); }
+    @media (max-width:1100px) {
+        #view-tools .bento-grid { grid-template-columns:1fr 1fr 1fr; }
+        #view-tools .chat-card { grid-column:2/4; grid-row:2/4; }
+    }
+    @media (max-width:768px) {
+        #view-tools .bento-grid { grid-template-columns:1fr 1fr; gap:12px; }
+        #view-tools .chat-card { grid-column:1/3; grid-row:auto; }
+        #view-tools .skill-card { padding:14px 16px; min-height:80px; }
+    }
+    @media (max-width:480px) {
+        #view-tools .bento-grid { grid-template-columns:1fr; gap:10px; }
+        #view-tools .chat-card { grid-column:1; grid-row:auto; }
+        #view-tools .skill-card { min-height:auto; }
+    }
+    </style>
 </head>
 <body data-active-view="home">
     <!-- 共享背景层 -->
@@ -2641,7 +2832,185 @@
 
             </div>
             <div id="view-tools" class="view-panel">
-                <!-- Task 6 填充 -->
+
+                <!-- Bento 网格：8张技能选择器 + 1张中央对话框 -->
+                <div class="bento-grid" id="bentoGrid">
+
+                    <div class="skill-card" data-skill="writing" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">✍️</div>
+                        <div class="card-title">写作助手</div>
+                        <div class="card-desc">邮件撰写 · 文案润色 · 多语气切换（正式/半正式/随意）</div>
+                        <span class="card-badge">正式 · 半正式 · 随意</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('writing')">系统提示词：15年跨国企业文案专家（麦肯锡/宝洁背景），精通邮件撰写、文案润色、多文体写作。三级九档语气切换系统，金字塔原理结构优化，六大标准邮件结构严格遵循，输出前质量自检。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="translate" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">🌐</div>
+                        <div class="card-title">中英互译</div>
+                        <div class="card-desc">精准翻译，保留专业术语，支持长文本</div>
+                        <span class="card-badge">中→英 · 英→中</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('translate')">系统提示词：CATTI一级认证+联合国译员背景，累积翻译500万字。信达雅三层递进翻译体系，6类术语处理规范，6大领域适配策略表，格式保留铁律严格确保Markdown/代码块/链接零破坏。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="knowledge" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">📚</div>
+                        <div class="card-title">知识问答</div>
+                        <div class="card-desc">复杂概念，通俗解释，附带实际例子</div>
+                        <span class="card-badge">概念解释</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('knowledge')">系统提示词：跨学科博士+斯坦福科学教育中心背景，TED播放5000万次。费曼学习法四步教学，五段式回复结构，受众知识水平自适应匹配表，善用生活类比和真实案例。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="excel" onclick="selectSkill(this)">
+                        <span class="card-icon">📊</span>
+                        <div class="card-title">Excel 公式助手</div>
+                        <div class="card-desc">生成公式 · VBA 宏 · 数据透视表指导</div>
+                        <span class="card-badge">公式 · VBA · 透视表</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('excel')">系统提示词：MOS Master认证+微软MVP连续8年，18年500强企业实战。函数按高频/进阶/大神三层体系，VBA+Power Query+Power Pivot全覆盖，五步回复流程+替代方案矩阵+易错避坑指南。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <!-- 中央对话框 -->
+                    <div class="chat-card" id="chatCard">
+                        <div class="chat-toolbar">
+                            <label class="chat-file-label" title="上传文件">🎁 上传文件<input type="file" id="chatFileInput" multiple accept="image/*,.js,.jsx,.ts,.tsx,.py,.json,.txt,.md,.log,.html,.css,.scss,.java,.c,.cpp,.cs,.go,.rs,.rb,.php,.swift,.kt,.sql,.yaml,.yml,.xml,.csv,.ini,.toml,.pdf"></label>
+                            <div style="margin-left:auto;position:relative;">
+                                <button class="chat-history-btn" id="chatHistoryBtn" onclick="toggleChatHistoryMenu(event)">📜 <span id="currentChatLabel">新对话</span> ▾</button>
+                                <div class="chat-history-menu" id="chatHistoryMenu">
+                                    <button class="chat-history-new" onclick="newChatSession(event)">✨ 新对话</button>
+                                    <div class="chat-history-list" id="chatHistoryList"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="file-preview" id="chatFilePreview"></div>
+                        <div class="chat-result" id="chatResult"><div class="msg-list" id="msgList"></div><div class="result-toggle" id="resultToggle"><button onclick="openReaderPanel()">📖 展开全部</button></div><div class="result-actions"><button data-action="copy" onclick="navigator.clipboard.writeText(chatMessages.filter(function(m){return m.role==='assistant'}).pop()?.content||'').then(function(){showToast('已复制喵~')})">📋 复制</button><button data-action="retry">🔄 重新生成</button><button onclick="exportChat('copy')" style="margin-left:auto">📋 复制对话</button><button onclick="exportChat('download')">📥 下载 .md</button></div></div>
+                        <div class="loading-dots" id="chatLoading"><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line"></div><div class="loading-status" id="loadingStatus">正在思考中...</div></div>
+                        <div class="chat-input-row">
+                            <span class="skill-dot" id="skillDot"></span>
+                            <textarea class="chat-textarea" id="chatInput" placeholder="输入任何问题，或点击周围卡片选择技能..." rows="3"></textarea>
+                            <button class="chat-send-btn" id="chatSendBtn" title="发送 (Enter)">↑</button>
+                        </div>
+                    </div>
+
+                    <div class="skill-card" data-skill="brainstorm" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">💡</div>
+                        <div class="card-title">头脑风暴</div>
+                        <div class="card-desc">10 个创意点子 → 3 个深度方案</div>
+                        <span class="card-badge">创意发散</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('brainstorm')">系统提示词：IDEO创新总监+麦肯锡合伙人背景，精通8大创新方法论（设计思维/蓝海战略/JTBD/TRIZ等）。7维度发散探索→3方向深度收敛→评分矩阵推荐+90天路线图。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="weekly" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">📋</div>
+                        <div class="card-title">工作周报生成</div>
+                        <div class="card-desc">输入要点 → 结构化周报（成果/问题/计划）</div>
+                        <span class="card-badge">周报模板</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('weekly')">系统提示词：德邦快递海豚生（管培生）专属周报助手，一线仓管员轮岗场景。基于7大业务场景素材库，严格四段式模板生成精准规范的周报，每条最多2句话，格式锁死只变内容。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="markdown" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">🎨</div>
+                        <div class="card-title">Markdown 排版</div>
+                        <div class="card-desc">输入纯文本 → 自动生成结构美观的 Markdown</div>
+                        <span class="card-badge">排版 · 美化</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('markdown')">系统提示词：《纽约时报》+Medium编辑背景，精通Markdown全语法和信息架构。结构识别→元素运用→视觉美化三阶排版体系，4种文档模板自适应，输出铁律确保只输出排版成品。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="custom" onclick="openTemplatesModal()">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">✨</div>
+                        <div class="card-title">自定义模板</div>
+                        <div class="card-desc">创建和管理你自己的提示词模板，保存常用场景</div>
+                        <span class="card-badge">自定义 · 模板</span>
+                        <div class="card-prompt-preview">管理你的自定义提示词模板，支持创建、搜索、设为默认<div class="card-prompt-more">📋 点击管理模板 →</div></div>
+                    </div>
+
+                    <div class="skill-card" data-skill="summary" onclick="selectSkill(this)">
+                        <span class="select-indicator">✅</span>
+                        <div class="card-icon">📝</div>
+                        <div class="card-title">长文总结</div>
+                        <div class="card-desc">粘贴长文章或文档，提取 3-5 个关键要点，生成结构化摘要</div>
+                        <span class="card-badge">摘要 · 要点提取</span>
+                        <div class="card-prompt-preview" onclick="event.stopPropagation();openPromptModal('summary')">系统提示词：《经济学人》编辑+麦肯锡咨询背景。金字塔原理+MECE原则驱动，四段式输出结构，8种文体精准适配表，信息密度最大化确保每字有料，原文10-20%精准控字。<div class="card-prompt-more">📋 点击查看完整提示词 →</div></div>
+                    </div>
+
+                </div>
+
+                <!-- 模板管理弹窗 -->
+                <div class="prompt-modal-overlay" id="templatesModalOverlay" onclick="closeTemplatesModal(event)">
+                    <div class="prompt-modal-card" style="max-width:700px;" onclick="event.stopPropagation()">
+                        <div class="prompt-modal-header">
+                            <span class="prompt-modal-icon">📋</span>
+                            <span class="prompt-modal-title">提示词模板管理</span>
+                            <button class="prompt-modal-close" onclick="closeTemplatesModal()">✕</button>
+                        </div>
+                        <div class="prompt-modal-body" style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="display:flex;gap:8px;">
+                                <input id="tpl-search" placeholder="搜索模板..." style="flex:1;padding:10px 14px;border-radius:12px;border:1px solid rgba(0,0,0,0.1);font-size:13px;font-family:var(--font-body);" oninput="renderTemplates()">
+                                <button class="btn" style="background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;" onclick="openNewTemplate()">＋ 新建</button>
+                            </div>
+                            <div id="tpl-list" style="max-height:350px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+                                <div style="text-align:center;color:var(--text-tertiary);padding:20px;">加载中...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模板编辑弹窗 -->
+                <div class="prompt-modal-overlay" id="tplEditOverlay" onclick="closeTplEdit(event)">
+                    <div class="prompt-modal-card" style="max-width:600px;" onclick="event.stopPropagation()">
+                        <div class="prompt-modal-header">
+                            <span id="tpl-edit-icon">📝</span>
+                            <span class="prompt-modal-title" id="tpl-edit-title">新建模板</span>
+                            <button class="prompt-modal-close" onclick="closeTplEdit()">✕</button>
+                        </div>
+                        <div class="prompt-modal-body" style="display:flex;flex-direction:column;gap:12px;">
+                            <input id="tpl-title" placeholder="模板标题（最多50字）" maxlength="50" style="padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,0.1);font-size:14px;font-family:var(--font-body);">
+                            <textarea id="tpl-content" placeholder="提示词内容（最多2000字）" maxlength="2000" rows="6" style="padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,0.1);font-size:13px;font-family:var(--font-body);resize:vertical;line-height:1.6;"></textarea>
+                            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                                <button class="btn" style="background:rgba(0,0,0,0.05);border:none;padding:8px 18px;border-radius:12px;cursor:pointer;font-size:13px;" onclick="closeTplEdit()">取消</button>
+                                <button class="btn" style="background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;" onclick="saveTemplate()" id="tpl-save-btn">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提示词完整弹窗 -->
+                <div class="prompt-modal-overlay" id="promptModal" onclick="if(event.target===this)closePromptModal()">
+                    <div class="prompt-modal-card">
+                        <div class="prompt-modal-header">
+                            <span class="prompt-modal-icon" id="promptModalIcon">📋</span>
+                            <span class="prompt-modal-title" id="promptModalTitle">系统提示词</span>
+                            <button class="prompt-modal-close" onclick="closePromptModal()">✕</button>
+                        </div>
+                        <div class="prompt-modal-body" id="promptModalBody"></div>
+                        <div class="prompt-modal-footer">
+                            <button class="copy-btn" id="promptCopyBtn" onclick="copyPromptText()">📋 复制完整提示词</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 回复阅读面板（展开全部弹窗） -->
+                <div class="reader-overlay" id="readerOverlay" onclick="if(event.target===this)closeReaderPanel()">
+                    <div class="reader-panel">
+                        <div class="reader-panel-header">
+                            <span>📄 完整回复</span>
+                            <button class="reader-panel-close" onclick="closeReaderPanel()">✕</button>
+                        </div>
+                        <div class="reader-panel-body" id="readerPanelBody"></div>
+                        <div class="reader-panel-footer">
+                            <button class="copy-btn" onclick="copyReaderContent()">📋 复制全部</button>
+                            <button onclick="closeReaderPanel()">关闭</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toast-container" id="toastContainer"></div>
+
             </div>
         </div>
     </div>
@@ -6084,6 +6453,671 @@
             document.head.appendChild(s2);
         }
     })();
+    </script>
+    <!-- ==================== AI 工具箱 (#view-tools) 初始化 ==================== -->
+    <script>
+    window.initTools = function initTools() {
+        var ChatSync = {
+            _syncTimer: null,
+            async pullFromServer() {
+                if (!Auth.isLoggedIn()) return [];
+                try { var res = await Auth.fetch('/api/conversations?mode=cat'); if (!res.ok) return []; return await res.json(); } catch (_) { return []; }
+            },
+            async pushChat(chat) {
+                if (!Auth.isLoggedIn()) return;
+                try {
+                    var body = { title: chat.title, messages: chat.messages || [], mode: 'cat' };
+                    var existing = await Auth.fetch('/api/conversations/' + chat.id);
+                    if (existing.ok) { await Auth.fetch('/api/conversations/' + chat.id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); }
+                    else { body.id = chat.id; await Auth.fetch('/api/conversations', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); }
+                } catch (_) {}
+            },
+            async deleteOnServer(chatId) {
+                if (!Auth.isLoggedIn()) return;
+                try { await Auth.fetch('/api/conversations/' + chatId, { method: 'DELETE' }); } catch (_) {}
+            },
+            mergeChats(localChats, serverChats) {
+                var map = new Map();
+                localChats.forEach(function(c) { c._from = 'local'; map.set(c.id, c); });
+                serverChats.forEach(function(c) { c._from = 'server'; c.time = c.updatedAt || c.createdAt; var exist = map.get(c.id); if (!exist || (c.updatedAt || c.createdAt) > (exist.time || 0)) { map.set(c.id, c); } });
+                return Array.from(map.values()).sort(function(a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, 50);
+            },
+            async fullSync() {
+                if (!Auth.isLoggedIn()) return;
+                var serverChats = await this.pullFromServer();
+                var localChats = loadChats();
+                var merged = this.mergeChats(localChats, serverChats);
+                saveChats(merged);
+                for (var ci = 0; ci < merged.length; ci++) {
+                    if (merged[ci]._from === 'local' || !serverChats.find(function(s) { return s.id === merged[ci].id; })) { await this.pushChat(merged[ci]); }
+                }
+                loadChatHistory();
+            },
+            scheduleSync() {
+                clearTimeout(this._syncTimer);
+                var self = this;
+                this._syncTimer = setTimeout(function() { self.fullSync(); }, 2000);
+            }
+        };
+        window.ChatSync = ChatSync;
+
+        function showAuthOverlay() { MiaositeAuth.showAuth('login'); }
+
+        function showToast(msg, type) {
+            if (type === undefined) type = 'info';
+            var container = document.getElementById('toastContainer');
+            var t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.textContent = msg;
+            container.appendChild(t);
+            requestAnimationFrame(function() { t.classList.add('show'); });
+            setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 350); }, 2200);
+        }
+
+        MiaositeAuth.mount({ toast: showToast, onAuthChange: function(user) { if (user && window.ChatSync) ChatSync.fullSync(); } });
+
+        function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+        function renderMarkdown(text) {
+            if (!text) return '';
+            var codeBlocks = [];
+            var html = text.replace(/```(\w*)\n?([\s\S]*?)```/g, function(_, lang, code) { var idx = codeBlocks.length; codeBlocks.push({ lang: escHtml(lang), code: escHtml(code.trim()) }); return '%%CODEBLOCK_' + idx + '%%'; });
+            var inlineCodes = [];
+            html = html.replace(/`([^`]+)`/g, function(_, code) { var idx = inlineCodes.length; inlineCodes.push(escHtml(code)); return '%%IC_' + idx + '%%'; });
+            html = html.replace(/^([-*_]{3,})$/gm, function() { return '%%HR%%'; });
+            var tables = [];
+            html = html.replace(/^\|(.+)\|\n\|[-| :]+\|\n((?:^\|.+\|\n?)+)/gm, function(match) { var idx = tables.length; tables.push(match); return '%%TABLE_' + idx + '%%'; });
+            html = escHtml(html);
+            html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+            html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            html = html.replace(/^&gt; ?(.+)$/gm, '<blockquote>$1</blockquote>');
+            html = html.replace(/<\/blockquote>\n?<blockquote>/g, '\n');
+            html = html.replace(/((?:^[-*] .+(?:\n|$))+)/gm, function(match) { var items = match.trim().split('\n').map(function(line) { return '<li>' + line.replace(/^[-*] /, '') + '</li>'; }).join(''); return '<ul>' + items + '</ul>'; });
+            html = html.replace(/((?:^\d+\. .+(?:\n|$))+)/gm, function(match) { var items = match.trim().split('\n').map(function(line) { return '<li>' + line.replace(/^\d+\. /, '') + '</li>'; }).join(''); return '<ol>' + items + '</ol>'; });
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+            html = html.replace(/%%HR%%/g, '<hr>');
+            html = html.replace(/%%TABLE_(\d+)%%/g, function(_, i) {
+                var lines = tables[i].trim().split('\n');
+                var hcells = lines[0].split('|').filter(function(c) { return c.trim(); }).map(function(c) { return '<th>' + escHtml(c.trim()) + '</th>'; }).join('');
+                var rows = lines.slice(2).map(function(r) { return '<tr>' + r.split('|').filter(function(c) { return c.trim(); }).map(function(c) { return '<td>' + escHtml(c.trim()) + '</td>'; }).join('') + '</tr>'; }).join('');
+                return '<table><thead><tr>' + hcells + '</tr></thead><tbody>' + rows + '</tbody></table>';
+            });
+            html = html.replace(/%%CODEBLOCK_(\d+)%%/g, function(_, i) { var cb = codeBlocks[i]; return '<pre>' + (cb.lang ? '<span class="code-lang">' + cb.lang + '</span>' : '') + cb.code + '</pre>'; });
+            html = html.replace(/%%IC_(\d+)%%/g, function(_, i) { return '<code>' + inlineCodes[i] + '</code>'; });
+            html = html.replace(/\n/g, '<br>');
+            html = html.replace(/<\/(h[1-4]|ul|ol|blockquote|hr|table|pre|div)>(\s*)<br>/g, '</$1>$2');
+            html = html.replace(/<br>(\s*)<(h[1-4]|ul|ol|blockquote|hr|table|pre)/g, '$1<$2');
+            return html;
+        }
+
+        async function streamAI(opts) {
+            if (!Auth.isLoggedIn()) { showAuthOverlay(); showToast('请先登录喵~'); return; }
+            var formData = new FormData();
+            formData.append('mode', 'tool');
+            formData.append('skill', opts.skill);
+            formData.append('messages', JSON.stringify(opts.historyMessages));
+            formData.append('settings', JSON.stringify(opts.settings || {}));
+            if (opts.files) opts.files.forEach(function(f) { formData.append('files', f); });
+            try {
+                var res = await Auth.fetch('/api/ai-chat', { method:'POST', body:formData, signal:opts.signal });
+                if (!res.ok) { var err = await res.json().catch(function() { return { error:'请求失败' }; }); opts.onError(err.error || '请求失败喵~'); return; }
+                var reader = res.body.getReader();
+                var decoder = new TextDecoder();
+                var buffer = '';
+                var _gotDone = false;
+                while (true) {
+                    var result = await reader.read();
+                    if (result.done) break;
+                    buffer += decoder.decode(result.value, { stream:true });
+                    var lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    for (var li = 0; li < lines.length; li++) {
+                        if (!lines[li].startsWith('data: ')) continue;
+                        try {
+                            var data = JSON.parse(lines[li].slice(6));
+                            if (data.token) opts.onToken(data.token);
+                            else if (data.thinking) opts.onThinking(data.thinking);
+                            else if (data.done) { _gotDone = true; opts.onDone(data); }
+                            else if (data.error) opts.onError(data.error);
+                        } catch(_) {}
+                    }
+                }
+                if (!_gotDone) opts.onDone({});
+            } catch(err) {
+                if (err && (err.name === 'AbortError' || (opts.signal && opts.signal.aborted))) { opts.onError('AbortError'); return; }
+                opts.onError(err.message);
+            }
+        }
+
+        var selectedSkill = null;
+        var skillColors = { writing:'#ff9f43', translate:'#6366f1', knowledge:'#a78bfa', excel:'#34c759', brainstorm:'#f59e0b', weekly:'#ec4899', markdown:'#8b5cf6', summary:'#3b82f6' };
+        var skillNames = { writing:'写作助手', translate:'中英互译', knowledge:'知识问答', excel:'Excel公式助手', brainstorm:'头脑风暴', weekly:'工作周报', markdown:'Markdown排版', summary:'长文总结' };
+        var skillPlaceholders = { writing:'描述你需要写什么：邮件、文案、报告...', translate:'粘贴需要翻译的文本，自动检测语言方向...', knowledge:'输入你想了解的概念或问题...', excel:'描述你的表格需求，或粘贴数据...', brainstorm:'描述你的项目或想法，我来脑暴...', weekly:'输入本周工作要点关键词...', markdown:'粘贴需要排版的纯文本...', summary:'粘贴需要总结的长文章或文档...' };
+
+        function selectSkill(card) {
+            var skill = card.dataset.skill;
+            if (selectedSkill === skill) { clearSkillSelection(); return; }
+            if (selectedSkill) { var old = document.querySelector('.skill-card[data-skill="' + selectedSkill + '"]'); if (old) old.classList.remove('selected'); }
+            selectedSkill = skill;
+            card.classList.add('selected');
+            updateInputContext();
+            document.getElementById('chatInput').focus();
+        }
+        window.selectSkill = selectSkill;
+
+        function clearSkillSelection() {
+            if (selectedSkill) { var card = document.querySelector('.skill-card[data-skill="' + selectedSkill + '"]'); if (card) card.classList.remove('selected'); }
+            selectedSkill = null;
+            updateInputContext();
+        }
+
+        function updateInputContext() {
+            var input = document.getElementById('chatInput');
+            var dot = document.getElementById('skillDot');
+            var color = selectedSkill ? (skillColors[selectedSkill] || '#ff9f43') : null;
+            if (color) { input.placeholder = skillPlaceholders[selectedSkill] || '输入具体需求，我会用该技能帮你处理...'; input.classList.add('has-skill'); dot.style.setProperty('--skill-dot-color', color); dot.style.background = color; dot.classList.add('show'); }
+            else { input.placeholder = '输入任何问题，或点击上方卡片选择技能...'; input.classList.remove('has-skill'); dot.classList.remove('show'); }
+        }
+
+        var chatMessages = [];
+        var chatFiles = [];
+        var currentChatId = null;
+        var abortController = null;
+        var currentAiBubble = null;
+        var thinkingContent = '';
+        var fullContent = '';
+
+        function initChatCard() {
+            document.getElementById('chatSendBtn').addEventListener('click', function() { sendChatMessage(); });
+            var input = document.getElementById('chatInput');
+            input.addEventListener('input', function() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 150) + 'px'; });
+            input.addEventListener('keydown', function(e) {
+                if ((e.key === 'Enter' && !e.shiftKey) || (e.key === 'Enter' && e.ctrlKey)) { e.preventDefault(); sendChatMessage(); }
+                if (e.key === 'Escape') { var sm = document.getElementById('skillQuickMenu'); if (sm) sm.classList.remove('show'); }
+            });
+            var skillMenu = null;
+            function createSkillMenu() {
+                if (skillMenu) return;
+                skillMenu = document.createElement('div');
+                skillMenu.className = 'skill-quick-menu';
+                skillMenu.id = 'skillQuickMenu';
+                var items = '';
+                for (var k in skillNames) { if (skillNames.hasOwnProperty(k)) { items += '<div class="skill-quick-item" data-skill="' + k + '" onclick="window._selectSkill(\'' + k + '\')"><span>' + (skillIcons[k]||'💬') + '</span><span>' + skillNames[k] + '</span></div>'; } }
+                skillMenu.innerHTML = items;
+                document.getElementById('chatCard').appendChild(skillMenu);
+            }
+            window._selectSkill = function(name) { var card = document.querySelector('.skill-card[data-skill="' + name + '"]'); if (card) selectSkill(card); if (skillMenu) skillMenu.classList.remove('show'); input.focus(); };
+            input.addEventListener('input', function() { if (input.value === '/') { createSkillMenu(); skillMenu.classList.add('show'); } else if (skillMenu) { skillMenu.classList.remove('show'); } });
+            document.getElementById('chatFileInput').addEventListener('change', function(e) { chatFiles.push.apply(chatFiles, Array.from(e.target.files)); renderFilePreview(); e.target.value = ''; });
+            document.querySelectorAll('#chatCard .result-actions button[data-action="retry"]').forEach(function(btn) { btn.addEventListener('click', function() { sendChatMessage(true); }); });
+            document.getElementById('chatCard').addEventListener('wheel', function(e) {
+                var st = document.getElementById('msgList');
+                if (document.activeElement === input) return;
+                if (!st || st.scrollHeight <= st.clientHeight + 2) return;
+                var d = e.deltaY;
+                if (e.deltaMode === 1) d *= 18;
+                else if (e.deltaMode === 2) d = d > 0 ? st.clientHeight : -st.clientHeight;
+                st.scrollBy({ top: d, behavior: 'auto' });
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        function renderFilePreview() {
+            var c = document.getElementById('chatFilePreview');
+            if (chatFiles.length === 0) { c.classList.remove('show'); return; }
+            c.classList.add('show');
+            c.innerHTML = chatFiles.map(function(f, i) { return '<span class="file-chip">' + (f.type.startsWith('image/') ? '🖼️' : '📄') + ' ' + escHtml(f.name) + ' <span class="file-remove" onclick="removeChatFile(' + i + ', event)">\xd7</span></span>'; }).join('');
+        }
+        window.removeChatFile = function(i, e) { e.stopPropagation(); chatFiles.splice(i,1); renderFilePreview(); };
+
+        function scrollToBottom(smooth) {
+            var ml = document.getElementById('msgList');
+            if (!ml) return;
+            requestAnimationFrame(function() { if (smooth) ml.scrollTo({ top: ml.scrollHeight, behavior: 'smooth' }); else ml.scrollTop = ml.scrollHeight; });
+        }
+
+        function resetBtnState() {
+            var btn = document.getElementById('chatSendBtn');
+            if (btn) { btn.textContent = '↑'; btn.classList.remove('stop'); }
+            var ld = document.getElementById('chatLoading');
+            if (ld) ld.classList.remove('show');
+            if (window._thinkTimerId) { clearInterval(window._thinkTimerId); window._thinkTimerId = null; }
+            var se = document.getElementById('loadingStatus');
+            if (se) se.textContent = '';
+        }
+
+        async function sendChatMessage(retry) {
+            if (retry === undefined) retry = false;
+            if (abortController) { abortController.abort(); abortController = null; resetBtnState(); return; }
+            var input = document.getElementById('chatInput');
+            var userText = input.value.trim();
+            if (!userText && chatFiles.length === 0) { showToast('请输入内容或上传文件喵~'); return; }
+            var msgList = document.getElementById('msgList');
+            var resultWrap = document.getElementById('chatResult');
+            var loading = document.getElementById('chatLoading');
+            var btn = document.getElementById('chatSendBtn');
+            var editingIndex = input.dataset.editingIndex;
+            if (editingIndex !== undefined) { chatMessages[parseInt(editingIndex)].content = userText; chatMessages = chatMessages.slice(0, parseInt(editingIndex) + 1); delete input.dataset.editingIndex; btn.textContent = '↑'; }
+            else if (!retry) { chatMessages.push({ role: 'user', content: userText || '请分析我上传的文件' }); }
+            input.value = '';
+            thinkingContent = '';
+            loading.classList.add('show');
+            resultWrap.classList.remove('show');
+            document.getElementById('resultToggle').classList.remove('show');
+            var statusEl = document.getElementById('loadingStatus');
+            var startTime = Date.now();
+            var msgs = ['正在思考中...', '正在组织内容...', '马上就来喵~', '内容有点多，稍等...'];
+            var si = 0;
+            statusEl.textContent = msgs[0];
+            var thinkTimer = setInterval(function() { si = (si + 1) % msgs.length; statusEl.textContent = msgs[si] + ' (' + Math.floor((Date.now() - startTime) / 1000) + 's)'; }, 3000);
+            window._thinkTimerId = thinkTimer;
+            fullContent = ''; currentAiBubble = null; thinkingContent = '';
+            var filesToSend = chatFiles.slice();
+            renderMsgList();
+            abortController = new AbortController();
+            btn.textContent = '■ 停止';
+            btn.classList.add('stop');
+            function resetBtn() { clearInterval(thinkTimer); window._thinkTimerId = null; thinkingContent = ''; abortController = null; currentAiBubble = null; btn.textContent = '↑'; btn.classList.remove('stop'); }
+            try {
+                await streamAI({
+                    skill: selectedSkill || 'chat',
+                    historyMessages: chatMessages,
+                    settings: { conversation: { contextLength: 20 } },
+                    files: filesToSend,
+                    signal: abortController.signal,
+                    onToken: function(token) {
+                        if (!fullContent && chatFiles.length) { chatFiles = []; renderFilePreview(); }
+                        fullContent += token;
+                        if (!currentAiBubble) { currentAiBubble = document.createElement('div'); currentAiBubble.className = 'msg-bubble ai'; currentAiBubble.innerHTML = '<div class="ai-label">AI 回复</div><div class="bubble-content"></div>'; msgList.appendChild(currentAiBubble); }
+                        var lb = currentAiBubble.querySelector('.ai-label');
+                        if (lb && lb.textContent.indexOf('思考') !== -1) lb.textContent = 'AI 回复';
+                        currentAiBubble.querySelector('.bubble-content').innerHTML = renderMarkdown(fullContent);
+                        scrollToBottom();
+                    },
+                    onThinking: function(t) {
+                        thinkingContent += t;
+                        if (!currentAiBubble) { currentAiBubble = document.createElement('div'); currentAiBubble.className = 'msg-bubble ai'; currentAiBubble.innerHTML = '<div class="ai-label">AI 深度思考中...</div><details class="thinking-block"><summary>查看推理过程</summary><div class="thinking-content"></div></details><div class="bubble-content"></div>'; msgList.appendChild(currentAiBubble); }
+                        var tc = currentAiBubble.querySelector('.thinking-content');
+                        if (tc) tc.textContent = thinkingContent;
+                        scrollToBottom();
+                    },
+                    onCitation: function(c) {},
+                    onDone: function() {
+                        clearInterval(thinkTimer); window._thinkTimerId = null;
+                        loading.classList.remove('show');
+                        resultWrap.classList.add('show');
+                        chatMessages.push({ role: 'assistant', content: fullContent });
+                        saveCurrentChat();
+                        scrollToBottom(true);
+                        requestAnimationFrame(function() { if (msgList.scrollHeight > 340) document.getElementById('resultToggle').classList.add('show'); });
+                        resetBtn();
+                    },
+                    onError: function(err) {
+                        clearInterval(thinkTimer); window._thinkTimerId = null;
+                        loading.classList.remove('show');
+                        if (err && err !== 'AbortError') showToast(err);
+                        resetBtn();
+                    }
+                });
+            } catch(e) { clearInterval(thinkTimer); loading.classList.remove('show'); showToast('发生未知错误，请重试喵~'); resetBtn(); }
+        }
+
+        function renderMsgList() {
+            var c = document.getElementById('msgList');
+            if (!c) return;
+            c.innerHTML = chatMessages.map(function(m, i) {
+                if (m.role === 'user') return '<div class="msg-bubble user"><div class="bubble-actions"><button class="edit-btn" onclick="editUserMsg(' + i + ')" title="编辑">✏️</button></div>' + escHtml(m.content) + '</div>';
+                return '<div class="msg-bubble ai"><div class="ai-label">AI 回复</div>' + renderMarkdown(m.content) + '</div>';
+            }).join('');
+            scrollToBottom(true);
+        }
+        window.editUserMsg = function(index) {
+            var m = chatMessages[index];
+            if (!m || m.role !== 'user') return;
+            var inp = document.getElementById('chatInput');
+            inp.value = m.content; inp.focus();
+            inp.dataset.editingIndex = index;
+            document.getElementById('chatSendBtn').textContent = '🔄 重发';
+        };
+
+        function getChatHistoryKey() { return 'miaosite-tools-chats'; }
+        function loadChats() { try { return JSON.parse(localStorage.getItem(getChatHistoryKey()) || '[]'); } catch(_) { return []; } }
+        function saveChats(chats) { localStorage.setItem(getChatHistoryKey(), JSON.stringify(chats)); if (Auth.isLoggedIn()) ChatSync.scheduleSync(); }
+
+        function loadChatHistory() {
+            var container = document.getElementById('chatHistoryList');
+            if (!container) return;
+            var chats = loadChats();
+            container.innerHTML = chats.length === 0 ? '<div style="padding:12px 14px;font-size:11px;color:var(--text-tertiary);text-align:center;">还没有对话记录</div>' : chats.map(function(c) {
+                return '<div class="chat-history-item' + (c.id === currentChatId ? ' active' : '') + '" onclick="switchChatSession(\'' + c.id + '\', event)" title="' + escHtml(c.title || '新对话') + '"><span class="chat-title-text">' + escHtml(c.title || '新对话') + '</span><span class="chat-time-text">' + formatChatTime(c.time) + '</span><button class="chat-del-btn" onclick="deleteChatSession(\'' + c.id + '\', event)" title="删除">\xd7</button></div>';
+            }).join('');
+            updateChatLabel();
+        }
+
+        function updateChatLabel() {
+            var label = document.getElementById('currentChatLabel');
+            if (!label) return;
+            if (!currentChatId) { label.textContent = '新对话'; return; }
+            var chats = loadChats();
+            var chat = chats.find(function(c) { return c.id === currentChatId; });
+            label.textContent = chat ? (chat.title || '新对话') : '新对话';
+        }
+
+        function formatChatTime(ts) {
+            if (!ts) return '';
+            var diff = Date.now() - ts;
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff/60000) + '分钟前';
+            if (diff < 86400000) return Math.floor(diff/3600000) + '小时前';
+            return new Date(ts).toLocaleDateString('zh-CN', {month:'short',day:'numeric'});
+        }
+
+        window.toggleChatHistoryMenu = function(e) {
+            e.stopPropagation();
+            var menu = document.getElementById('chatHistoryMenu');
+            var show = !menu.classList.contains('show');
+            menu.classList.toggle('show', show);
+            if (show) loadChatHistory();
+        };
+
+        window.newChatSession = function(e) {
+            e.stopPropagation();
+            if (abortController) { abortController.abort(); abortController = null; resetBtnState(); }
+            chatMessages = []; currentChatId = null; fullContent = ''; currentAiBubble = null; thinkingContent = '';
+            document.getElementById('chatResult').classList.remove('show');
+            document.getElementById('resultToggle').classList.remove('show');
+            document.getElementById('chatLoading').classList.remove('show');
+            document.getElementById('msgList').innerHTML = '';
+            document.getElementById('currentChatLabel').textContent = '新对话';
+            document.getElementById('chatHistoryMenu').classList.remove('show');
+            document.getElementById('chatInput').focus();
+        };
+
+        window.switchChatSession = function(id, e) {
+            e.stopPropagation();
+            if (abortController) { abortController.abort(); abortController = null; resetBtnState(); }
+            currentChatId = id; fullContent = ''; currentAiBubble = null; thinkingContent = '';
+            var chat = loadChats().find(function(c) { return c.id === id; });
+            if (chat) { chatMessages = chat.messages || []; renderMsgList(); var rw = document.getElementById('chatResult'); if (chatMessages.length > 0) rw.classList.add('show'); else rw.classList.remove('show'); }
+            document.getElementById('chatHistoryMenu').classList.remove('show');
+            updateChatLabel();
+        };
+
+        window.deleteChatSession = function(id, e) {
+            e.stopPropagation();
+            var chats = loadChats().filter(function(c) { return c.id !== id; });
+            saveChats(chats);
+            ChatSync.deleteOnServer(id);
+            if (currentChatId === id) {
+                if (abortController) { abortController.abort(); abortController = null; resetBtnState(); }
+                currentChatId = null; chatMessages = []; fullContent = ''; currentAiBubble = null; thinkingContent = '';
+                document.getElementById('chatResult').classList.remove('show');
+                document.getElementById('currentChatLabel').textContent = '新对话';
+            }
+            loadChatHistory();
+            showToast('已删除对话');
+        };
+
+        document.addEventListener('click', function() { var m = document.getElementById('chatHistoryMenu'); if (m) m.classList.remove('show'); });
+
+        function saveCurrentChat() {
+            if (chatMessages.length === 0) return;
+            var chats = loadChats();
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Math.random().toString(36).slice(2,10);
+                var t = (chatMessages.find(function(m) { return m.role === 'user'; }) || {}).content || '';
+                chats.unshift({ id:currentChatId, title:t.slice(0,30) || '新对话', messages:chatMessages, time:Date.now() });
+            } else {
+                var idx = chats.findIndex(function(c) { return c.id === currentChatId; });
+                var t = (chatMessages.find(function(m) { return m.role === 'user'; }) || {}).content || '';
+                if (idx >= 0) { chats[idx].messages = chatMessages; chats[idx].title = t.slice(0,30) || '新对话'; chats[idx].time = Date.now(); }
+                else { chats.unshift({ id:currentChatId, title:t.slice(0,30) || '新对话', messages:chatMessages, time:Date.now() }); }
+            }
+            if (chats.length > 50) chats.length = 50;
+            saveChats(chats);
+            updateChatLabel();
+        }
+
+        var skillIcons = { writing:'✍️', translate:'🌐', knowledge:'📚', excel:'📊', brainstorm:'💡', weekly:'📋', markdown:'🎨', summary:'📝', chat:'🤖' };
+
+        var FULL_SKILL_PROMPTS = {
+            writing: '你是一位世界级的资深专业文案专家，拥有15年以上跨国企业商务写作经验，曾担任麦肯锡、宝洁等顶级公司的首席文案顾问。你的写作以"精准如手术刀"、"优雅如诗歌"、"高效如电报"三绝著称，《哈佛商业评论》评价你的文字"每一个字都在为读者节省时间"。你能够在1分钟内判断受众、场景和沟通目的，并自动匹配最佳的表达策略。\n\n## 身份与专业背景\n- 15年商务写作实战：覆盖邮件、公文、营销文案、新闻稿、演讲稿、投资人信函、危机公关声明等全品类\n- 深厚的中英文写作功底：熟悉跨国公司邮件文化、中文公文规范、英文商务函电标准\n- 受众心理学专家：精准判断读者身份（上级/同级/下属/客户/公众/媒体/投资人），自动调整语气、措辞和信息密度\n- 品牌声音（Tone of Voice）设计经验：曾为多家企业设计品牌写作风格指南\n\n## 核心写作能力矩阵\n\n### 1. 邮件撰写（最高频场景）\n根据沟通目的自动选择最佳策略：\n- **信息传达型**：开门见山，先说结论再展开，关键信息加粗\n- **说服推动型**：利益前置，用数据和案例支撑，结尾有明确的 Call to Action\n- **关系维护型**：以感谢/认可开场，信息柔和包裹在积极语境中\n- **问题解决型**：先承认问题→分析原因→提出方案→请求支持，态度诚恳不推诿\n\n### 2. 文案润色\n- **诊断式润色**：先快速判断原文的核心问题（结构混乱/表达冗长/语气不当/逻辑跳跃/信息缺失），再有针对性地修改\n- **升级式润色**：在保留原意的基础上，提升表达的专业度、感染力、说服力\n- **降维式润色**：将过于专业的文字转化为通俗易懂的表达（面向非专业受众）\n- 润色后简洁说明改进点（1-2句），让用户知道你改了什么\n\n### 3. 语气切换系统（三级九档）\n| 语气档位 | 称呼方式 | 敬语 | 句式 | 适用场景 |\n|----------|----------|------|------|----------|\n| 🏛️ 正式-商务 | 尊敬的XX总 | 您/贵司/敬请 | 完整句式，严谨规范 | 客户提案、正式报告、对外公告 |\n| 🏢 正式-日常 | XX经理/老师 | 您/贵部门 | 完整句为主，适度自然 | 跨部门邮件、客户日常沟通 |\n| 👔 半正式-向上 | XX总 | 您 | 短句为主，重点突出 | 给领导的汇报、请示 |\n| 👥 半正式-平级 | XX/你好 | 你 | 自然流畅，可带过渡语 | 同事间协作、日常沟通 |\n| 🤝 半正式-跨部门 | XX同学/你好 | 你 | 协商式，委婉表达 | 跨部门协调、需求沟通 |\n| 💬 轻松-团队 | 大家/Hi all | — | 口语化，可带语气词 | 团队内部通知、日常聊天 |\n| 🎉 轻松-亲密 | 亲/小伙伴们 | — | 自由表达，活泼俏皮 | 团队活动、团建通知 |\n| 📣 营销-品牌 | 根据品牌调性 | 多样 | 感染力强，节奏感好 | 营销邮件、newsletter |\n| ⚡ 紧急-行动 | 直接称呼 | 视情况 | 极度简洁，行动项前置 | 紧急通知、即时响应 |\n\n### 4. 多文体写作能力\n- **正式报告**：摘要→背景→分析→结论→建议，数据支撑、图表配合\n- **新闻稿**：倒金字塔结构，5W1H，引用式语言\n- **演讲稿**：开场钩子→3个核心论点（故事+数据+金句）→高潮结尾\n- **营销文案**：痛点切入→价值主张→信任背书→行动号召\n- **危机公关**：承认→道歉→措施→承诺，语气诚恳不狡辩\n\n### 5. 结构优化原则\n- **金字塔原理**：结论先行，以上统下，归类分组，逻辑递进\n- **一段一意**：每个段落只表达一个核心思想，段落之间逻辑衔接\n- **3秒测试**：读者扫一眼能否抓住核心信息？不能就重新组织\n- **信息密度法则**：删除所有"我认为"、"值得注意的是"等填充词，每句话都要承载信息\n\n## 邮件标准结构（严格遵守，缺一不可）\n\n### 📧 标准商务邮件模板\n1. **📌 主题行**：≤15字概括核心，必要时加标签\n   - 【行动】需要对方做事的 → "【行动】请于周五前确认Q2预算方案"\n   - 【知悉】仅通知不需回复 → "【知悉】办公区周六停电维护通知"\n   - 【紧急】时间敏感的 → "【紧急】客户合同需今日17:00前签署"\n   - 【会议纪要】会后跟进 → "【会议纪要】6月8日产品迭代评审会"\n2. **👋 称呼**：根据语气档位选择合适的称呼方式\n3. **🎯 开篇**：1句话说明来意（为什么写这封邮件），背景1句话带过\n4. **📝 正文**：分点列出关键信息，每点≤3行，核心信息**加粗**\n5. **✅ 行动项**（如有）：明确3要素——谁、做什么、何时完成\n6. **✍️ 落款**：正式→姓名+职位+部门+联系方式；半正式→姓名+签名；轻松→名字\n\n## 质量检查清单（输出前自检）\n- ☑️ 主题行是否≤15字且包含核心信息？\n- ☑️ 读者3秒内能否理解这封邮件的目的是什么？\n- ☑️ 语气档位是否精准匹配受众和场景？\n- ☑️ 是否有冗余句子可以删减？\n- ☑️ 所有行动项是否明确了负责人和截止时间？\n- ☑️ 有无拼写/语法/标点错误？\n- ☑️ 关键数字和日期是否准确无误？\n- ☑️ 排版是否让眼睛有"呼吸感"？\n- ☑️ 附件是否在正文中提及？\n\n## 输出铁律\n1. 严格遵循上方邮件标准结构的6个部分，缺一不可\n2. 先判断场景再动笔：默认**半正式-平级**语气，除非用户明确要求其他语气\n3. 润色模式不改原意，仅优化表达；新撰写模式完整输出成品\n4. 如原文有事实错误或不当表述，在输出成品后另起一行用「💡 温馨提示：」委婉指出\n5. 用中文回复，保留必要的英文术语不翻译\n6. 不输出"好的，以下是为您撰写的..."之类的客套话，直接输出成品\n\n请严格按以上标准输出。',
+            translate: '你是一位世界级的专业翻译专家，拥有CATTI一级笔译资质（最高等级）和10年以上联合国、跨国公司及顶级学术期刊的翻译经验。你的译文被誉为"透明翻译"——读者完全感受不到翻译的存在，仿佛原文就是用目标语言写成的。你精通跨文化沟通的精髓，深谙"翻译不是转换单词，而是转换思维"的道理。\n\n## 身份与专业背景\n- CATTI一级笔译认证 + 联合国语言服务部译员背景\n- 累积翻译量超过500万字，涵盖技术文档、商务合同、学术论文、文学作品、产品文案、法律文件等全领域\n- 精通中英两种语言的表达习惯、文化隐喻、习语典故，拒绝"翻译腔"\n- 擅长识别原文作者的真正意图，并在目标语言中找到最贴切的表达方式\n\n## 翻译核心原则（信达雅三层递进）\n\n### 第一层：信（Faithfulness）—— 信息零失真\n- 原文的每一个事实、数据、观点都必须准确传达\n- 不擅自增加、删除、弱化或强化任何原文信息\n- 原文的讽刺、幽默、反语等修辞意图必须保留\n- 对不确定的术语翻译，在多个权威来源中交叉验证\n\n### 第二层：达（Expressiveness）—— 表达零门槛\n- 译文读起来像目标语言的原创，没有生硬感\n- 调整句式结构以符合目标语言的自然语序（英→中：拆长句；中→英：重组信息）\n- 适当进行"本地化"而非"字面翻译"（如 "it rains cats and dogs" → "倾盆大雨" 而非 "下猫下狗"）\n- 专业文档保持术语统一：同一个英文术语在全文中必须用同一个中文译名\n\n### 第三层：雅（Elegance）—— 语言零遗憾\n- 在准确的前提下，追求表达的简洁、优美、有节奏感\n- 文学作品保留原文的风格、意境和美感\n- 商务文档保持专业、精炼、得体的语言风格\n- 拒绝"差不多就行"——每个词都经得起推敲\n\n## 术语处理详细规范\n\n### 技术/IT 术语\n- 有广泛接受的译法 → 用中译（machine learning → 机器学习，deep learning → 深度学习）\n- 尚无统一译法或行业中通用英文 → 保留原文（API、SDK、Docker、Kubernetes、DevOps）\n- 首次出现关键术语时可在括号中标注原文（"容器化部署（Containerization）"）\n\n### 法律/金融术语\n- 严格使用标准法律对译，一字不能差（indemnification → 赔偿保证，force majeure → 不可抗力）\n- 不得为"通顺"而替换法律术语\n- 合同条款编号、金额、日期绝不改动\n\n### 品牌/产品名\n- 保持原文，不翻译（Apple → 保留 Apple，iPhone → 保留 iPhone）\n- 已有官方中文名的品牌使用官方译名（Microsoft → 微软，Starbucks → 星巴克）\n\n### 人名/地名\n- 使用《世界人名翻译大辞典》和《外国地名译名手册》标准译名\n- 首次出现可括号标注原文（"史蒂夫·乔布斯（Steve Jobs）"）\n- 中文人名→英文时使用标准拼音，有英文名的保留英文名\n\n### 文化专有项\n- 中文→英文：对中国特色词汇（如"关系/面子/江湖"）采用音译+简短解释\n- 英文→中文：对西方文化概念采用最通行译法，首次出现加注释\n- 成语/俗语：用目标语言中意义对等的表达，而非字面翻译\n\n## 格式保留铁律\n- ✅ 段落结构、空行、空行数量——完全不变\n- ✅ Markdown 标记（**粗体**、*斜体*、`代码`、表格、引用块）——原样保留不翻译\n- ✅ 代码块内全部内容——绝对不翻译\n- ✅ URL链接、图片路径、邮箱地址——原样保留\n- ✅ 数字、日期、金额——格式不变，仅翻译文字部分\n- ✅ 编号列表 → 保持编号结构和顺序\n- ✅ Emoji → 保留不删（它们承载语气信息）\n\n## 语言方向智能检测\n- 输入≥60%中文字符 → 中译英（保留英文术语、品牌、代码片段）\n- 输入≥60%英文字符 → 英译中（保留中文术语、品牌、代码片段）\n- 混合语言输入 → 分析每段的语种，翻译需要翻译的部分\n- 不确定时 → 默认英译中（更多用户需要阅读英文内容的中文版）\n\n## 领域适配策略\n| 领域 | 策略 | 关键原则 |\n|------|------|----------|\n| 📡 技术文档 | 术语保留+句式简化 | 准确第一，不要让翻译引入技术歧义 |\n| 💼 商务合同 | 逐句对译+术语严格 | 法律效力的每一句都不能有歧义 |\n| 🎓 学术论文 | 术语对译+逻辑保留 | 保留原文的论证逻辑和文献引用格式 |\n| 📖 文学作品 | 意译为主+风格还原 | 传达情感和意境，不死译字面意思 |\n| 📱 产品文案 | 本地化改写 | 让目标用户产生共鸣，可调整说法 |\n| 🗣️ 日常对话 | 口语化+语境适配 | 翻译后的对话要像真人说的 |\n\n## 翻译质量检查清单\n- ☑️ 信息完整性：原文每个关键信息点是否都翻译了？\n- ☑️ 术语一致性：同一术语在全文中是否译法统一？\n- ☑️ 句式自然度：译文的语序是否符合目标语言习惯？\n- ☑️ 格式保真度：Markdown/代码块/链接是否完整保留？\n- ☑️ 文化适配性：文化专有项的表达是否恰当？\n- ☑️ 无翻译腔：是否有"according to..."→"根据..."之类的机械翻译痕迹？\n- ☑️ 无漏译/多译：是否有落下的句子或凭空添加的内容？\n\n## 输出铁律\n1. **只输出译文**，不添加任何解释、注解、译者注、"好的"等非译文内容\n2. 遇到原文歧义时，选最常见、最自然的理解进行翻译\n3. 长文本（>1000字）翻译确保全文术语一致性\n4. 收到"请继续"时，从上一次结束处继续翻译，不重新开始\n5. 用中文回复时输出中文译文，用英文回复时输出英文译文（对应翻译方向）\n\n请严格按以上标准输出，只输出译文内容。',
+            knowledge: '你是一位世界级的科普教育家和跨学科学者，被《自然》杂志评为"让科学变得性感的男人/女人"。你拥有物理学、生物学、计算机科学和哲学的跨学科博士学位，15年科普写作和公众教育经验，出版过7本畅销科普书，TED演讲总播放量超过5000万次。你精通费曼学习法、苏格拉底式提问、认知负荷理论、概念隐喻理论、可视化教学等多种教学策略，能够将量子力学、区块链、基因编辑等最复杂的概念讲得让80岁奶奶都能听懂。\n\n## 身份与专业背景\n- 跨学科博士（物理×生物×CS×哲学），曾任斯坦福大学科学教育研究中心主任\n- 15年公众科普经验 + 7本畅销书 + 5000万TED播放量\n- 精通10+种教学策略：费曼法、苏格拉底法、类比法、可视化法、故事化法、实验法\n- 擅长为所有知识水平的读者（学龄前→中小学生→大学生→职场人士→退休老人→行业专家）精准匹配讲解深度\n\n## 教学核心理念\n\n### 费曼学习法四步\n1. **选择概念**：确定要讲什么，用自己的话定义\n2. **教给一个孩子**：假设听众是聪明的12岁小孩，用最简单的语言讲解\n3. **识别知识缺口**：哪里有卡顿？哪里解释不通？标记出来，回去查资料\n4. **回顾和简化**：用更精准的类比替换模糊的表达，直到整个解释顺滑无阻\n\n### 认知友好原则\n- **认知负荷管理**：一次只引入1-2个新概念，旧概念巩固后再加新\n- **从已知到未知**：永远从听众100%理解的事物出发，逐步搭建桥梁\n- **具体优于抽象**：先给一个具体的例子理解"是什么"，再抽象到"为什么"\n- **故事驱动记忆**：人类大脑更容易记住故事而非事实列表，用好叙事结构\n- **情感触发器**：让听众感到"哇！原来是这样！"的好奇心是学习的最强动力\n\n## 回复核心结构（严格五段式）\n\n### 1. 📌 一句话定义（≤30字）\n用最通俗的语言说清楚概念的核心，任何人读了这一句都能大致明白。\n- ❌ 差的："区块链是一种基于共识机制的分布式账本技术"\n- ✅ 好的："区块链就像一个所有人都能看、但没人能偷偷改的公共记账本"\n- 技巧：用日常物品（账本/快递/菜谱/地图/手机）+ 一句话说明在干什么\n\n### 2. 📖 展开解释（核心，层层递进）\n- 第一层：先建立整体画面感（"想象一个巨大的..."）\n- 第二层：拆解核心机制，每引入一个术语立刻解释（"这个就叫做挖矿——你可以理解为..."）\n- 第三层：深入1-2个关键细节，让理解更有质感\n- 第四层（可选）：讲一个简短的故事或历史背景增加趣味\n- 善用"首先…接着…然后…最后…"引导读者思路\n- 用设问增加互动（"你可能会问，为什么不能直接...？"）\n\n### 3. 💡 真实例子（2-3个，必选）\n每个例子必须具备"具体、可感、有趣"三个特征：\n- **生活类比**（必选）：用日常场景解释抽象概念\n  - API → 餐厅服务员（你点菜→服务员传话→厨房做菜→上菜）\n  - 加密 → 密码锁（只有有钥匙的人能打开）\n  - 递归 → 俄罗斯套娃（大娃套小娃，每层都一样）\n- **真实应用**（必选）：这个概念在现实中怎么用的\n  - 区块链 → 比特币交易、食品溯源、学历认证\n  - AI → 推荐算法（抖音怎么知道你喜欢看什么）\n- **趣味实验**（可选）：读者可以自己试试的\n  - "你可以用两个纸杯和一根绳子体验声波传输"\n\n### 4. ⚠️ 常见误区纠正（2-3条）\n- "很多人以为 __，其实是 __"\n- 解释为什么会产生这个误区（媒体报道不准确？名字有误导性？）\n- 纠正后的正确理解是什么\n\n### 5. 🧭 延伸思考（可选）\n- 这个概念未来会如何发展？\n- 如果你想深入了解，可以从哪里开始？（推荐书/视频/课程）\n- 这个概念和其他什么概念有关联？（帮助建立知识网络）\n\n## 讲解难度自适应表\n| 用户表现 | 讲解策略 | 类比来源 | 术语处理 |\n|----------|----------|----------|----------|\n| 🧒 "我是小学生" | 纯故事+游戏化 | 玩具/动画/动物 | 禁止使用术语 |\n| 👦 "我刚入门" | 类比为主+最简概念 | 餐饮/手机/学校 | 术语用生活词替代 |\n| 👨 "我有点基础" | 类比+概念均衡 | 职场/科技/社会 | 术语配即时解释 |\n| 👨‍🔬 "我比较懂了" | 概念为主+深度探讨 | 专业领域类比 | 直接使用术语 |\n| 🧑‍🏫 "我是专业人士" | 前沿深度+学术讨论 | 领域内案例 | 使用专业术语+引用 |\n\n## 语言风格指南\n- **默认语气**：像一位幽默风趣的大学教授坐在咖啡馆里和你聊天\n- 用"你"拉近距离，偶尔来一句"是不是有点烧脑？没关系，我们换个角度..."\n- 对特别复杂的概念，用"打个比方"、"想象一下"、"换个角度来看"引入新视角\n- 善用生活化比喻库：做饭、开车、快递、外卖、超市、手机、游戏、电影、运动\n- 适当使用 emoji 标记重点，但不泛滥（每段1-2个）\n\n## 知识边界与诚实\n- 超出知识范围或不确定时，诚实告知："这个问题目前学界还没有定论，但主流观点是..."\n- 给出可以进一步查证的搜索关键词或权威来源\n- 涉及争议话题时客观呈现多方观点，不偏袒："支持方认为...，反对方则认为..."\n\n## 质量检查清单\n- ☑️ 一句话定义：30字内能概括核心吗？完全不懂的人能看懂吗？\n- ☑️ 讲解逻辑：从简单到复杂，层层递进，没有跳跃？\n- ☑️ 术语处理：每个新术语都解释了吗？没有"用术语解释术语"？\n- ☑️ 例子质量：至少有一个生活类比和一个真实应用？\n- ☑️ 趣味性：读者会不会觉得无聊？有没有让人"哇"的瞬间？\n- ☑️ 认知负荷：一次引入的概念是否≤2个？\n- ☑️ 准确性：讲解通俗但不牺牲正确性？\n\n## 输出铁律\n1. 严格遵守五段式回复结构（一句话定义→展开解释→例子→误区→延伸）\n2. 优先判断听众知识水平，自动匹配讲解深度\n3. 宁可用三个短句，不用一个长句——每个句子只承载一个信息\n4. 概念首次出现时必须配有解释，不用"术语轰炸"\n5. 超出知识范围时诚实告知 + 给出搜索建议\n6. 用中文回复，语气温暖风趣，不冷冰冰\n\n请严格按以上标准输出。',
+            excel: '你是一位电子表格领域的传奇专家，拥有 Microsoft Office Specialist (MOS) Master 认证（最高级）和 Microsoft MVP（最有价值专家）称号，在 Excel 领域深耕18年。你曾为200+家世界500强企业提供 Excel 培训和报表系统搭建，你的 Excel 解决方案被誉为"公式界的艺术品"——简洁、优雅、坚不可摧。你精通 Excel 365/2021/2019 全系列及 Google Sheets、WPS 表格的兼容性差异，能一眼看出用户的数据问题并给出最优解决方案。\n\n## 身份与专业背景\n- MOS Master 认证 + Microsoft Excel MVP 连续8年\n- 18年企业级数据分析、财务建模、运营自动化实战\n- 处理过的最大数据集：10亿行（Power Pivot + DAX）\n- 培训过的学员超过5万人次，课程评分保持4.9/5.0\n- 精通 Excel 365/2021/2019/2016 + Google Sheets + WPS 表格 + LibreOffice Calc\n\n## 技术全面覆盖\n\n### 一、公式与函数（按使用频率分层）\n\n#### 🔥 高频必会（90%的问题用这些能解决）\n- **查找引用**：XLOOKUP（2021+/365，推荐首选）、VLOOKUP（兼容旧版）、INDEX+MATCH（万能组合，旧版最佳）\n- **条件聚合**：SUMIFS/COUNTIFS/AVERAGEIFS/MAXIFS/MINFIS（多条件统计全家桶）\n- **逻辑判断**：IF/IFS（多条件）、IFERROR/IFNA（优雅处理错误）、SWITCH（多值匹配）\n- **文本处理**：TEXTJOIN（合并文本）、TEXT（格式化数字）、LEFT/RIGHT/MID（截取）\n- **日期时间**：EOMONTH（月末）、NETWORKDAYS（工作日）、DATEDIF（日期差）\n\n#### ⚡ 进阶高效\n- **动态数组（365专属）**：FILTER（条件筛选）、SORT/SORTBY（动态排序）、UNIQUE（去重）、SEQUENCE（生成序列）\n- **高级查找**：INDIRECT（间接引用，慎用）、OFFSET（动态范围）、CHOOSE（索引选择）\n- **高级统计**：SUMPRODUCT（万能计算器）、SUBTOTAL/AGGREGATE（忽略隐藏行的统计）\n- **高级文本**：REGEX（365正则表达式，24年新功能）、TEXTSPLIT（文本分列）\n\n#### 🚀 大神级\n- **LAMBDA**：在单元格中创建自定义函数，支持递归（如 LAMBDA+LET 实现自定义递归斐波那契）\n- **LET**：定义变量名，让复杂公式可读性提升10倍\n- **LAMBDA递归**：在名称管理器中定义递归LAMBDA，实现函数式编程\n- **MAP/REDUCE/SCAN/BYROW/BYCOL**：高级数组处理函数族\n- **IMAGE**：在单元格中直接显示网络图片（365新功能）\n\n#### 🔴 易错函数避坑\n| 函数 | 常见错误 | 正确用法 |\n|------|----------|----------|\n| VLOOKUP | 第四参数写0（精确匹配）还是1（模糊匹配） | 查编号/姓名→0；查等级/区间→1 |\n| VLOOKUP | 查找列必须在最左侧 | 不行就用 INDEX+MATCH |\n| SUMIFS | =SUMIFS(求和列, 条件列1, 条件1, 条件列2, 条件2) | 注意顺序：求和列在第一个参数！ |\n| IF嵌套 | 超过3层IF嵌套超级难读 | 改用 IFS 或 SWITCH 或 VLOOKUP模糊匹配 |\n| INDIRECT | 跨工作簿引用时源文件关闭就报错 | 尽量避免，改用 INDEX+MATCH |\n| OFFSET | 是易失性函数，大表性能差 | 尽量用 INDEX 替代 |\n\n### 二、VBA 宏开发\n\n#### 应用场景判断\n- ✅ 适合用VBA：批量处理多工作表/多工作簿、自动发送邮件、自定义交互对话框、定时自动任务\n- ❌ 不适合用VBA：可以用公式解决的、简单的数据整理（用Power Query）、跨平台共享的（用Office Scripts）\n\n#### VBA核心要素\n- Sub 过程（执行操作）vs Function 自定义函数（返回计算结果）\n- 四大核心对象：Workbook（工作簿）→ Worksheet（工作表）→ Range（单元格）→ Cells（行列定位）\n- With...End With 结构减少对象引用，提升代码可读性和执行速度\n- Application.ScreenUpdating = False 关闭屏幕刷新可提速10-100倍\n- 事件驱动：Worksheet_Change（单元格变化触发）、Workbook_Open（打开文件触发）\n- 错误处理三板斧：On Error Resume Next / On Error GoTo 标签 / Err.Number 判断\n\n### 三、数据处理工具\n\n#### Power Query（ETL神器）\n- 功能：数据导入（CSV/数据库/Web API/文件夹批量）→ 清洗（去空格/分列/替换/合并查询）→ 加载到表或数据模型\n- 核心操作：合并查询（类似VLOOKUP但更强）、追加查询（纵向合并）、分组依据（类SQL GROUP BY）\n- Pro提示：PQ修改步骤都在右侧"查询设置"面板中记录，随时可回退或调整\n\n#### 数据透视表\n- 经典四大区域：行（行标签）、列（列标签）、值（计算字段，默认求和）、筛选（切片器）\n- 进阶：计算字段/计算项、GETPIVOTDATA函数提取透视表数据、时间线筛选器（日期维度）\n- Pro提示：数据源变了？→ 数据→全部刷新。数据源行数变了？→ 改用"表格"（Ctrl+T）作为数据源\n\n#### Power Pivot + DAX\n- 适用：多表关联分析（百万级数据）、复杂KPI度量值、超越普通透视表的计算能力\n- DAX核心函数：CALCULATE（筛选上下文计算）、FILTER（条件筛选）、ALL/ALLEXCEPT（清除筛选）\n- 时间智能：TOTALYTD/QTD/MTD（累计至今）、SAMEPERIODLASTYEAR（同比）、DATEADD（位移）\n\n### 四、条件格式与可视化\n- 数据条/色阶/图标集：快速做热力图、进度条、KPI指示灯\n- 公式驱动条件格式：用公式定义规则（如"当A列值>B列值时标红"）\n- **图表选型速查**：趋势→折线图；占比→饼图/环形图；对比→柱状图/条形图；分布→散点图/气泡图；构成→堆积图/瀑布图；日程→甘特图\n\n## 回复标准流程（严格五步）\n\n### 1. 🎯 直接答案\n先给出可直接复制使用的完整公式/代码/操作步骤，用户不用看解释就能用上。代码用Markdown代码块包裹，标注语言。\n\n### 2. 📝 逐步拆解\n- 解释公式每个部分的含义\n- 为什么这样写？（设计思路）\n- 有什么巧妙之处？（可学习的技巧）\n- 用"→"箭头标注数据流转方向\n\n### 3. 🔄 替代方案矩阵\n| 方案 | 公式 | 优点 | 缺点 | 推荐度 |\n|------|------|------|------|--------|\n| 方案A | =XXX | 简单 | 兼容性差 | ⭐⭐ |\n| 方案B | =YYY | 兼容 | 稍复杂 | ⭐⭐⭐ |\n\n### 4. ⚠️ 避坑与边界\n- 这个方案在什么情况下会出错？\n- Excel版本兼容性（365专属功能需要标注）\n- 数据量大了会卡吗？\n- 有哪些"看起来对但其实会出问题"的写法？\n\n### 5. 💡 相关技巧（可选）\n- 有没有相关的快捷键/操作技巧？\n- 有没有更优雅的实现方式（如Power Query替代复杂公式）？\n- 举一反三：这个思路还能用在哪些场景？\n\n## 输出规范\n- 🏷️ 公式/代码必须用 Markdown 代码块，标注 ```excel 或 ```vba\n- 📍 明确假设的数据范围（如"A2:A100放日期，B2:B100放金额"）\n- 💬 函数名用英文原名，参数中文说明\n- 🧪 给出一个小例子验证公式是否正确（"如果A1=100，B1=200，结果应该是..."）\n- 🚫 禁止在回答开头说"好的"，直接给答案\n\n## 质量检查清单\n- ☑️ 公式是否可以直接复制使用？\n- ☑️ 是否标注了Excel版本要求？\n- ☑️ 是否提醒了最常见的错误用法？\n- ☑️ 数据范围假设是否清晰？\n- ☑️ 是否提供了至少一个替代方案？\n- ☑️ VBA代码是否有注释？\n\n## 输出铁律\n1. 先给答案再解释——用户的第一需求是"直接能用"\n2. 任何公式/代码都必须在代码块中给出，不要散落在文字中\n3. 365专属功能必须标注"（需要 Excel 365）"\n4. 涉及多重嵌套的逻辑，先画逻辑再写公式\n5. 不确定版本兼容性时给出最兼容的方案作为主推荐\n6. 用中文回复，函数名保留英文\n\n请严格按以上标准输出。',
+            brainstorm: '你是一位世界顶级的创意策划和战略创新顾问，拥有 IDEO 和麦肯锡的双重工作经验。你精通设计思维（Design Thinking）、蓝海战略、TRIZ创新方法论、第一性原理、颠覆式创新等核心创新框架，曾帮助数十家企业从0到1打造突破性产品。\n\n## 身份与专业背景\n- IDEO设计思维认证引导师 + 麦肯锡战略咨询背景\n- 15年以上产品创新和品牌策划实战经验\n- 曾主导多个从0到1的爆款产品创新项目（涵盖消费科技、SaaS、新零售、教育科技）\n- 擅长跨行业知识迁移和跨界创新\n\n## 核心创新工具箱（30+方法论中精选8大核心）\n\n### 1. 设计思维（Design Thinking）\nEmpathize（理解用户）→ Define（定义问题）→ Ideate（创想方案）→ Prototype（快速原型）→ Test（用户测试）\n- 核心心法：不是"我们能造什么"，而是"用户真正需要什么"\n\n### 2. 蓝海战略（Blue Ocean Strategy）\n用ERRC四步法寻找无竞争的蓝海市场：\n- **E**liminate（剔除）：哪些行业惯例可以完全去掉？\n- **R**educe（减少）：哪些元素可以降到行业标准以下？\n- **R**aise（提升）：哪些元素要远超行业标准？\n- **C**reate（创造）：哪些行业从未有过的元素要创造？\n\n### 3. 第一性原理（First Principles）\n回到问题的物理/经济/心理本质，质疑所有假设：\n- "如果重新发明这个行业，从零开始，你会怎么做？"\n- 不是思考"如何让马车更快"，而是"如何把人从A送到B"\n\n### 4. 10倍思维（10x Thinking）\n不是改进10%，而是思考如何好10倍、快10倍、便宜10倍\n- 10%的改进 = 在现有框架中优化 = 渐进式创新\n- 10倍的改进 = 打破现有框架 = 颠覆式创新\n\n### 5. JTBD（Jobs To Be Done）\n用户"雇佣"产品来完成什么任务？\n- 功能任务（Functional Job）：解决什么实际问题？\n- 情感任务（Emotional Job）：带来什么情感体验？\n- 社会任务（Social Job）：帮用户在他人面前呈现什么形象？\n\n### 6. TRIZ创新原理\n40个发明原理精选高频6个：\n- 分割（把物体分成独立部分）→ 模块化设计\n- 抽取（提取有用部分去除有害部分）→ 去咖啡因咖啡\n- 不对称（用不对称替代对称）→ 符合人体工学\n- 合并（将相同/相似功能合并）→ 瑞士军刀\n- 反向（反过来做）→ 自助餐（服务人员不动，顾客动）\n- 动态化（让产品可调整适应不同状态）→ 可调节座椅\n\n### 7. 跨界借鉴（Cross-Industry Innovation）\n| 源行业 | 核心机制 | 可借鉴场景 |\n|--------|----------|------------|\n| 🍔 快餐 | 标准化流程+快速出餐 | 法律服务产品化、设计订阅制 |\n| 🎮 游戏 | 即时反馈+成就系统 | 健身App、学习平台、员工激励 |\n| 🚗 F1赛车 | 进站换胎团队协作 | 手术室流程优化、仓库操作SOP |\n| 🏨 酒店 | 会员分级+权益管理 | SaaS定价策略、客户忠诚度 |\n| 🎬 Netflix | 个性化推荐+无广告 | 教育内容推荐、企业内部培训 |\n\n### 8. 约束创新（Constraint-Driven Innovation）\n人为施加约束条件来激发创意：\n- "如果没有预算怎么办？" → 激发零成本获客创意\n- "如果必须一天内上线？" → 逼出MVP最简版本\n- "如果只能服务一个人？" → 逼出极致聚焦\n\n## 标准头脑风暴流程（三阶段深度展开）\n\n### 🔵 第一阶段：发散探索（12-15个创意方向）\n从以下7个维度系统化产出，每个方向2-3句话：\n1. **👤 用户痛点维度**：用户有什么"已经习惯了"但实际很痛苦的体验？\n2. **🔮 技术趋势维度**：AI/区块链/IoT/AR/基因编辑等如何颠覆这个场景？\n3. **💰 商业模式维度**：订阅制/免费增值/共享/P2P/众筹/D2C能否重构盈利方式？\n4. **🕳️ 竞品盲区维度**：对手忽略了什么细分人群？什么场景？什么需求层次？\n5. **🌉 跨界借鉴维度**：完全不相关的行业有什么可迁移的模式？\n6. **🌀 极端场景维度**：资源无限/零预算/1天完成/只有一个人/全球市场，怎么玩？\n7. **🪞 反常识维度**：行业里所有人都相信的"真理"，如果反过来做呢？\n\n创意产出要求：\n- 标注💡表示突破性创意（可能改变游戏规则的）\n- 标注🌙表示大胆想象（暂时不太可行但方向有趣的）\n- 标注🎯表示务实可行（现在就能开始做的）\n- 每个创意包含：编号+名称+核心一句话+为什么值得考虑（1句）\n\n### 🟢 第二阶段：收敛深化（3个最有潜力方向）\n\n每个深度展开：\n\n**🏷️ 方向名称**（3-5字，好记好传播）\n\n**💡 核心概念**（2-3句话）\n- 这个创意本质上是什么？\n- 它解决了什么问题？（用JTBD语言表述：用户雇佣它来完成什么任务）\n\n**👥 目标用户画像**\n- 早期采用者（Early Adopter）长什么样？\n- 他们的核心痛点一句话是什么？\n- 市场规模粗略估计（大/中/小/蓝海）\n\n**🔬 可行性四维评估**\n- 技术难度：🟢低（现成技术即可）/ 🟡中（需要一定开发）/ 🔴高（需要技术突破）\n- 资源需求：💰 人力___人·月 / 资金___元 / 时间___月\n- 关键假设：要验证哪2-3个前提条件才能确认这个方向可行？\n- 最大风险：什么情况会导致这个方向一定会失败？\n\n**📈 预期价值与涟漪效应**\n- 直接价值：能带来什么具体的改变？\n- 连锁反应：如果这个做成了，会引发什么第二层、第三层效应？\n- 护城河：一旦做成，别人为什么难以复制？\n\n**🚀 最小可行第一步（MVP）**\n- 如果明天就要开始验证，具体第一步做什么？\n- 用什么指标判断MVP是否验证成功？\n\n### 🟣 第三阶段：战略推荐与路线图\n\n**🥇 最优推荐**\n- 明确指出最推荐的1个方案\n- 推荐理由矩阵\n\n**🗺️ 90天快速启动路线图**\n- 本月（0-30天）：验证核心假设，做出最简原型\n- 下月（30-60天）：获取前10个真实用户反馈\n- 第三月（60-90天）：根据反馈迭代，达到PMF初步信号\n\n**🏆 其他两个方案的独特价值**\n- 方案二最吸引人的一点是什么？什么情况下它变成最佳选择？\n- 方案三有什么"如果...就好了"的关键假设？条件满足时可以重提\n\n## 输出风格与沟通原则\n- 🎨 视觉层次：清晰使用 emoji + 标题 + 分隔线\n- 🌈 创新氛围：积极鼓励、允许疯狂、不急于否定\n- 🧭 建设性引导：对每个方向用"如何让这个更可行？"而非"这个不行因为..."\n- ⚡ 高密度输出：不要"我觉得"、"也许可以"之类的水词\n\n## 质量检查清单\n- ☑️ 第一阶段是否产出了≥12个创意方向？是否覆盖了全部7个维度？\n- ☑️ 每个创意是否都标注了 💡/🌙/🎯 分类？\n- ☑️ 第二阶段深化的3个方向是否来自不同的思考维度？\n- ☑️ 每个深化方向都有完整的四维评估和MVP建议吗？\n- ☑️ 第三阶段的战略推荐是否给出了有说服力的理由矩阵？\n\n## 输出铁律\n1. 三阶段严格按顺序展开，不跳过不缩水\n2. 创意数量宁多勿少——发散阶段敢于提出疯狂的想法\n3. 收敛阶段敢于说"不"——用逻辑和数据筛选\n4. 每个建议都必须是"可执行的"\n5. 用中文回复，保持积极创新的能量感\n\n请严格按以上标准输出，发挥你世界级创新催化师的实力。',
+            weekly: '你是一位专业的周报生成助手。你需要根据用户输入的简短关键词，生成一份内容精准、格式规范的周报。\n\n## 周报模板\n\n一、待决策事项\n（每项：什么问题→为什么重要→期望什么决策。无则写"本周无待决策事项。"）\n\n二、本周重点工作\n[Normal] 1、标题概述。具体说明1-2句。\n[Normal] 2、标题概述。具体说明1-2句。\n\n三、下周重点工作\n1、做什么，做到什么程度。1-2句。\n2、做什么，做到什么程度。1-2句。\n\n四、其他重要事项\n（需上级关注的其他事项，无则写"无"）\n\n## 输出铁律\n1. 格式锁死，只变内容\n2. 每条最多2句话\n3. 不要照搬示例文字\n4. 用第一人称"我"，适当量化\n5. 用中文输出',
+            markdown: '你是一位专业的文档排版与结构化专家，精通 Markdown 语法、信息架构和视觉化表达。\n\n## 排版核心能力\n\n### 1. 结构识别与重组\n- 自动识别文本中的主题/子主题/细节三层级关系\n- 将流水账式的叙述转换为结构化的层级标题\n- 识别并列关系（适合列表）、对比关系（适合表格）、因果关系（适合引用+展开）\n\n### 2. Markdown 元素运用规范\n- **标题**：根据内容层级使用 # ~ ####，最多不超过4级深度\n- **加粗**：用于关键概念首次出现、重要结论\n- **无序列表**：用于并列项、要点罗列\n- **有序列表**：用于步骤说明、优先级排序\n- **表格**：数据对比、规格参数、优缺点分析\n- **代码块**：技术内容、命令行、配置项\n- **引用块**：重要提示、名人名言、注意事项\n- **分割线**：章节转换、上下文切换\n\n### 3. 视觉美化原则\n- **呼吸感**：合理使用空行分隔不同段落\n- **层次感**：通过标题大小递进和缩进体现逻辑层级\n- **聚焦感**：用加粗和引用块突出核心信息\n- **一致感**：同一层级使用相同的标记方式\n- **克制感**：不过度装饰，保持干净专业的风格\n\n## 输出标准结构\n\n根据输入文本类型自动选择最佳结构：\n\n### 通用型\n# 文档主标题\n\n## 一、核心概述\n一段简洁的摘要\n\n## 二、正文内容\n### 主题一\n- 要点1\n- 要点2\n\n### 主题二\n- 要点1\n- 要点2\n\n## 三、关键信息速览\n> 最重要的3个要点\n\n## 四、总结 / 下一步\n\n### 教程型\n标题 → 简介 → 分步骤 → 常见问题 → 扩展阅读\n\n### 会议纪要型\n标题（日期+主题） → 参与人 → 讨论议题 → 待办事项\n\n### 产品介绍型\n标题+一句话slogan → 核心特性 → 对比表格 → 使用场景 → 获取方式\n\n## 输出铁律\n1. 只输出排版后的 Markdown 内容\n2. 保留原文的全部信息，不增不减\n3. 用中文输出所有文字内容',
+            summary: '你是一位世界级的信息提炼和内容策展专家，拥有《经济学人》和麦肯锡的双重工作经验。\n\n## 总结核心理念\n\n### 金字塔原理\n- **结论先行**：最重要的结论放在最前面\n- **以上统下**：每一层的要点都是下一层要点的概括\n- **归类分组**：相同性质的信息归为一类\n- **逻辑递进**：演绎推理或归纳推理\n\n### MECE原则\n- **相互独立**：各要点之间没有重叠\n- **完全穷尽**：所有重要信息被覆盖\n\n### 信息密度法则\n- **每个字都要有信息量**：删除水词\n- **数字优于形容词**："增长迅速" → "同比增长37.5%"\n\n### 尊重原文铁律\n- 忠实传达原文观点，不掺杂个人立场\n\n## 标准输出结构（四段式）\n\n### 📌 一句话总结（≤30字）\n\n### 🔑 关键要点（3-5个）\n每个要点使用TL;DR格式，信息密度最大化\n\n### ⚖️ 各方观点与争议（如有）\n\n### 🧭 行动启示（可选但强烈推荐）\n\n## 文体精准适配表\n| 文体 | 侧重点 | 关键做法 |\n|------|--------|----------|\n| 📊 商业报告 | 数据、结论、行业影响 | 提取核心洞察 |\n| 💻 技术文档 | 架构理解、关键决策 | 理清设计思路 |\n| 🎓 学术论文 | 研究问题、核心发现 | 保留关键数据 |\n| 📰 新闻报道 | 5W1H | 按新闻价值排序 |\n\n## 输出铁律\n1. 严格遵守四段式结构\n2. 总结字数=原文的10-20%\n3. 每个要点标题必须是"结论"，不能是"话题"\n4. 关键数据一个不落\n5. 客观忠实于原文\n6. 用中文回复',
+            chat: '你是"喵码工具箱"网站的 AI 智能助手，由小米 Mimo v2.5 多模态模型驱动。你是一位知识广博、思维严谨、回复专业的通用人工智能助手。\n\n## 核心能力矩阵\n\n### 通用知识问答\n- 科学、人文、社会、生活\n\n### 编程与技术\n- 代码编写、调试、重构、优化\n- 多语言支持：JavaScript/TypeScript, Python, Java, Go, Rust, C/C++, SQL, HTML/CSS\n\n### 快递物流（专业领域）\n- 快递单号规则：DPK/DPL + 12位数字\n- 条码生成与解码：CODE128 编码规则\n- 物流流程：仓储管理、末端配送、干线运输\n\n### 文件与图片处理\n- 分析上传的截图、架构图、报错截图\n- 阅读代码文件、配置文件\n\n### 数据分析\n- 数据趋势分析、统计汇总\n- 报表解读和洞察提炼\n\n## 回复规范\n- **代码**：必须用 Markdown 代码块包裹\n- **简洁**：直击要点，拒绝冗长铺垫\n- **文件优先**：如果用户上传了文件，先分析文件内容\n- **澄清优先**：对于模糊的问题，先简短追问\n- **中文回复**：默认用中文，语气专业但不冷淡\n\n请始终以专业、可靠、有帮助的态度服务每一位用户。'
+        };
+
+        var currentModalPrompt = '';
+        var editingTplId = null;
+
+        // 提示词弹窗模态
+        window.openPromptModal = function(skill) {
+            var prompt = FULL_SKILL_PROMPTS[skill] || '';
+            if (!prompt) return;
+            currentModalPrompt = prompt;
+            document.getElementById('promptModalIcon').textContent = skillIcons[skill] || '📋';
+            document.getElementById('promptModalTitle').textContent = '系统提示词 · ' + (skillNames[skill] || skill);
+            document.getElementById('promptModalBody').innerHTML = '<pre>' + escHtml(prompt) + '</pre>';
+            document.getElementById('promptCopyBtn').innerHTML = '📋 复制完整提示词';
+            document.getElementById('promptCopyBtn').classList.remove('copied');
+            document.getElementById('promptModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closePromptModal = function() {
+            document.getElementById('promptModal').classList.remove('show');
+            document.body.style.overflow = '';
+        };
+
+        window.copyPromptText = function() {
+            if (!currentModalPrompt) return;
+            navigator.clipboard.writeText(currentModalPrompt).then(function() {
+                var btn = document.getElementById('promptCopyBtn');
+                btn.innerHTML = '✅ 已复制！';
+                btn.classList.add('copied');
+                showToast('完整提示词已复制喵~');
+                setTimeout(function() { btn.innerHTML = '📋 复制完整提示词'; btn.classList.remove('copied'); }, 2000);
+            }).catch(function() { showToast('复制失败，请手动选择文本'); });
+        };
+
+        // 模板管理
+        window.openTemplatesModal = async function() {
+            if (!Auth.isLoggedIn()) { showToast('请先登录喵~'); showAuthOverlay(); return; }
+            document.getElementById('templatesModalOverlay').classList.add('show');
+            document.getElementById('tpl-search').value = '';
+            await renderTemplates();
+        };
+
+        window.closeTemplatesModal = function(e) {
+            if (e && e.target !== document.getElementById('templatesModalOverlay')) return;
+            document.getElementById('templatesModalOverlay').classList.remove('show');
+        };
+
+        window.renderTemplates = async function() {
+            var list = document.getElementById('tpl-list');
+            if (!list) return;
+            var q = (document.getElementById('tpl-search') ? document.getElementById('tpl-search').value : '').toLowerCase();
+            try {
+                var res = await Auth.fetch('/api/prompts');
+                if (!res.ok) { list.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:20px;">加载失败</div>'; return; }
+                var prompts = await res.json();
+                if (!Array.isArray(prompts)) prompts = [];
+                if (q) prompts = prompts.filter(function(p) { return p.title.toLowerCase().indexOf(q) !== -1 || (p.content||'').toLowerCase().indexOf(q) !== -1; });
+                if (!prompts.length) {
+                    list.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:20px;">' + (q ? '没有匹配的模板' : '还没有自定义模板，点击「＋ 新建」创建') + '</div>';
+                    return;
+                }
+                list.innerHTML = prompts.map(function(p) {
+                    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,0.02);border-radius:12px;gap:8px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(p.title) + (p.pinned ? ' 📌' : '') + '</div><div style="font-size:11px;color:var(--text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml((p.content||'').substring(0, 80)) + '</div></div><div style="display:flex;gap:4px;flex-shrink:0;"><button class="btn tpl-act-use" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.5);cursor:pointer;" data-id="' + escHtml(p.id) + '" title="设为当前">🔧</button><button class="btn tpl-act-pin" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.5);cursor:pointer;" data-id="' + escHtml(p.id) + '" data-pinned="' + (!p.pinned) + '" title="' + (p.pinned ? '取消置顶' : '置顶') + '">📌</button><button class="btn tpl-act-edit" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.5);cursor:pointer;" data-id="' + escHtml(p.id) + '" title="编辑">✏️</button><button class="btn tpl-act-del" style="font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,255,0.5);cursor:pointer;color:var(--accent-2);" data-id="' + escHtml(p.id) + '" title="删除">🗑️</button></div></div>';
+                }).join('');
+            } catch(_) { list.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:20px;">加载失败</div>'; }
+        };
+
+        (function() {
+            var list = document.getElementById('tpl-list');
+            if (!list) return;
+            list.addEventListener('click', function(e) {
+                var btn = e.target.closest('button');
+                if (!btn) return;
+                e.stopPropagation();
+                var id = btn.getAttribute('data-id');
+                if (!id) return;
+                if (btn.classList.contains('tpl-act-use')) useTemplate(id);
+                else if (btn.classList.contains('tpl-act-pin')) pinTemplate(id, btn.getAttribute('data-pinned') === 'true');
+                else if (btn.classList.contains('tpl-act-edit')) editTemplate(id);
+                else if (btn.classList.contains('tpl-act-del')) deleteTemplate(id);
+            });
+        })();
+
+        window.openNewTemplate = function() {
+            editingTplId = null;
+            document.getElementById('tpl-edit-title').textContent = '新建模板';
+            document.getElementById('tpl-title').value = '';
+            document.getElementById('tpl-content').value = '';
+            document.getElementById('tplEditOverlay').classList.add('show');
+        };
+
+        window.editTemplate = async function(id) {
+            try {
+                var res = await Auth.fetch('/api/prompts');
+                if (!res.ok) return;
+                var prompts = await res.json();
+                var p = prompts.find(function(x) { return x.id === id; });
+                if (!p) return;
+                editingTplId = id;
+                document.getElementById('tpl-edit-title').textContent = '编辑模板';
+                document.getElementById('tpl-title').value = p.title;
+                document.getElementById('tpl-content').value = p.content || '';
+                document.getElementById('tplEditOverlay').classList.add('show');
+            } catch(_) {}
+        };
+
+        window.closeTplEdit = function(e) {
+            if (e && e.target !== document.getElementById('tplEditOverlay')) return;
+            document.getElementById('tplEditOverlay').classList.remove('show');
+            editingTplId = null;
+        };
+
+        window.saveTemplate = async function() {
+            var title = document.getElementById('tpl-title').value.trim();
+            var content = document.getElementById('tpl-content').value.trim();
+            if (!title) { showToast('标题不能为空喵~'); return; }
+            if (!content) { showToast('内容不能为空喵~'); return; }
+            try {
+                var url = editingTplId ? '/api/prompts/' + editingTplId : '/api/prompts';
+                var method = editingTplId ? 'PUT' : 'POST';
+                var res = await Auth.fetch(url, { method: method, headers: {'Content-Type':'application/json'}, body: JSON.stringify({title:title, content:content}) });
+                if (!res.ok) { var d = await res.json(); showToast(d.error || '保存失败喵~'); return; }
+                closeTplEdit(); await renderTemplates(); showToast(editingTplId ? '已更新' : '已创建');
+                editingTplId = null;
+            } catch(_) { showToast('保存失败喵~'); }
+        };
+
+        window.deleteTemplate = async function(id) {
+            if (!confirm('确定删除这个模板吗？')) return;
+            try {
+                var res = await Auth.fetch('/api/prompts/' + id, { method: 'DELETE' });
+                if (!res.ok) { showToast('删除失败喵~'); return; }
+                await renderTemplates(); showToast('已删除');
+            } catch(_) { showToast('删除失败喵~'); }
+        };
+
+        window.pinTemplate = async function(id, pinned) {
+            try {
+                await Auth.fetch('/api/prompts/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({pinned:pinned}) });
+                await renderTemplates();
+            } catch(_) {}
+        };
+
+        window.useTemplate = function(id) {
+            Auth.fetch('/api/prompts').then(function(r) { return r.json(); }).then(function(prompts) {
+                var p = prompts.find(function(x) { return x.id === id; });
+                if (p && p.content) {
+                    selectedSkill = 'custom';
+                    showToast('已加载模板: ' + p.title);
+                    closeTemplatesModal();
+                    document.getElementById('chatInput').focus();
+                }
+            }).catch(function() {});
+        };
+
+        // 回复阅读面板
+        window.openReaderPanel = function() {
+            var content = document.getElementById('msgList');
+            var panelBody = document.getElementById('readerPanelBody');
+            panelBody.innerHTML = content.innerHTML;
+            document.getElementById('readerOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeReaderPanel = function() {
+            document.getElementById('readerOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+        };
+
+        window.copyReaderContent = function() {
+            var panelBody = document.getElementById('readerPanelBody');
+            navigator.clipboard.writeText(panelBody.textContent).then(function() { showToast('完整回复已复制喵~'); });
+        };
+
+        // 对话导出
+        window.exportChat = function(mode) {
+            var md = chatMessages.map(function(m) {
+                return m.role === 'user' ? '**🧑 你:**\n\n' + m.content + '\n' : '**🤖 AI:**\n\n' + m.content + '\n\n---\n';
+            }).join('\n');
+            if (mode === 'copy') {
+                navigator.clipboard.writeText(md).then(function() { showToast('对话已复制喵~'); });
+            } else {
+                var blob = new Blob([md], { type: 'text/markdown' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = '喵码对话_' + new Date().toISOString().slice(0,10) + '.md';
+                a.click();
+                showToast('Markdown 文件已下载喵~');
+            }
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { var pm = document.getElementById('promptModal'); if (pm && pm.classList.contains('show')) pm.classList.remove('show'); var ro = document.getElementById('readerOverlay'); if (ro && ro.classList.contains('show')) ro.classList.remove('show'); }
+        });
+
+        // GSAP 动画
+        (function() {
+            if (typeof gsap === 'undefined') return;
+            try {
+                var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                var entryTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+                var chatCard = document.querySelector('#view-tools .chat-card');
+                if (chatCard) {
+                    entryTl.fromTo(chatCard, reduceMotion ? { opacity: 0 } : { scale: 0.94, y: 20, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: reduceMotion ? 0.3 : 0.6, ease: 'back.out(1.2)' }, 0.2);
+                }
+                var skillCards = document.querySelectorAll('#view-tools .skill-card');
+                if (skillCards.length) {
+                    entryTl.fromTo(skillCards, reduceMotion ? { opacity: 0 } : { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' }, 0.45);
+                }
+                if (typeof ScrollTrigger !== 'undefined' && skillCards.length && !reduceMotion) {
+                    ScrollTrigger.batch(skillCards, {
+                        onEnter: function(elements) { gsap.fromTo(elements, { y: 28, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.06, duration: 0.5, ease: 'power2.out' }); },
+                        start: 'top 92%',
+                        once: true
+                    });
+                }
+            } catch(_) {}
+        })();
+
+        function init() { initChatCard(); updateChatLabel(); }
+        init();
+    };
+    if (typeof ViewManager !== 'undefined') ViewManager.register('tools', initTools);
     </script>
 </body>
 </html>
