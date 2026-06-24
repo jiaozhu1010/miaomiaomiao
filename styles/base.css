@@ -84,6 +84,129 @@ body {
 .nav-subtitle { font-size:12px; color:var(--text-secondary); font-weight:500; letter-spacing:0.5px; }
 .nav-actions { display:flex; align-items:center; gap:12px; }
 
+/* ===== 浮动玻璃药片导航 (替换独立圆形按钮) ===== */
+.nav-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 50px;
+  box-shadow: var(--glass-shadow);
+  z-index: 5;
+}
+/* 滑动指示器 — 暖橙色发光药片 */
+.nav-pill-indicator {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  height: calc(100% - 10px);
+  border-radius: 50px;
+  background: linear-gradient(135deg, #fff6ed, #ffead5);
+  box-shadow:
+    0 2px 16px rgba(255, 159, 67, 0.3),
+    0 0 30px rgba(255, 159, 67, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  will-change: transform, width;
+}
+
+/* 灯管发光指示器 — 活跃标签上方的暖橙色发光横条 */
+.nav-pill-lamp {
+  position: absolute;
+  top: -2px;
+  width: 32px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  will-change: transform, opacity;
+  box-shadow:
+    0 0 8px rgba(255, 159, 67, 0.6),
+    0 0 20px rgba(255, 159, 67, 0.3),
+    0 0 40px rgba(255, 159, 67, 0.15);
+}
+.nav-pill-lamp::before,
+.nav-pill-lamp::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.nav-pill-lamp::before {
+  top: -8px;
+  width: 48px;
+  height: 24px;
+  background: radial-gradient(ellipse, rgba(255,159,67,0.3) 0%, transparent 70%);
+}
+.nav-pill-lamp::after {
+  top: -4px;
+  width: 32px;
+  height: 16px;
+  background: radial-gradient(ellipse, rgba(255,159,67,0.25) 0%, transparent 70%);
+}
+/* 单个标签 */
+.nav-pill-tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 50px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-pill-tab:hover {
+  color: var(--text-primary);
+}
+.nav-pill-tab.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.nav-pill-icon {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-pill-label {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* macOS Dock 风格悬停放大 (仅桌面端) */
+@media (hover: hover) and (pointer: fine) {
+  .nav-pill-tab:hover .nav-pill-icon {
+    transform: scale(1.25);
+  }
+  .nav-pill-tab:hover .nav-pill-label {
+    transform: scale(1.04);
+  }
+}
+.nav-pill-tab:active {
+  transform: scale(0.95);
+}
+
 /* 在线人数 */
 .online-badge { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);
     font-weight:500; background:rgba(255,255,255,0.5); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
@@ -106,61 +229,6 @@ body {
 .admin-btn:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
 @keyframes glowPurple { 0%,100%{box-shadow:0 4px 16px rgba(124,58,237,0.25),0 0 0 0 rgba(124,58,237,0.3)} 50%{box-shadow:0 4px 16px rgba(124,58,237,0.25),0 0 0 12px rgba(124,58,237,0)} }
 
-/* 知识库按钮（独立 class，与 admin-btn 同结构） */
-.wiki-btn { position:relative; width:42px; height:42px; border:1px solid rgba(255,255,255,0.6);
-    border-radius:50%; color:#fff; cursor:pointer; font-size:20px;
-    transition:all var(--transition-bounce); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
-    background:linear-gradient(135deg,#ff9f43,#ffb366); box-shadow:0 4px 16px rgba(255,159,67,0.25); animation:glowOrange2 3.5s ease-in-out infinite; }
-.wiki-btn:hover { transform:translateY(-3px) scale(1.1); box-shadow:0 8px 24px rgba(255,159,67,0.4); animation:none; }
-.wiki-btn:active { transform:translateY(1px) scale(0.94); }
-.wiki-btn::after { position:absolute; bottom:-36px; left:50%; transform:translateX(-50%) translateY(4px);
-    background:rgba(30,30,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-    color:#fff; font-size:11px; font-weight:500; padding:5px 12px; border-radius:10px; z-index:100;
-    white-space:nowrap; opacity:0; pointer-events:none; transition:all var(--transition-fast); content:'知识库 Wiki'; }
-.wiki-btn:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
-@keyframes glowOrange2 { 0%,100%{box-shadow:0 4px 16px rgba(255,159,67,0.25),0 0 0 0 rgba(255,159,67,0.3)} 50%{box-shadow:0 4px 16px rgba(255,159,67,0.25),0 0 0 12px rgba(255,159,67,0)} }
-
-/* AI 工具箱按钮（独立 class，与 admin-btn 同结构） */
-.chat-btn { position:relative; width:42px; height:42px; border:1px solid rgba(255,255,255,0.6);
-    border-radius:50%; color:#fff; cursor:pointer; font-size:20px;
-    transition:all var(--transition-bounce); display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
-    background:linear-gradient(135deg,#ff8a80,#ff5252); box-shadow:0 4px 16px rgba(255,82,82,0.25); animation:glowRed2 3s ease-in-out infinite; }
-.chat-btn:hover { transform:translateY(-3px) scale(1.1); box-shadow:0 8px 24px rgba(255,82,82,0.4); animation:none; }
-.chat-btn:active { transform:translateY(1px) scale(0.94); }
-.chat-btn::after { position:absolute; bottom:-36px; left:50%; transform:translateX(-50%) translateY(4px);
-    background:rgba(30,30,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-    color:#fff; font-size:11px; font-weight:500; padding:5px 12px; border-radius:10px; z-index:100;
-    white-space:nowrap; opacity:0; pointer-events:none; transition:all var(--transition-fast); content:'找小橘聊天~'; }
-.chat-btn:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
-@keyframes glowRed2 { 0%,100%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 0 rgba(255,82,82,0.3)} 50%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 12px rgba(255,82,82,0)} }
-
-/* ===== 导航圆形按钮（基类） ===== */
-.nav-btn-circle { position:relative; width:42px; height:42px; border:1px solid rgba(255,255,255,0.6);
-    border-radius:50%; color:#fff; cursor:pointer; font-size:20px;
-    transition:all var(--transition-bounce); display:flex; align-items:center; justify-content:center; text-decoration:none; }
-.nav-btn-circle:hover { transform:translateY(-3px) scale(1.1); }
-.nav-btn-circle:active { transform:translateY(1px) scale(0.94); }
-.nav-btn-circle::after { position:absolute; bottom:-36px; left:50%; transform:translateX(-50%) translateY(4px);
-    background:rgba(30,30,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-    color:#fff; font-size:11px; font-weight:500; padding:5px 12px; border-radius:10px; z-index:100;
-    white-space:nowrap; opacity:0; pointer-events:none; transition:all var(--transition-fast); }
-.nav-btn-circle:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* 颜色变体 — 仅提供 gradient + shadow + glow + tooltip 文字 */
-.btn-wiki { background:linear-gradient(135deg,#ff9f43,#ffb366); box-shadow:0 4px 16px rgba(255,159,67,0.25); animation:glowOrange 3.5s ease-in-out infinite; }
-.btn-wiki::after { content:'知识库 Wiki'; }
-.btn-wiki:hover { box-shadow:0 8px 24px rgba(255,159,67,0.4); animation:none; }
-@keyframes glowOrange { 0%,100%{box-shadow:0 4px 16px rgba(255,159,67,0.25),0 0 0 0 rgba(255,159,67,0.3)} 50%{box-shadow:0 4px 16px rgba(255,159,67,0.25),0 0 0 12px rgba(255,159,67,0)} }
-
-.btn-chat { background:linear-gradient(135deg,#ff8a80,#ff5252); box-shadow:0 4px 16px rgba(255,82,82,0.25); animation:glowRed 3s ease-in-out infinite; }
-.btn-chat::after { content:'找小橘聊天~'; }
-.btn-chat:hover { box-shadow:0 8px 24px rgba(255,82,82,0.4); animation:none; }
-@keyframes glowRed { 0%,100%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 0 rgba(255,82,82,0.3)} 50%{box-shadow:0 4px 16px rgba(255,82,82,0.25),0 0 0 12px rgba(255,82,82,0)} }
-
-.btn-home { background:linear-gradient(135deg,var(--accent-3),#48cae4); box-shadow:0 4px 16px rgba(10,189,227,0.25); animation:glowBlue 3.5s ease-in-out infinite; }
-.btn-home::after { content:'回到首页'; }
-.btn-home:hover { box-shadow:0 8px 24px rgba(10,189,227,0.4); animation:none; }
-@keyframes glowBlue { 0%,100%{box-shadow:0 4px 16px rgba(10,189,227,0.25),0 0 0 0 rgba(10,189,227,0.3)} 50%{box-shadow:0 4px 16px rgba(10,189,227,0.25),0 0 0 12px rgba(10,189,227,0)} }
 
 /* 导航文字按钮 */
 .nav-btn { display:flex; align-items:center; gap:6px; padding:8px 16px; border:none; border-radius:20px;
@@ -221,7 +289,61 @@ body {
     .app-shell { padding:12px 14px 30px; gap:14px; }
     .nav-bar { padding:12px 16px; }
     .nav-title { font-size:16px; }
+    /* 药片导航：隐藏文字标签，仅显示图标 */
+    .nav-pill { padding:4px; gap:1px; border-radius:44px; }
+    .nav-pill-indicator { top:4px; height:calc(100% - 8px); border-radius:44px; }
+    .nav-pill-tab { padding:7px 12px; font-size:13px; gap:4px; }
+    .nav-pill-icon { font-size:15px; }
+    .nav-pill-label { display:none; }
 }
 @media (max-width: 480px) {
     .app-shell { padding:8px 8px 24px; gap:10px; }
+    /* 药片导航：更紧凑 */
+    .nav-pill { padding:3px; gap:0; border-radius:36px; }
+    .nav-pill-indicator { top:3px; height:calc(100% - 6px); border-radius:36px; }
+    .nav-pill-tab { padding:6px 10px; font-size:12px; }
+    .nav-pill-icon { font-size:14px; }
 }
+
+/* =========================
+   视图面板系统 (SPA 三页合一)
+   ========================= */
+.view-container {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.view-panel {
+  display: none;
+}
+.view-panel.active {
+  display: block;
+}
+.view-panel.leaving {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.view-panel.entering {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+/* 非活跃视图跳过渲染 */
+.view-panel:not(.active):not(.leaving):not(.entering) {
+  content-visibility: auto;
+  contain-intrinsic-size: 100vh;
+}
+
+/* 背景跟随视图切换 */
+[data-active-view="home"] .bg-yellow-glow { opacity: 1; }
+[data-active-view="home"] .tools-bg-glow { opacity: 0; }
+[data-active-view="home"] .tools-bg-noise { opacity: 0; }
+[data-active-view="knowledge"] .bg-yellow-glow { opacity: 0; }
+[data-active-view="knowledge"] .tools-bg-glow { opacity: 0; }
+[data-active-view="knowledge"] .tools-bg-noise { opacity: 0; }
+[data-active-view="tools"] .bg-yellow-glow { opacity: 0; }
+[data-active-view="tools"] .bg-grid { opacity: 0; }
+[data-active-view="tools"] .tools-bg-glow { opacity: 1; }
+[data-active-view="tools"] .tools-bg-noise { opacity: 1; }
