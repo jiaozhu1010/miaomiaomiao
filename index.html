@@ -5574,13 +5574,15 @@
         function renderMarkdown(text) {
             if (typeof marked === 'undefined') return '<pre>' + escapeHtml(text) + '</pre>';
             var html = renderMarkdownWithMath(text);
-            if (typeof DOMPurify !== 'undefined') {
-                html = DOMPurify.sanitize(html, {
-                    ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','br','strong','em','b','i','u','s','del','a','ul','ol','li','code','pre','blockquote','table','thead','tbody','tr','th','td','img','hr','sup','sub','span','div','details','summary','input','label','kbd','mark','small','dl','dt','dd','abbr','iframe','video','audio','source','math','semantics','mrow','mi','mo','mn','msup','mfrac','mspace','mtext','menclose','mphantom','mstyle'],
-                    ALLOWED_ATTR: ['href','title','target','rel','src','alt','width','height','class','id','style','colspan','rowspan','type','checked','disabled','data-*'],
-                    ALLOW_DATA_ATTR: true
-                });
+            if (typeof DOMPurify === 'undefined') {
+                console.error('DOMPurify missing - unsafe markdown blocked');
+                return escapeHtml(text);
             }
+            html = DOMPurify.sanitize(html, {
+                ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','br','strong','em','b','i','u','s','del','a','ul','ol','li','code','pre','blockquote','table','thead','tbody','tr','th','td','img','hr','sup','sub','span','div','details','summary','input','label','kbd','mark','small','dl','dt','dd','abbr','iframe','video','audio','source','math','semantics','mrow','mi','mo','mn','msup','mfrac','mspace','mtext','menclose','mphantom','mstyle'],
+                ALLOWED_ATTR: ['href','title','target','rel','src','alt','width','height','class','id','style','colspan','rowspan','type','checked','disabled','data-*'],
+                ALLOW_DATA_ATTR: true
+            });
             return html;
         }
 

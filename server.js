@@ -541,6 +541,11 @@ app.post('/api/barcode-decode', rawImageBody, async (req, res) => {
 // =========================
 
 app.use(express.json({ limit: '10mb' }));
+
+// 旧页面重定向到 SPA 首页
+app.get('/knowledge.html', (req, res) => res.redirect(301, '/'));
+app.get('/tools.html', (req, res) => res.redirect(301, '/'));
+
 app.use(express.static(__dirname, {
     setHeaders(res, filePath) {
         const ext = path.extname(filePath).toLowerCase();
@@ -1749,11 +1754,11 @@ app.get('/api/admin/stats', adminAuthMiddleware, (req, res) => {
 
         var prompts = readJSON(PROMPTS_FILE, []);
 
-        // 提示词总数 = 用户自定义提示词 + tools.html 内置种子卡片
+        // 提示词总数 = 用户自定义提示词 + index.html 内置种子卡片
         var seedCardCount = 0;
         try {
-            var toolsHtml = fs.readFileSync(path.join(__dirname, 'tools.html'), 'utf8');
-            var cardMatches = toolsHtml.match(/openPromptModal\('/g);
+            var indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+            var cardMatches = indexHtml.match(/openPromptModal\('/g);
             seedCardCount = cardMatches ? cardMatches.length : 0;
         } catch(e) { seedCardCount = 8; }
 
