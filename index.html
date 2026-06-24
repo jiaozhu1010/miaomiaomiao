@@ -1134,33 +1134,229 @@
     document.write('<script src="' + window.miaositeCacheBust('/www/auth/assets/miaosite-auth.js') + '"><\/script>');
     </script>
 
-    <!-- ViewManager + 共享逻辑（Task 4 将扩展此系统） -->
+    <!-- ViewManager + 共享逻辑（Task 4） -->
     <script>
-    // 简单的视图路由系统（Task 4 会用 GSAP 过渡替换它）
-    window.__viewInitializers = {};
-    window.__appCurrentView = 'home';
+    // ============================================================
+    // ViewManager — 视图路由 + GSAP 过渡
+    // ============================================================
+    (function() {
+        var views = {};
+        var initializers = {};
+        var initialized = {};
+        var current = 'home';
+        var isTransitioning = false;
+        var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Nav pill 点击切换视图
-    document.querySelectorAll('[data-view]').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var name = btn.dataset.view;
-            if (name === window.__appCurrentView) return;
-            // 懒初始化
-            if (!window.__viewInitialized) window.__viewInitialized = {};
-            if (!window.__viewInitialized[name] && window.__viewInitializers[name]) {
-                window.__viewInitializers[name]();
-                window.__viewInitialized[name] = true;
+        // 监听 reduced-motion 变化
+        window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function(e) {
+            prefersReduced = e.matches;
+        });
+
+        function getTransitionOrigin() {
+            var activeTab = document.querySelector('.nav-pill-tab.active');
+            if (!activeTab) return { x: window.innerWidth / 2, y: 60 };
+            var rect = activeTab.getBoundingClientRect();
+            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+
+        function animateView(fromName, toName) {
+            var fromView = views[fromName];
+            var toView = views[toName];
+            if (!fromView || !toView) return Promise.resolve();
+
+            if (prefersReduced) {
+                fromView.classList.remove('active', 'leaving');
+                toView.classList.add('active');
+                document.body.setAttribute('data-active-view', toName);
+                ScrollTrigger.refresh();
+                return Promise.resolve();
             }
-            // 切换活跃视图
-            document.querySelectorAll('.view-panel').forEach(function(p) {
-                p.classList.remove('active');
+
+            var origin = getTransitionOrigin();
+            gsap.set([fromView, toView], { transformOrigin: origin.x + 'px ' + origin.y + 'px' });
+
+            fromView.classList.add('leaving');
+            toView.classList.add('entering');
+
+            return new Promise(function(resolve) {
+                var tl = gsap.timeline({
+                    onComplete: function() {
+                        gsap.set([fromView, toView], { clearProps: 'transform,opacity' });
+                        fromView.classList.remove('active', 'leaving');
+                        toView.classList.add('active');
+                        toView.classList.remove('entering');
+                        document.body.setAttribute('data-active-view', toName);
+                        ScrollTrigger.refresh();
+                        resolve();
+                    }
+                });
+
+                tl.to(fromView, { scale: 0.92, opacity: 0, duration: 0.25, ease: 'power2.in' }, 0);
+                tl.fromTo(toView, { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'expo.out' }, 0.15);
+
+                // 背景平滑过渡
+                var bgEls = document.querySelectorAll('.bg-yellow-glow, .tools-bg-glow, .tools-bg-noise');
+                tl.to(bgEls, { opacity: 0, duration: 0.15 }, 0);
+                tl.to(bgEls, { opacity: 1, duration: 0.2 }, 0.18);
             });
-            var panel = document.getElementById('view-' + name);
-            if (panel) panel.classList.add('active');
-            document.body.dataset.activeView = name;
-            window.__appCurrentView = name;
+        }
+
+        function updateNavTitle(name) {
+            var titles = {
+                home: { title: '喵码生成器', subtitle: '🏠 miaojiaozhu.com　💬 京me群 10229406786' },
+                knowledge: { title: '蜜柑苏打', subtitle: '· 知识库' },
+                tools: { title: '喵码 · AI 工具箱', subtitle: '小米Mimo v2.5 驱动' },
+            };
+            var info = titles[name];
+            if (!info) return;
+            var titleEl = document.getElementById('nav-title');
+            var subtitleEl = document.getElementById('nav-subtitle');
+            if (titleEl) titleEl.textContent = info.title;
+            if (subtitleEl) subtitleEl.textContent = info.subtitle;
+        }
+
+        function updateNavPill(name) {
+            document.querySelectorAll('.nav-pill-tab').forEach(function(tab) {
+                var isActive = tab.getAttribute('data-view') === name;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            // 移动 GSAP 指示器
+            var activeTab = document.querySelector('.nav-pill-tab.active');
+            var indicator = document.getElementById('nav-pill-indicator');
+            var lamp = document.getElementById('nav-pill-lamp');
+            if (activeTab && indicator && lamp) {
+                var rect = activeTab.getBoundingClientRect();
+                var parentRect = activeTab.parentElement.getBoundingClientRect();
+                var left = rect.left - parentRect.left;
+                var width = rect.width;
+                gsap.to(indicator, { x: left, width: width, duration: 0.35, ease: 'expo.out' });
+                gsap.to(lamp, { x: left, duration: 0.35, ease: 'expo.out' });
+            }
+        }
+
+        window.ViewManager = {
+            current: current,
+
+            register: function(name, initFn) {
+                initializers[name] = initFn;
+                views[name] = document.getElementById('view-' + name);
+                window.__viewInitializers = window.__viewInitializers || {};
+                window.__viewInitializers[name] = initFn;
+            },
+
+            _markInitialized: function(name) {
+                initialized[name] = true;
+            },
+
+            switchTo: function(name) {
+                if (isTransitioning) return;
+                if (name === current) return;
+
+                // 懒初始化
+                if (!initialized[name] && initializers[name]) {
+                    initializers[name]();
+                    initialized[name] = true;
+                }
+
+                isTransitioning = true;
+                updateNavPill(name);
+                updateNavTitle(name);
+
+                var fromName = current;
+                current = name;
+
+                animateView(fromName, name).then(function() {
+                    isTransitioning = false;
+                });
+            },
+
+            getCurrent: function() { return current; },
+            isInitialized: function(name) { return !!initialized[name]; },
+        };
+    })();
+
+    // 导航绑定
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-view]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                ViewManager.switchTo(btn.getAttribute('data-view'));
+            });
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key === '1') ViewManager.switchTo('knowledge');
+            if (e.key === '2') ViewManager.switchTo('home');
+            if (e.key === '3') ViewManager.switchTo('tools');
         });
     });
+
+    // 共享在线人数 SSE
+    (function() {
+        var countEl = document.getElementById('online-count');
+        var badgeEl = document.getElementById('online-badge');
+        if (!countEl) return;
+
+        function updateCount(n) {
+            countEl.textContent = n;
+            if (badgeEl) {
+                badgeEl.style.display = (n >= 0) ? '' : 'none';
+            }
+        }
+
+        function setupPolling() {
+            function poll() {
+                fetch('/api/online-count')
+                    .then(function(r) { return r.ok ? r.json() : null; })
+                    .then(function(d) { if (d && typeof d.count === 'number') updateCount(d.count); })
+                    .catch(function() {})
+                    .finally(function() { setTimeout(poll, 30000); });
+            }
+            poll();
+        }
+
+        // SSE 优先
+        try {
+            var es = new EventSource('/api/online-count-sse');
+            es.onmessage = function(e) {
+                try { var d = JSON.parse(e.data); if (typeof d.count === 'number') updateCount(d.count); } catch(_) {}
+            };
+            es.onerror = function() { es.close(); setupPolling(); };
+        } catch(_) {
+            setupPolling();
+        }
+    })();
+
+    // 共享天气状态 + 雨滴效果
+    (function() {
+        // 共享天气缓存
+        window.__appState = window.__appState || { weather: null, onlineCount: 0, user: null };
+
+        var state = window.WeatherState.getRainState();
+        if (state === true) {
+            window._rainOverlay = new window.RaindropOverlay();
+            window._rainOverlay.start();
+        } else if (state === null) {
+            fetch('/api/weather?city=苏州')
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(d) {
+                    if (!d || !d.current) return;
+                    window.__appState.weather = d;
+                    if (window.WeatherState.isRainyIcon(d.current.iconCode)) {
+                        window.WeatherState.setRainState(true);
+                        window._rainOverlay = new window.RaindropOverlay();
+                        window._rainOverlay.start();
+                    } else {
+                        window.WeatherState.setRainState(false);
+                    }
+                })
+                .catch(function() {});
+        }
+    })();
     </script>
 
     <!-- ==================== 首页 (#view-home) 初始化 ==================== -->
@@ -3353,13 +3549,17 @@
         console.log("🐱 首页视图初始化完成喵~");
     }; // end initHomeView
 
-    // 注册到视图路由系统
-    window.__viewInitializers.home = initHomeView;
-
-    // 默认首页立即初始化
-    if (document.getElementById('view-home').classList.contains('active')) {
-        initHomeView();
+    // 注册到 ViewManager
+    if (typeof ViewManager !== 'undefined') {
+        ViewManager.register('home', initHomeView);
     }
+
+    // 默认首页立即初始化（通过 ViewManager）
+    window.addEventListener('DOMContentLoaded', function() {
+        if (!ViewManager.isInitialized('home')) {
+            initHomeView();
+        }
+    });
     </script>
 </body>
 </html>
