@@ -106,14 +106,3 @@
 .perspective-\[1200px\] {
   perspective: 1200px;
 }
-
-@media (max-width: 768px) {
-  .perspective-\[1200px\] {
-    perspective: 1000px;
-  }
-}
-@media (max-width: 480px) {
-  .perspective-\[1200px\] {
-    perspective: 800px;
-  }
-}

@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>喵码 — 条码 · 知识库 · AI 工具箱</title>
     <script>
     (function() {
@@ -35,10 +34,17 @@
     /* ===== 主布局：三栏居中 ===== */
     #view-home .main-layout {
         display: grid;
-        grid-template-columns: 240px minmax(460px, 760px) minmax(260px, 340px);
+        grid-template-columns: minmax(0, 240px) minmax(0, 760px) minmax(0, 340px);
         gap: 22px;
         align-items: flex-start;
         justify-content: center;
+    }
+    #view-home .left-sidebar,
+    #view-home .content-primary,
+    #view-home .content-sidebar,
+    #view-home .glass-card,
+    #view-home .weather-card {
+        min-width: 0;
     }
 
     /* ===== 毛玻璃卡片 ===== */
@@ -510,6 +516,28 @@
         justify-content: center; font-weight: 800; font-size: 13px;
         box-shadow: inset 0 0 0 4px #fff;
     }
+    #view-home .ocr-dropzone strong,
+    #view-home .data-tools-dropzone strong {
+        max-width: 100%;
+        color: var(--text-primary);
+        font-family: var(--font-display);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.35;
+        letter-spacing: 0;
+        text-wrap: balance;
+    }
+    #view-home .ocr-dropzone > span:not(.ocr-target-mark),
+    #view-home .data-tools-dropzone > span:not(.ocr-target-mark) {
+        max-width: 210px;
+        color: var(--text-secondary);
+        font-family: var(--font-body);
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.55;
+        letter-spacing: 0;
+        text-wrap: balance;
+    }
     #view-home .ocr-file-input { display: none; }
     #view-home .ocr-progress { position: relative; height: 4px; margin-top: 14px; background: rgba(0,0,0,0.04); border-radius: 99px; overflow: hidden; display: none; }
     #view-home .ocr-progress.active { display: block; }
@@ -618,6 +646,19 @@
         backdrop-filter: blur(8px); display: flex; flex-direction: column;
         align-items: center; justify-content: center; gap: 6px;
         padding: 16px; cursor: pointer; transition: all var(--transition-smooth);
+        text-align: center;
+    }
+    #view-home .data-tools-dropzone:hover,
+    #view-home .data-tools-dropzone.dragover { border-color: var(--accent); background: rgba(255,159,67,0.06); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,159,67,0.12); }
+    #view-home .data-tools-dropzone .ocr-target-mark {
+        background: rgba(255, 159, 67, 0.1);
+        border-color: rgba(255, 159, 67, 0.24);
+        color: var(--accent);
+    }
+    #view-home .data-tools-dropzone strong { font-size: 13px; }
+    #view-home .data-tools-dropzone > span:not(.ocr-target-mark) {
+        max-width: 220px;
+        font-size: 11.5px;
     }
     #view-home .data-tools-file-input { display: none; }
 
@@ -629,50 +670,544 @@
     #view-home .tip-item { font-size: 12px; color: var(--text-secondary); line-height: 1.6; padding: 8px 12px; background: rgba(255,255,255,0.35); border-radius: 10px; transition: all var(--transition-fast); }
     #view-home .tip-item:hover { background: rgba(255,255,255,0.65); color: var(--text-primary); }
 
-    /* ===== 天气卡片 ===== */
+    /* ===== 天气卡片：同步旧版 Windy 液态玻璃 ===== */
     #view-home .weather-card {
-        position: relative; width: 100%; min-height: 320px;
-        background: rgba(0,0,0,0.06); backdrop-filter: blur(8px);
-        border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 8px 32px rgba(40,2,60,0.3);
-        color: #fff; overflow: hidden;
-        transition: all 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+        position: relative;
+        width: 100%;
+        min-height: 320px;
+        background:
+            linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(255, 247, 238, 0.38)),
+            radial-gradient(circle at 20% 12%, rgba(255, 255, 255, 0.52), transparent 46%),
+            linear-gradient(160deg, rgba(255, 178, 105, 0.16), rgba(151, 118, 202, 0.10));
+        -webkit-backdrop-filter: blur(10px) saturate(118%);
+        backdrop-filter: blur(10px) saturate(118%);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.58);
+        box-shadow:
+            0 10px 24px rgba(131, 104, 83, 0.10),
+            0 1px 0 rgba(255, 255, 255, 0.72) inset;
+        color: #fff;
+        text-shadow: 0 1px 10px rgba(40, 24, 18, 0.28);
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        isolation: isolate;
     }
-    #view-home .weather-card-body { position: relative; z-index: 1; padding: 20px 16px 16px; display: flex; flex-direction: column; min-height: 320px; justify-content: space-between; }
-    #view-home .weather-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    #view-home .weather-card-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; opacity: 0.9; }
-    #view-home .weather-city-trigger { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; background: rgba(255,255,255,0.07); color: #fff; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.25s ease; white-space: nowrap; }
-    #view-home .weather-city-trigger:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.3); }
-    #view-home .weather-city-dropdown { position: absolute; top: calc(100% + 6px); right: 0; width: 220px; background: rgba(18,16,28,0.92); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); overflow: hidden; z-index: 30; display: none; }
+    #view-home .weather-card:hover {
+        transform: perspective(1000px) rotateX(3deg) rotateY(4deg) scale(1.04);
+        box-shadow:
+            0 16px 34px rgba(131, 104, 83, 0.16),
+            0 1px 0 rgba(255, 255, 255, 0.78) inset;
+    }
+    #view-home .weather-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        border-radius: 20px;
+        overflow: hidden;
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.24) 0%, transparent 38%, transparent 62%, rgba(255,255,255,0.10) 100%),
+            radial-gradient(ellipse at 28% 8%, rgba(255,255,255,0.22) 0%, transparent 52%);
+    }
+    #view-home .card-dots {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    #view-home .card-dot {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.45);
+        filter: blur(1px);
+        animation: dotFloat 15s infinite linear;
+    }
+    @keyframes dotFloat {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(15px, 15px); }
+        50% { transform: translate(30px, -15px); }
+        75% { transform: translate(-15px, 30px); }
+        100% { transform: translate(-30px, -15px); }
+    }
+    #view-home .weather-card-body {
+        position: relative;
+        z-index: 2;
+        padding: 20px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 320px;
+        justify-content: space-between;
+    }
+    #view-home .weather-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        min-width: 0;
+    }
+    #view-home .weather-card-title {
+        font-family: var(--font-display);
+        font-size: 13px;
+        font-weight: 600;
+        opacity: 0.90;
+        flex-shrink: 0;
+    }
+    #view-home .weather-city-wrap {
+        position: relative;
+        z-index: 5;
+        min-width: 0;
+        max-width: calc(100% - 74px);
+    }
+    #view-home .weather-city-trigger {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.07);
+        color: #fff;
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+        max-width: 100%;
+        min-width: 0;
+    }
+    #view-home .weather-city-trigger:hover {
+        background: rgba(255,255,255,0.14);
+        border-color: rgba(255,255,255,0.3);
+        box-shadow: 0 0 12px rgba(255,255,255,0.06);
+    }
+    #view-home .weather-city-trigger:focus-visible,
+    #view-home .weather-city-input:focus-visible,
+    #view-home .weather-city-clear:focus-visible,
+    #view-home .weather-city-chip:focus-visible,
+    #view-home .weather-city-option:focus-visible {
+        outline: 2px solid rgba(255,207,158,0.72);
+        outline-offset: 2px;
+    }
+    #view-home .weather-city-trigger .weather-city-search-icon { opacity: 0.45; flex-shrink: 0; }
+    #view-home .weather-card-city {
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0.92;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #view-home .weather-city-chevron {
+        opacity: 0.45;
+        flex-shrink: 0;
+        transition: transform 0.25s ease;
+    }
+    #view-home .weather-city-wrap.is-open .weather-city-chevron { transform: rotate(180deg); }
+    #view-home .weather-city-wrap.is-open .weather-city-trigger {
+        border-color: rgba(255,255,255,0.35);
+        box-shadow: 0 0 0 3px rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.3);
+        background: rgba(255,255,255,0.12);
+    }
+    #view-home .weather-city-dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        width: min(300px, calc(100vw - 32px));
+        background:
+            linear-gradient(145deg, rgba(22, 18, 30, 0.96), rgba(34, 24, 22, 0.92)),
+            radial-gradient(circle at 15% 0%, rgba(255,159,67,0.18), transparent 45%);
+        backdrop-filter: blur(26px) saturate(175%);
+        -webkit-backdrop-filter: blur(26px) saturate(175%);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 18px;
+        box-shadow:
+            0 20px 56px rgba(0,0,0,0.52),
+            0 0 0 1px rgba(255,255,255,0.05) inset,
+            0 1px 0 rgba(255,255,255,0.14) inset;
+        overflow: hidden;
+        z-index: 30;
+        display: none;
+        --weather-city-dropdown-shift: 0px;
+        transform: translateX(var(--weather-city-dropdown-shift));
+        animation: cityDropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        transform-origin: top right;
+    }
+    @keyframes cityDropdownIn {
+        from { opacity: 0; transform: translateX(var(--weather-city-dropdown-shift)) translateY(-6px) scale(0.96); }
+        to { opacity: 1; transform: translateX(var(--weather-city-dropdown-shift)) translateY(0) scale(1); }
+    }
     #view-home .weather-city-wrap.is-open .weather-city-dropdown { display: block; }
-    #view-home .weather-city-input { flex: 1; border: none; background: none; outline: none; color: #fff; font-size: 13px; font-family: var(--font-body); }
-    #view-home .weather-city-list { max-height: 240px; overflow-y: auto; padding: 6px; }
-    #view-home .weather-city-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; transition: all 0.15s ease; }
-    #view-home .weather-city-option:hover { background: rgba(255,255,255,0.1); }
-    #view-home .weather-city-option.is-active { background: rgba(255,159,67,0.18); color: #ffb88c; }
-    #view-home .weather-main { display: flex; align-items: center; gap: 8px; }
-    #view-home .weather-icon-disp { line-height: 0; }
-    #view-home .weather-temp { font-family: var(--font-display); font-size: 50px; font-weight: 700; letter-spacing: -2px; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.35); }
-    #view-home .weather-desc { font-size: 12px; font-weight: 500; opacity: 0.88; margin-bottom: 14px; }
-    #view-home .weather-details { display: flex; flex-direction: column; gap: 6px; }
-    #view-home .weather-detail-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: rgba(255,255,255,0.08); border-radius: 10px; }
-    #view-home .weather-daily { display: flex; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); overflow-x: auto; scrollbar-width: none; }
+    #view-home .weather-city-dropdown-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 10px 10px 8px;
+        padding: 10px 12px;
+        border-radius: 13px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.08);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+        color: rgba(255,255,255,0.4);
+    }
+    #view-home .weather-city-input {
+        flex: 1;
+        border: none;
+        background: none;
+        outline: none;
+        color: #fff;
+        font-size: 13px;
+        font-family: var(--font-body);
+        caret-color: #ff9f43;
+    }
+    #view-home .weather-city-input::placeholder { color: rgba(255,255,255,0.35); }
+    #view-home .weather-city-clear {
+        width: 20px;
+        height: 20px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.62);
+        cursor: pointer;
+        font-size: 15px;
+        line-height: 20px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+    #view-home .weather-city-clear:hover {
+        background: rgba(255,255,255,0.18);
+        color: #fff;
+    }
+    #view-home .weather-city-clear.show { display: inline-flex; }
+    #view-home .weather-city-quick {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        padding: 0 10px 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    #view-home .weather-city-quick-section {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        align-items: start;
+        gap: 8px;
+    }
+    #view-home .weather-city-quick-title {
+        padding-top: 5px;
+        color: rgba(255,255,255,0.42);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0;
+        white-space: nowrap;
+    }
+    #view-home .weather-city-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-width: 0;
+    }
+    #view-home .weather-city-chip {
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 999px;
+        padding: 5px 10px;
+        background: rgba(255,255,255,0.075);
+        color: rgba(255,255,255,0.78);
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1;
+        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+    #view-home .weather-city-chip:hover,
+    #view-home .weather-city-chip.is-active {
+        background: rgba(255,159,67,0.18);
+        border-color: rgba(255,159,67,0.35);
+        color: #ffcf9e;
+        transform: translateY(-1px);
+    }
+    #view-home .weather-city-chip[data-source="recent"] {
+        background: rgba(10,189,227,0.12);
+        border-color: rgba(10,189,227,0.24);
+        color: rgba(206,244,255,0.92);
+    }
+    #view-home .weather-city-list-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 12px 3px;
+        color: rgba(255,255,255,0.42);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+    #view-home .weather-city-list {
+        max-height: 230px;
+        overflow-y: auto;
+        padding: 4px 8px 10px;
+    }
+    #view-home .weather-city-list::-webkit-scrollbar { width: 4px; }
+    #view-home .weather-city-list::-webkit-scrollbar-track { background: transparent; }
+    #view-home .weather-city-list::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.12);
+        border-radius: 4px;
+    }
+    #view-home .weather-city-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+    #view-home .weather-city-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.85);
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
+    }
+    #view-home .weather-city-option:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateX(2px);
+    }
+    #view-home .weather-city-option.is-active {
+        background: rgba(255,159,67,0.18);
+        color: #ffb88c;
+        border-color: rgba(255,159,67,0.22);
+        box-shadow: inset 0 0 0 1px rgba(255,159,67,0.18);
+    }
+    #view-home .weather-city-option.is-selected {
+        background: rgba(255,159,67,0.15);
+        color: #ffb88c;
+    }
+    #view-home .weather-city-option .city-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        flex-shrink: 0;
+    }
+    #view-home .weather-city-option.is-selected .city-dot {
+        background: #ff9f43;
+        box-shadow: 0 0 6px rgba(255,159,67,0.4);
+    }
+    #view-home .weather-city-option.is-custom .city-dot {
+        background: rgba(10,189,227,0.95);
+        box-shadow: 0 0 6px rgba(10,189,227,0.45);
+    }
+    #view-home .weather-city-option-main {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #view-home .weather-city-option-hint {
+        flex-shrink: 0;
+        font-size: 10px;
+        opacity: 0.45;
+    }
+    #view-home .weather-city-option mark {
+        background: rgba(255,159,67,0.3);
+        color: #ffb88c;
+        border-radius: 2px;
+    }
+    #view-home .weather-city-empty {
+        padding: 20px 12px;
+        text-align: center;
+        color: rgba(255,255,255,0.35);
+        font-size: 12px;
+    }
+    #view-home .weather-main {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    #view-home .weather-icon-disp {
+        line-height: 0;
+        transition: transform 0.4s ease;
+    }
+    #view-home .weather-icon-disp img { display: block; }
+    #view-home .weather-card:hover .weather-icon-disp { transform: scale(1.06); }
+    #view-home .weather-temp {
+        font-family: var(--font-display);
+        font-size: 50px;
+        font-weight: 700;
+        letter-spacing: -2px;
+        line-height: 1;
+        text-shadow: 0 0 20px rgba(255,255,255,0.35);
+    }
+    #view-home .weather-desc {
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0.88;
+        margin-bottom: 14px;
+    }
+    #view-home .weather-details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    #view-home .weather-detail-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        transition: background 0.2s ease;
+    }
+    #view-home .weather-detail-row:hover { background: rgba(255, 255, 255, 0.16); }
+    #view-home .weather-detail-icon {
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        opacity: 0.85;
+    }
+    #view-home .weather-detail-value {
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.95;
+    }
+    #view-home .weather-card.is-loading .weather-icon-disp {
+        animation: weatherPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes weatherPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    #view-home .weather-card.is-error .weather-temp {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0;
+    }
+    #view-home .weather-card.is-switching::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        z-index: 5;
+        border-radius: 20px 20px 0 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+        background-size: 60% 100%;
+        background-repeat: no-repeat;
+        animation: switchShimmer 1s linear infinite;
+    }
+    @keyframes switchShimmer {
+        0% { background-position: -60% 0; }
+        100% { background-position: 160% 0; }
+    }
+    #view-home .weather-daily {
+        display: flex;
+        gap: 6px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        max-width: 100%;
+        min-width: 0;
+        overscroll-behavior-x: contain;
+        contain: layout paint;
+    }
     #view-home .weather-daily::-webkit-scrollbar { display: none; }
-    #view-home .weather-day-item { flex-shrink: 0; text-align: center; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,0.06); min-width: 56px; }
+    #view-home .weather-day-item {
+        flex-shrink: 0;
+        text-align: center;
+        padding: 8px 10px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.06);
+        min-width: 56px;
+        transition: background 0.25s ease, transform 0.25s ease;
+    }
+    #view-home .weather-day-item:hover {
+        background: rgba(255,255,255,0.14);
+        transform: translateY(-2px);
+    }
     #view-home .weather-day-item.is-today { background: rgba(255,255,255,0.12); }
-    #view-home .weather-day-weekday { font-size: 11px; font-weight: 600; opacity: 0.88; margin-bottom: 2px; }
+    #view-home .weather-day-weekday {
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0.88;
+        margin-bottom: 2px;
+    }
+    #view-home .weather-day-icon { line-height: 0; }
     #view-home .weather-day-icon img { display: block; margin: 0 auto; }
-    #view-home .weather-day-temps { font-size: 10px; font-weight: 600; opacity: 0.92; margin-top: 2px; }
+    #view-home .weather-day-temps {
+        font-size: 10px;
+        font-weight: 600;
+        opacity: 0.92;
+        margin-top: 2px;
+    }
     #view-home .weather-day-low { opacity: 0.65; }
-    #view-home .weather-hourly { display: flex; gap: 4px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); overflow-x: auto; scrollbar-width: none; }
+    #view-home .weather-hourly {
+        display: flex;
+        gap: 4px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        max-width: 100%;
+        min-width: 0;
+        overscroll-behavior-x: contain;
+        contain: layout paint;
+    }
     #view-home .weather-hourly::-webkit-scrollbar { display: none; }
-    #view-home .weather-hour-item { flex-shrink: 0; text-align: center; padding: 6px 8px; border-radius: 12px; background: rgba(255,255,255,0.05); min-width: 52px; }
+    #view-home .weather-hour-item {
+        flex-shrink: 0;
+        text-align: center;
+        padding: 6px 8px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.05);
+        min-width: 52px;
+        transition: background 0.25s ease;
+    }
+    #view-home .weather-hour-item:hover { background: rgba(255,255,255,0.14); }
     #view-home .weather-hour-item.is-now { background: rgba(255,255,255,0.16); }
-    #view-home .weather-hour-time { font-size: 10px; font-weight: 500; opacity: 0.8; margin-bottom: 2px; }
-    #view-home .weather-hour-temp { font-size: 11px; font-weight: 600; opacity: 0.95; }
-    #view-home .card-dots { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; border-radius: 20px; overflow: hidden; }
-    #view-home .card-dot { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.45); filter: blur(1px); }
-    #view-home .glass-surface-svg { position: absolute; width: 0; height: 0; pointer-events: none; z-index: -1; }
+    #view-home .weather-hour-time {
+        font-size: 10px;
+        font-weight: 500;
+        opacity: 0.8;
+        margin-bottom: 2px;
+    }
+    #view-home .weather-hour-icon { line-height: 0; }
+    #view-home .weather-hour-icon img { display: block; margin: 0 auto; }
+    #view-home .weather-hour-temp {
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0.95;
+    }
+    #view-home .weather-powered { display: none; }
+    #view-home .glass-surface-svg {
+        position: absolute;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+        z-index: -1;
+    }
+    #view-home .weather-card.glass-surface-fallback {
+        -webkit-backdrop-filter: blur(4px) saturate(112%);
+        backdrop-filter: blur(4px) saturate(112%);
+    }
 
     /* ===== 回到顶部按钮 ===== */
     .back-to-top-wrap {
@@ -723,31 +1258,6 @@
     }
     .force-refresh-btn:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ===== 响应式 ===== */
-    @media (max-width: 1100px) {
-        #view-home .main-layout { grid-template-columns: minmax(460px, 760px) minmax(260px, 340px); justify-content: center; }
-        #view-home .content-sidebar { position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        #view-home .stats-row { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 768px) {
-        #view-home .glass-card { padding: 16px; border-radius: var(--radius); }
-        #view-home .hero-title { font-size: 24px; }
-        #view-home .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        #view-home .stat-value { font-size: 22px; }
-        #view-home .barcode-output.cols-2,
-        #view-home .barcode-output.cols-3 { grid-template-columns: 1fr; }
-        #view-home .content-sidebar { grid-template-columns: 1fr; }
-        #view-home .toolbar-row { flex-direction: column; align-items: stretch; }
-        #view-home textarea#barcode-input { height: 120px; font-size: 15px; }
-        .back-to-top-wrap { right: 16px; bottom: 16px; }
-    }
-    @media (max-width: 480px) {
-        #view-home .stats-row { gap: 6px; }
-        #view-home .stat-card { padding: 8px 6px; }
-        #view-home .stat-value { font-size: 18px; }
-        #view-home .btn { padding: 8px 14px; font-size: 12px; }
-        #view-home textarea#barcode-input { height: 100px; padding: 14px; font-size: 14px; }
-    }
     /* ===== 知识库阅读器（全局覆盖层） ===== */
     #reader-panel {
         display: none;
@@ -877,6 +1387,15 @@
         --font-display: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
         --font-body: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
         --font-mono: 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        max-width: 1100px;
+        margin: 0 auto;
+        flex-direction: column;
+        gap: 14px;
+    }
+    #view-knowledge.active,
+    #view-knowledge.entering,
+    #view-knowledge.leaving {
+        display: flex;
     }
     #view-knowledge .glass-card {
         background: var(--glass-bg);
@@ -895,6 +1414,7 @@
         grid-template-columns: 280px 1fr;
         gap: 16px;
         align-items: start;
+        min-width: 0;
     }
     #view-knowledge .content-sidebar {
         position: sticky;
@@ -1011,43 +1531,15 @@
         border-color: rgba(255,159,67,0.3);
         font-weight: 600;
     }
-    #view-knowledge .sidebar-toggle-btn {
-        display: none;
-        position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 20;
-        width: 36px;
-        height: 64px;
-        border: 1px solid var(--glass-border-strong);
-        background: var(--glass-bg-strong);
-        border-radius: 0 14px 14px 0;
-        cursor: pointer;
-        font-size: 16px;
-        color: var(--text-secondary);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        transition: all var(--transition-bounce);
-    }
-    #view-knowledge .sidebar-toggle-btn:hover {
-        background: var(--glass-bg-hover);
-        width: 40px;
-    }
-    #view-knowledge .sidebar-backdrop {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.25);
-        z-index: 18;
-    }
-    #view-knowledge .sidebar-backdrop.show {
-        display: block;
-    }
     #view-knowledge .content-primary {
         display: grid;
         grid-template-columns: 1fr;
         gap: 14px;
         min-height: 60vh;
+        min-width: 0;
+    }
+    #view-knowledge #article-mode {
+        min-width: 0;
     }
     #view-knowledge .content-primary .action-bar { grid-row: 1; }
     #view-knowledge .content-primary .pagination { grid-row: 3; }
@@ -1056,6 +1548,10 @@
     #view-knowledge #editor-view {
         grid-row: 2;
         grid-column: 1;
+    }
+    #view-knowledge #article-detail:not(.show),
+    #view-knowledge #editor-view:not(.show) {
+        display: none;
     }
     #view-knowledge .article-list.hidden { display: none; }
     #view-knowledge .action-bar {
@@ -1820,6 +2316,7 @@
         border-radius: var(--radius);
         box-shadow: var(--glass-shadow);
         overflow: hidden;
+        flex-shrink: 0;
     }
     #view-knowledge .mode-tabs-indicator {
         position: absolute;
@@ -2046,93 +2543,12 @@
     #view-knowledge .sync-progress.show { display: block; }
     #view-knowledge .sync-summary { font-size: 0.78rem; color: var(--text-tertiary); margin-top: 8px; }
 
-    /* ===== 知识库 - 响应式 ===== */
-    @media (max-width: 1100px) {
-        #view-knowledge .main-layout { grid-template-columns: 1fr; }
-        #view-knowledge .content-sidebar {
-            position: static;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
-        #view-knowledge .editor-split { grid-template-columns: 1fr; }
-        #view-knowledge .editor-preview { min-height: 200px; }
-        #view-knowledge .editor-textarea { min-height: 250px; }
-    }
-    @media (max-width: 768px) {
-        #view-knowledge .main-layout { grid-template-columns: 1fr; }
-        #view-knowledge .content-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 80vw;
-            max-width: 320px;
-            height: 100vh;
-            z-index: 19;
-            overflow-y: auto;
-            padding: 14px 10px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-right: 1px solid var(--glass-border-strong);
-            transform: translateX(-100%);
-            transition: transform var(--transition-smooth);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        #view-knowledge .content-sidebar.sidebar-open { transform: translateX(0); }
-        #view-knowledge .sidebar-toggle-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #view-knowledge .detail-card { padding: 16px 18px; }
-        #view-knowledge .detail-title { font-size: 18px; }
-        #view-knowledge .wiki-content { font-size: 14px; }
-        #view-knowledge .article-card { padding: 14px 16px; }
-        #view-knowledge .article-card-title { font-size: 14px; }
-        #view-knowledge .preview-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 12px;
-            border: 1px solid var(--glass-border-strong);
-            border-radius: 10px;
-            background: var(--glass-bg);
-            font-size: 12px;
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
-        #view-knowledge .editor-card { padding: 14px 16px; }
-        #view-knowledge .tut-title { font-size: 1.3rem; }
-        #view-knowledge #tutorial-content-area { padding: 20px 18px; }
-    }
-    @media (max-width: 600px) {
-        #view-knowledge .mode-tab { padding: 8px 12px; font-size: 0.85rem; }
-        #view-knowledge #tutorial-content-area { padding: 16px 14px; }
-        #view-knowledge .tut-body pre { padding: 14px 10px; font-size: 0.78rem; }
-        #view-knowledge .tut-nav { flex-direction: column; gap: 10px; }
-        #view-knowledge .tut-nav-btn { width: 100%; justify-content: center; }
-    }
-    @media (max-width: 480px) {
-        #view-knowledge .content-sidebar { width: 85vw; }
-        #view-knowledge .detail-card { padding: 12px 14px; border-radius: var(--radius); }
-        #view-knowledge .detail-title { font-size: 16px; }
-        #view-knowledge .detail-meta-bar { gap: 8px; }
-        #view-knowledge .editor-split { gap: 8px; }
-        #view-knowledge .editor-textarea { min-height: 200px; font-size: 12px; }
-        #view-knowledge .article-card { padding: 12px 14px; border-radius: var(--radius); }
-        #view-knowledge .action-bar { gap: 6px; }
-        #view-knowledge .btn-create { padding: 8px 16px; font-size: 13px; }
-        #view-knowledge .pagination { gap: 4px; }
-        #view-knowledge .page-btn { padding: 6px 10px; font-size: 12px; }
-    }
     </style>
 
     <!-- ==================== AI 工具箱 (#view-tools) 特有样式 ==================== -->
     <style>
-    #view-tools .bento-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; grid-auto-flow:dense; gap:16px; align-items:start; }
+    #view-tools { max-width: 1200px; margin: 0 auto; }
+    #view-tools .bento-grid { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); grid-auto-flow:dense; gap:16px; align-items:start; min-width:0; }
     #view-tools .chat-card { grid-column:2/5; grid-row:2/6; }
     #view-tools .skill-card { background:var(--glass-bg); backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); border:1.5px solid var(--glass-border); border-radius:var(--radius-lg); box-shadow:var(--glass-shadow); padding:16px 18px; cursor:pointer; transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.35s cubic-bezier(0.25, 0.1, 0.25, 1); display:flex; flex-direction:column; gap:6px; min-height:100px; position:relative; overflow:hidden; }
     #view-tools .skill-card:hover { box-shadow:var(--glass-shadow-hover); transform:translateY(-2px); }
@@ -2305,20 +2721,6 @@
     #view-tools .prompt-modal-footer button.copy-btn { background:linear-gradient(135deg,var(--accent-3),#48cae4); color:#fff; border:none; font-weight:600; }
     #view-tools .prompt-modal-footer button.copy-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(10,189,227,0.3); }
     #view-tools .prompt-modal-footer button.copy-btn.copied { background:linear-gradient(135deg,#34c759,#5dd675); }
-    @media (max-width:1100px) {
-        #view-tools .bento-grid { grid-template-columns:1fr 1fr 1fr; }
-        #view-tools .chat-card { grid-column:2/4; grid-row:2/4; }
-    }
-    @media (max-width:768px) {
-        #view-tools .bento-grid { grid-template-columns:1fr 1fr; gap:12px; }
-        #view-tools .chat-card { grid-column:1/3; grid-row:auto; }
-        #view-tools .skill-card { padding:14px 16px; min-height:80px; }
-    }
-    @media (max-width:480px) {
-        #view-tools .bento-grid { grid-template-columns:1fr; gap:10px; }
-        #view-tools .chat-card { grid-column:1; grid-row:auto; }
-        #view-tools .skill-card { min-height:auto; }
-    }
     </style>
 </head>
 <body data-active-view="home">
@@ -2422,17 +2824,20 @@
                                 <div class="weather-card-header">
                                     <span class="weather-card-title">今日天气</span>
                                     <div class="weather-city-wrap" id="weather-city-wrap">
-                                        <button type="button" class="weather-city-trigger" id="weather-city-trigger" title="切换城市" aria-label="切换城市">
+                                        <button type="button" class="weather-city-trigger" id="weather-city-trigger" title="切换城市" aria-label="切换城市" aria-haspopup="listbox" aria-expanded="false" aria-controls="weather-city-dropdown">
                                             <svg class="weather-city-search-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                                             <span class="weather-card-city" id="weather-city">--</span>
                                             <svg class="weather-city-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                                         </button>
-                                        <div class="weather-city-dropdown" id="weather-city-dropdown">
+                                        <div class="weather-city-dropdown" id="weather-city-dropdown" role="group" aria-label="城市选择">
                                             <div class="weather-city-dropdown-search">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                                <input class="weather-city-input" id="weather-city-input" type="text" placeholder="搜索城市..." autocomplete="off">
+                                                <input class="weather-city-input" id="weather-city-input" type="text" placeholder="搜索城市..." autocomplete="off" aria-label="搜索城市" aria-controls="weather-city-list">
+                                                <button type="button" class="weather-city-clear" id="weather-city-clear" title="清空搜索" aria-label="清空搜索">×</button>
                                             </div>
-                                            <div class="weather-city-list" id="weather-city-list"></div>
+                                            <div class="weather-city-quick" id="weather-city-quick"></div>
+                                            <div class="weather-city-list-title" id="weather-city-list-title">匹配城市</div>
+                                            <div class="weather-city-list" id="weather-city-list" role="listbox" aria-label="匹配城市"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -2590,7 +2995,7 @@
                             <label class="ocr-dropzone" id="ocr-dropzone" for="ocr-file-input">
                                 <input class="ocr-file-input" id="ocr-file-input" type="file" accept="image/*">
                                 <span class="ocr-target-mark" aria-hidden="true">📦</span>
-                                <strong>拖入快递截图或 Ctrl+V 粘贴</strong>
+                                <strong>拖入快递截图或点击上传</strong>
                                 <span>Mimo AI + 条码扫描，智能提取 DPK/DPL 单号</span>
                             </label>
                             <div class="ocr-progress" id="ocr-progress" aria-hidden="true">
@@ -2599,7 +3004,7 @@
                             <div class="ocr-preview-wrap">
                                 <img id="ocr-preview" alt="待识别图片预览" hidden>
                             </div>
-                            <div class="ocr-status" id="ocr-status">拖入图片或 Ctrl+V 开始识别喵~</div>
+                            <div class="ocr-status" id="ocr-status">拖入图片或点击上传开始识别喵~</div>
                             <div class="ocr-candidates" id="ocr-candidates"></div>
                         </div>
 
@@ -2646,7 +3051,7 @@
                                 <div class="tip-item">📦 粘贴快递单号 → 自动生成 CODE128 条码，支持批量生成、一键复制、逗号拼接</div>
                                 <div class="tip-item">🔧 DPK / DPL 快捷按钮 → 一键添加前缀，智能识别并补全 12 位数字单号</div>
                                 <div class="tip-item">✨ 「智能整理」按钮 → 自动纠正常见 OCR 误读、去重排序、格式化输出</div>
-                                <div class="tip-item">📸 上传快递面单截图 → Mimo v2.5 多模态 AI 识别单号，支持拖拽和 Ctrl+V 粘贴图片</div>
+                                <div class="tip-item">📸 上传快递面单截图 → Mimo v2.5 多模态 AI 识别单号，支持拖拽和点击上传</div>
                                 <div class="tip-item">🤖 侧边栏「AI 智能数据处理」→ 粘贴文本用 DeepSeek 解析，拖入图片用 Mimo v2.5 识别表格</div>
                                 <div class="tip-item">📚 顶部「📚 知识库」→ 六类快递物流百科，支持搜索和分类浏览</div>
                                 <div class="tip-item">🐱 顶部「🐱」AI 聊天 → 快递智能助手小橘在线答疑，DeepSeek V4 Pro 驱动</div>
@@ -2686,10 +3091,6 @@
                 <div class="vk-lightbox-overlay" id="vk-lightbox-overlay" onclick="closeLightbox()">
                     <img class="vk-lightbox-img" id="vk-lightbox-img" alt="图片预览">
                 </div>
-
-                <!-- 移动端侧边栏切换按钮 -->
-                <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="筛选">🔍</button>
-                <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
 
                 <!-- 模式切换标签栏 -->
                 <div class="mode-tabs" id="mode-tabs">
@@ -2884,7 +3285,7 @@
                             </div>
                         </div>
                         <div class="file-preview" id="chatFilePreview"></div>
-                        <div class="chat-result" id="chatResult"><div class="msg-list" id="msgList"></div><div class="result-toggle" id="resultToggle"><button onclick="openReaderPanel()">📖 展开全部</button></div><div class="result-actions"><button data-action="copy" onclick="navigator.clipboard.writeText(chatMessages.filter(function(m){return m.role==='assistant'}).pop()?.content||'').then(function(){showToast('已复制喵~')})">📋 复制</button><button data-action="retry">🔄 重新生成</button><button onclick="exportChat('copy')" style="margin-left:auto">📋 复制对话</button><button onclick="exportChat('download')">📥 下载 .md</button></div></div>
+                        <div class="chat-result" id="chatResult"><div class="msg-list" id="msgList"></div><div class="result-toggle" id="resultToggle"><button onclick="openReaderPanel()">📖 展开全部</button></div><div class="result-actions"><button data-action="copy">📋 复制</button><button data-action="retry">🔄 重新生成</button><button onclick="exportChat('copy')" style="margin-left:auto">📋 复制对话</button><button onclick="exportChat('download')">📥 下载 .md</button></div></div>
                         <div class="loading-dots" id="chatLoading"><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line"></div><div class="loading-status" id="loadingStatus">正在思考中...</div></div>
                         <div class="chat-input-row">
                             <span class="skill-dot" id="skillDot"></span>
@@ -3009,15 +3410,12 @@
                     </div>
                 </div>
 
-                <div class="toast-container" id="toastContainer"></div>
-
             </div>
         </div>
     </div>
 
     <!-- 共享 Toast -->
     <div class="toast" id="toast"></div>
-    <div class="toast-container" id="toast-container"></div>
 
     <!-- 共享 Auth -->
     <div id="auth-root"></div>
@@ -3036,9 +3434,6 @@
     <script>
     document.write('<script src="' + window.miaositeCacheBust('/lib/miaosite-auth.js') + '"><\/script>');
     </script>
-    <script>
-    document.write('<script src="' + window.miaositeCacheBust('/www/auth/assets/miaosite-auth.js') + '"><\/script>');
-    </script>
 
     <!-- ViewManager + 共享逻辑（Task 4） -->
     <script>
@@ -3051,18 +3446,21 @@
         var initialized = {};
         var current = 'home';
         var isTransitioning = false;
+        var pendingView = null;
+        var activeTransition = null;
         var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var viewOrder = { knowledge: 0, home: 1, tools: 2 };
 
         // 监听 reduced-motion 变化
         window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function(e) {
             prefersReduced = e.matches;
         });
 
-        function getTransitionOrigin() {
-            var activeTab = document.querySelector('.nav-pill-tab.active');
-            if (!activeTab) return { x: window.innerWidth / 2, y: 60 };
-            var rect = activeTab.getBoundingClientRect();
-            return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        function getTransitionDirection(fromName, toName) {
+            var fromIndex = Object.prototype.hasOwnProperty.call(viewOrder, fromName) ? viewOrder[fromName] : 0;
+            var toIndex = Object.prototype.hasOwnProperty.call(viewOrder, toName) ? viewOrder[toName] : fromIndex;
+            if (toIndex === fromIndex) return 1;
+            return toIndex > fromIndex ? 1 : -1;
         }
 
         function animateView(fromName, toName) {
@@ -3073,56 +3471,77 @@
             if (prefersReduced) {
                 fromView.classList.remove('active', 'leaving');
                 toView.classList.add('active');
-                document.body.setAttribute('data-active-view', toName);
-                ScrollTrigger.refresh();
+                if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
                 return Promise.resolve();
             }
 
-            var origin = getTransitionOrigin();
-            gsap.set([fromView, toView], { transformOrigin: origin.x + 'px ' + origin.y + 'px' });
+            if (activeTransition) activeTransition.kill();
+
+            var direction = getTransitionDirection(fromName, toName);
+            var enterX = direction > 0 ? 42 : -42;
+            var exitX = direction > 0 ? -28 : 28;
+            var container = fromView.parentElement;
+            var fromHeight = fromView.offsetHeight;
+            var toHeight = toView.offsetHeight || fromHeight;
 
             fromView.classList.add('leaving');
+            fromView.classList.remove('active');
+            toView.classList.add('active');
             toView.classList.add('entering');
+            toHeight = toView.offsetHeight || toHeight;
+            gsap.set(container, { minHeight: fromHeight });
+            gsap.set(fromView, { autoAlpha: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)', willChange: 'transform,opacity,filter' });
+            gsap.set(toView, { autoAlpha: 0, x: enterX, y: 10, scale: 0.992, filter: 'blur(6px)', willChange: 'transform,opacity,filter' });
 
             return new Promise(function(resolve) {
                 var tl = gsap.timeline({
                     onComplete: function() {
-                        gsap.set([fromView, toView], { clearProps: 'transform,opacity' });
+                        activeTransition = null;
+                        gsap.set([fromView, toView], { clearProps: 'transform,opacity,visibility,filter,willChange' });
+                        gsap.set(container, { clearProps: 'minHeight' });
                         fromView.classList.remove('active', 'leaving');
-                        toView.classList.add('active');
                         toView.classList.remove('entering');
-                        document.body.setAttribute('data-active-view', toName);
-                        ScrollTrigger.refresh();
+                        if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
                         resolve();
                     }
                 });
 
-                tl.to(fromView, { scale: 0.92, opacity: 0, duration: 0.25, ease: 'power2.in' }, 0);
-                tl.fromTo(toView, { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'expo.out' }, 0.15);
-
-                // 背景平滑过渡
-                var bgEls = document.querySelectorAll('.bg-yellow-glow, .tools-bg-glow, .tools-bg-noise');
-                tl.to(bgEls, { opacity: 0, duration: 0.15 }, 0);
-                tl.to(bgEls, { opacity: 1, duration: 0.2 }, 0.18);
+                activeTransition = tl;
+                tl.to(fromView, {
+                    autoAlpha: 0,
+                    x: exitX,
+                    y: -8,
+                    scale: 0.992,
+                    filter: 'blur(5px)',
+                    duration: 0.34,
+                    ease: 'power3.inOut'
+                }, 0);
+                tl.to(toView, {
+                    autoAlpha: 1,
+                    x: 0,
+                    y: 0,
+                    scale: 1,
+                    filter: 'blur(0px)',
+                    duration: 0.46,
+                    ease: 'expo.out'
+                }, 0.06);
+                tl.to(container, {
+                    minHeight: toHeight,
+                    duration: 0.42,
+                    ease: 'power3.inOut'
+                }, 0);
             });
         }
 
         function updateNavTitle(name) {
-            var titles = {
-                home: { title: '喵码生成器', subtitle: '🏠 miaojiaozhu.com　💬 京me群 10229406786' },
-                knowledge: { title: '蜜柑苏打', subtitle: '· 知识库' },
-                tools: { title: '喵码 · AI 工具箱', subtitle: '小米Mimo v2.5 驱动' },
-            };
-            var info = titles[name];
-            if (!info) return;
             var titleEl = document.getElementById('nav-title');
             var subtitleEl = document.getElementById('nav-subtitle');
-            if (titleEl) titleEl.textContent = info.title;
-            if (subtitleEl) subtitleEl.textContent = info.subtitle;
+            if (titleEl) titleEl.textContent = '喵码生成器';
+            if (subtitleEl) subtitleEl.textContent = '🏠 miaojiaozhu.com　💬 京me群 10229406786';
         }
 
-        function updateNavPill(name) {
-            document.querySelectorAll('.nav-pill-tab').forEach(function(tab) {
+        function updateNavPill(name, immediate) {
+            document.querySelectorAll('.nav-pill-tab[data-view]').forEach(function(tab) {
                 var isActive = tab.getAttribute('data-view') === name;
                 tab.classList.toggle('active', isActive);
                 tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
@@ -3137,9 +3556,42 @@
                 var parentRect = activeTab.parentElement.getBoundingClientRect();
                 var left = rect.left - parentRect.left;
                 var width = rect.width;
-                gsap.to(indicator, { x: left, width: width, duration: 0.35, ease: 'expo.out' });
-                gsap.to(lamp, { x: left, duration: 0.35, ease: 'expo.out' });
+                var lampLeft = left + Math.max(0, (width - 32) / 2);
+                if (immediate || typeof gsap === 'undefined') {
+                    if (typeof gsap !== 'undefined') {
+                        gsap.set(indicator, { x: left, width: width, opacity: 1 });
+                        gsap.set(lamp, { x: lampLeft, opacity: 1 });
+                    } else {
+                        indicator.style.transform = 'translate3d(' + left + 'px, 0, 0)';
+                        indicator.style.width = width + 'px';
+                        indicator.style.opacity = '1';
+                        lamp.style.transform = 'translate3d(' + lampLeft + 'px, 0, 0)';
+                        lamp.style.opacity = '1';
+                    }
+                    return;
+                }
+                gsap.to(indicator, { x: left, width: width, opacity: 1, duration: 0.32, ease: 'expo.out' });
+                gsap.to(lamp, { x: lampLeft, opacity: 1, duration: 0.32, ease: 'expo.out' });
             }
+        }
+
+        function runInitializer(name) {
+            if (initialized[name] || !initializers[name]) return;
+            initialized[name] = true;
+            try {
+                initializers[name]();
+            } catch (err) {
+                initialized[name] = false;
+                console.error('视图初始化失败喵~', name, err);
+            }
+        }
+
+        function scheduleInitializer(name) {
+            if (initialized[name] || !initializers[name]) return;
+            window.setTimeout(function() {
+                if (current !== name) return;
+                runInitializer(name);
+            }, 0);
         }
 
         window.ViewManager = {
@@ -3157,38 +3609,78 @@
             },
 
             switchTo: function(name) {
-                if (isTransitioning) return;
-                if (name === current) return;
-
-                // 懒初始化
-                if (!initialized[name] && initializers[name]) {
-                    initializers[name]();
-                    initialized[name] = true;
+                if (!name || !document.getElementById('view-' + name)) return;
+                if (isTransitioning) {
+                    pendingView = name;
+                    updateNavPill(name);
+                    updateNavTitle(name);
+                    return;
+                }
+                if (name === current) {
+                    updateNavPill(current);
+                    updateNavTitle(current);
+                    document.body.setAttribute('data-active-view', current);
+                    scheduleInitializer(current);
+                    return;
                 }
 
                 isTransitioning = true;
                 updateNavPill(name);
                 updateNavTitle(name);
+                document.body.setAttribute('data-active-view', name);
 
                 var fromName = current;
                 current = name;
+                this.current = name;
 
                 animateView(fromName, name).then(function() {
                     isTransitioning = false;
+                    var next = pendingView;
+                    pendingView = null;
+                    if (next && next !== current) window.ViewManager.switchTo(next);
+                    else if (next === current) {
+                        updateNavPill(current);
+                        updateNavTitle(current);
+                        document.body.setAttribute('data-active-view', current);
+                        scheduleInitializer(current);
+                    } else {
+                        scheduleInitializer(current);
+                    }
                 });
             },
 
             getCurrent: function() { return current; },
             isInitialized: function(name) { return !!initialized[name]; },
+            refreshNav: function() {
+                updateNavPill(current, true);
+                updateNavTitle(current);
+                document.body.setAttribute('data-active-view', current);
+            },
         };
     })();
 
     // 导航绑定
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('[data-view]').forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        var navRefreshTimer = null;
+        if (window.ViewManager && typeof ViewManager.refreshNav === 'function') {
+            ViewManager.refreshNav();
+        }
+
+        document.querySelectorAll('.nav-pill-tab[data-view]').forEach(function(btn) {
+            btn.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
                 ViewManager.switchTo(btn.getAttribute('data-view'));
             });
+        });
+
+        window.addEventListener('resize', function() {
+            clearTimeout(navRefreshTimer);
+            navRefreshTimer = setTimeout(function() {
+                if (window.ViewManager && typeof ViewManager.refreshNav === 'function') {
+                    ViewManager.refreshNav();
+                }
+            }, 120);
         });
 
         // 键盘快捷键
@@ -3201,11 +3693,14 @@
         });
     });
 
-    // 共享在线人数 SSE
+    // 共享在线人数：SSE 实时推送 + 心跳 + 轮询兜底
     (function() {
         var countEl = document.getElementById('online-count');
         var badgeEl = document.getElementById('online-badge');
         if (!countEl) return;
+
+        var FALLBACK = false;
+        var es = null;
 
         function updateCount(n) {
             countEl.textContent = n;
@@ -3214,27 +3709,67 @@
             }
         }
 
+        function readOnlineCount(data) {
+            if (!data) return null;
+            if (typeof data.onlineCount === 'number') return data.onlineCount;
+            if (typeof data.count === 'number') return data.count;
+            return null;
+        }
+
+        function sendHeartbeat() {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/api/heartbeat', new Blob([''], { type: 'text/plain' }));
+                return;
+            }
+            fetch('/api/heartbeat', { method: 'POST', body: '', headers: { 'Content-Type': 'text/plain' } }).catch(function() {});
+        }
+
         function setupPolling() {
+            if (FALLBACK) return;
+            FALLBACK = true;
             function poll() {
                 fetch('/api/online-count')
                     .then(function(r) { return r.ok ? r.json() : null; })
-                    .then(function(d) { if (d && typeof d.count === 'number') updateCount(d.count); })
+                    .then(function(d) {
+                        var n = readOnlineCount(d);
+                        if (typeof n === 'number') updateCount(n);
+                    })
                     .catch(function() {})
                     .finally(function() { setTimeout(poll, 30000); });
             }
             poll();
         }
 
-        // SSE 优先
-        try {
-            var es = new EventSource('/api/online-count-sse');
-            es.onmessage = function(e) {
-                try { var d = JSON.parse(e.data); if (typeof d.count === 'number') updateCount(d.count); } catch(_) {}
-            };
-            es.onerror = function() { es.close(); setupPolling(); };
-        } catch(_) {
-            setupPolling();
+        function connectSSE() {
+            try {
+                es = new EventSource('/api/live-count-stream');
+                es.onmessage = function(e) {
+                    try {
+                        var n = readOnlineCount(JSON.parse(e.data));
+                        if (typeof n === 'number') updateCount(n);
+                    } catch(_) {}
+                };
+                es.onerror = function() {
+                    if (es) es.close();
+                    es = null;
+                    setupPolling();
+                };
+            } catch(_) {
+                setupPolling();
+            }
         }
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                sendHeartbeat();
+                if (!es && !FALLBACK) connectSSE();
+            }
+        });
+        window.addEventListener('beforeunload', sendHeartbeat);
+
+        sendHeartbeat();
+        setInterval(sendHeartbeat, 25000);
+        connectSSE();
     })();
 
     // 共享天气状态 + 雨滴效果
@@ -4270,8 +4805,9 @@
             if (e.key === 'Escape' && lightboxOverlay.classList.contains('active')) closeLightbox();
         });
 
-        // 全局粘贴：图片路由到 OCR
+        // 全局粘贴只保留给 AI 数据处理图片页签，避免 OCR 卡片 Ctrl+V 自动识别单号。
         document.addEventListener('paste', function(event) {
+            if (typeof currentDataTab === 'undefined' || currentDataTab !== 'image') return;
             var items = event.clipboardData && event.clipboardData.items;
             var file = null;
             if (items && items.length) {
@@ -4282,12 +4818,7 @@
                     }
                 }
             }
-            if (!file) return;
-            if (typeof currentDataTab !== 'undefined' && currentDataTab === 'image') {
-                setDataImage(file);
-            } else {
-                processOcrFile(file);
-            }
+            if (file) setDataImage(file);
         });
 
         inputArea.addEventListener('input', renderBarcodes);
@@ -4962,12 +5493,9 @@
             var mm = gsap.matchMedia();
 
             mm.add({
-                isDesktop: "(min-width: 768px)",
-                isMobile: "(max-width: 767px)",
                 reduceMotion: "(prefers-reduced-motion: reduce)"
             }, function(ctx) {
                 var conditions = ctx.conditions || {};
-                var isDesktop = conditions.isDesktop;
                 var rm = conditions.reduceMotion;
                 window.reduceMotion = reduceMotion = !!rm;
 
@@ -5172,8 +5700,12 @@
         (function() {
             var cityEl      = document.getElementById('weather-city');
             var cityWrap    = document.getElementById('weather-city-wrap');
+            var cityDropdownEl = document.getElementById('weather-city-dropdown');
             var cityTrigger = document.getElementById('weather-city-trigger');
             var cityInput   = document.getElementById('weather-city-input');
+            var cityClear   = document.getElementById('weather-city-clear');
+            var cityQuickEl = document.getElementById('weather-city-quick');
+            var cityListTitleEl = document.getElementById('weather-city-list-title');
             var cityListEl  = document.getElementById('weather-city-list');
             var iconEl      = document.getElementById('weather-icon');
             var tempEl      = document.getElementById('weather-temp');
@@ -5183,6 +5715,7 @@
             var cardEl      = document.getElementById('weather-card');
             var dailyEl     = document.getElementById('weather-daily');
             var hourlyEl    = document.getElementById('weather-hourly');
+            var poweredEl   = document.getElementById('weather-powered');
 
             if (!cardEl) return;
 
@@ -5194,6 +5727,25 @@
                 '拉萨','呼和浩特','南昌','海口','石家庄','太原','温州',
                 '珠海','东莞','佛山','三亚','桂林','丽江','大理','敦煌'
             ];
+            var CITY_SEARCH_ALIASES = {
+                '北京': 'beijing bj', '上海': 'shanghai sh', '广州': 'guangzhou gz', '深圳': 'shenzhen sz',
+                '成都': 'chengdu cd', '杭州': 'hangzhou hz', '武汉': 'wuhan wh', '重庆': 'chongqing cq',
+                '南京': 'nanjing nj', '天津': 'tianjin tj', '苏州': 'suzhou sz', '西安': 'xian xa',
+                '长沙': 'changsha cs', '沈阳': 'shenyang sy', '青岛': 'qingdao qd', '郑州': 'zhengzhou zz',
+                '大连': 'dalian dl', '厦门': 'xiamen xm', '宁波': 'ningbo nb', '无锡': 'wuxi wx',
+                '昆明': 'kunming km', '哈尔滨': 'haerbin heb', '福州': 'fuzhou fz', '合肥': 'hefei hf',
+                '济南': 'jinan jn', '贵阳': 'guiyang gy', '长春': 'changchun cc', '南宁': 'nanning nn',
+                '乌鲁木齐': 'wulumuqi wlmq', '兰州': 'lanzhou lz', '银川': 'yinchuan yc', '拉萨': 'lasa ls',
+                '呼和浩特': 'huhehaote hhht', '南昌': 'nanchang nc', '海口': 'haikou hk', '石家庄': 'shijiazhuang sjz',
+                '太原': 'taiyuan ty', '温州': 'wenzhou wz', '珠海': 'zhuhai zh', '东莞': 'dongguan dg',
+                '佛山': 'foshan fs', '三亚': 'sanya sy', '桂林': 'guilin gl', '丽江': 'lijiang lj',
+                '大理': 'dali dl', '敦煌': 'dunhuang dh'
+            };
+            var CITY_GROUPS = [
+                { title: '常用', cities: ['苏州','上海','杭州','南京','无锡','宁波','北京','深圳'] },
+                { title: '区域', cities: ['广州','成都','武汉','重庆','西安','长沙','青岛','厦门'] }
+            ];
+            var RECENT_CITY_KEY = 'miaosite_weather_recent_cities';
 
             cardEl.classList.add('is-loading');
 
@@ -5210,6 +5762,8 @@
                     dot.style.width = size + 'px';
                     dot.style.height = size + 'px';
                     dot.style.opacity = Math.random() * 0.4 + 0.2;
+                    dot.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                    dot.style.animationDelay = (Math.random() * 5) + 's';
                     dotsEl.appendChild(dot);
                 }
             })();
@@ -5250,8 +5804,16 @@
                 var isRainy = window.WeatherState && window.WeatherState.isRainyIcon(cur.iconCode);
                 if (window.WeatherState) window.WeatherState.setRainState(isRainy);
                 if (isRainy) {
-                    if (!window._rainOverlay) window._rainOverlay = new window.RaindropOverlay();
-                    window._rainOverlay.start();
+                    if (window.RaindropOverlay) {
+                        if (!window._rainOverlay) window._rainOverlay = new window.RaindropOverlay();
+                        window._rainOverlay.start();
+                    } else {
+                        window.addEventListener('load', function() {
+                            if (!window.RaindropOverlay) return;
+                            if (!window._rainOverlay) window._rainOverlay = new window.RaindropOverlay();
+                            window._rainOverlay.start();
+                        }, { once: true });
+                    }
                 } else {
                     if (window._rainOverlay) window._rainOverlay.stop();
                 }
@@ -5274,6 +5836,19 @@
                         { scale: 0.5, opacity: 0 },
                         { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(1.7)', delay: 0.1 }
                     );
+                    gsap.fromTo(descEl,
+                        { y: 10, opacity: 0 },
+                        { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out', delay: 0.15 }
+                    );
+                    var detailRows = cardEl.querySelectorAll('.weather-detail-row');
+                    gsap.fromTo(detailRows,
+                        { x: -20, opacity: 0 },
+                        { x: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power2.out', delay: 0.2 }
+                    );
+                    gsap.fromTo([dailyEl, hourlyEl],
+                        { opacity: 0, y: 10 },
+                        { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: 'power2.out', delay: 0.3 }
+                    );
                 }
             }
 
@@ -5282,7 +5857,8 @@
                 if (!daily || daily.length === 0) { dailyEl.innerHTML = ''; return; }
                 var today = new Date();
                 dailyEl.innerHTML = daily.map(function(d) {
-                    var diff = Math.floor((new Date(d.date) - today) / 86400000);
+                    var dayDate = d.date || d.fxDate || d.forecastDate || '';
+                    var diff = Math.floor((new Date(dayDate) - today) / 86400000);
                     var isToday = diff === 0;
                     var label;
                     if (diff === -2) label = '前天';
@@ -5297,6 +5873,10 @@
                         '<div class="weather-day-temps"><span>' + (d.high || 0).toFixed(0) + '°</span> <span class="weather-day-low">' + (d.low || 0).toFixed(0) + '°</span></div>' +
                     '</div>';
                 }).join('');
+                var todayEl = dailyEl.querySelector('.weather-day-item.is-today');
+                if (todayEl) {
+                    dailyEl.scrollLeft = Math.max(0, todayEl.offsetLeft - 8 - todayEl.offsetWidth - 6);
+                }
             }
 
             function renderHourly(hourly) {
@@ -5312,22 +5892,34 @@
                 var tomorrowStr = fmtDate(t);
 
                 hourlyEl.innerHTML = hourly.map(function(h) {
-                    var hDate = new Date(h.date + 'T' + h.time + ':00');
+                    var hDateStr = h.date;
+                    var hTimeStr = h.time;
+                    if ((!hDateStr || !hTimeStr) && h.fxTime) {
+                        hDateStr = h.fxTime.slice(0, 10);
+                        hTimeStr = h.fxTime.slice(11, 16);
+                    }
+                    hDateStr = hDateStr || todayStr;
+                    hTimeStr = hTimeStr || '00:00';
+                    var hDate = new Date(hDateStr + 'T' + hTimeStr + ':00');
                     var hTs = hDate.getTime();
                     var diffMs = hTs - nowTs;
                     var isNow = diffMs >= -1800000 && diffMs < 1800000;
                     var dateLabel;
-                    if (h.date === yesterdayStr) dateLabel = '昨天';
-                    else if (h.date === todayStr) dateLabel = '今天';
-                    else if (h.date === tomorrowStr) dateLabel = '明天';
-                    else dateLabel = h.date.slice(5);
-                    var timeLabel = isNow ? (dateLabel + ' 现在') : (dateLabel + ' ' + h.time);
+                    if (hDateStr === yesterdayStr) dateLabel = '昨天';
+                    else if (hDateStr === todayStr) dateLabel = '今天';
+                    else if (hDateStr === tomorrowStr) dateLabel = '明天';
+                    else dateLabel = hDateStr.slice(5);
+                    var timeLabel = isNow ? (dateLabel + ' 现在') : (dateLabel + ' ' + hTimeStr);
                     return '<div class="weather-hour-item' + (isNow ? ' is-now' : '') + '">' +
                         '<div class="weather-hour-time">' + timeLabel + '</div>' +
                         '<div class="weather-hour-icon">' + weatherIconImg(h.iconCode, h.weatherDesc, 20) + '</div>' +
                         '<div class="weather-hour-temp">' + (h.temperature || 0).toFixed(0) + '°</div>' +
                     '</div>';
                 }).join('');
+                var nowEl = hourlyEl.querySelector('.weather-hour-item.is-now');
+                if (nowEl) {
+                    hourlyEl.scrollLeft = Math.max(0, nowEl.offsetLeft - 8);
+                }
             }
 
             function renderError(msg) {
@@ -5340,6 +5932,7 @@
                 windEl.textContent = '-- km/h';
                 if (dailyEl) dailyEl.innerHTML = '';
                 if (hourlyEl) hourlyEl.innerHTML = '';
+                if (poweredEl) poweredEl.textContent = '';
             }
 
             function fetchWeather(city, isSwitching) {
@@ -5352,83 +5945,268 @@
                         return r.json();
                     })
                     .then(renderWeather)
-                    .catch(function(err) { renderError(err.message); });
+                    .catch(function(err) {
+                        console.warn('Weather fetch failed:', err.message);
+                        renderError(err.message);
+                    });
             }
 
             // 城市选择
             var cityHighlightIdx = -1;
-            var cityFiltered = POPULAR_CITIES.slice();
+            var cityOptions = [];
+
+            function normalizeCityQuery(value) {
+                return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
+            }
+
+            function getCitySearchText(city) {
+                return normalizeCityQuery(city + ' ' + (CITY_SEARCH_ALIASES[city] || ''));
+            }
+
+            function escapeHtml(value) {
+                return String(value || '').replace(/[&<>"']/g, function(ch) {
+                    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+                });
+            }
+
+            function highlightCityLabel(city, query) {
+                var safeCity = escapeHtml(city);
+                if (!query || /^[a-z0-9]+$/i.test(query)) return safeCity;
+                var escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return safeCity.replace(new RegExp('(' + escapedQuery + ')', 'gi'), '<mark>$1</mark>');
+            }
+
+            function readRecentCities() {
+                try {
+                    var raw = localStorage.getItem(RECENT_CITY_KEY);
+                    var parsed = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(parsed) ? parsed.filter(Boolean).slice(0, 4) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function rememberRecentCity(city) {
+                if (!city) return;
+                try {
+                    var next = [city].concat(readRecentCities().filter(function(item) { return item !== city; })).slice(0, 4);
+                    localStorage.setItem(RECENT_CITY_KEY, JSON.stringify(next));
+                } catch (e) {}
+            }
+
+            function renderCityChips(title, cities, source) {
+                if (!cities || cities.length === 0) return '';
+                return '<div class="weather-city-quick-section">' +
+                    '<div class="weather-city-quick-title">' + escapeHtml(title) + '</div>' +
+                    '<div class="weather-city-chip-row">' +
+                    cities.map(function(city) {
+                        return '<button type="button" class="weather-city-chip' +
+                            (city === currentCity ? ' is-active' : '') +
+                            '" data-city="' + escapeHtml(city) + '"' +
+                            (source ? ' data-source="' + source + '"' : '') + '>' +
+                            escapeHtml(city) +
+                        '</button>';
+                    }).join('') +
+                    '</div>' +
+                '</div>';
+            }
+
+            function renderCityQuick() {
+                if (!cityQuickEl) return;
+                var recent = readRecentCities();
+                var html = '';
+                if (recent.length > 0) html += renderCityChips('最近', recent, 'recent');
+                CITY_GROUPS.forEach(function(group) {
+                    html += renderCityChips(group.title, group.cities, '');
+                });
+                cityQuickEl.innerHTML = html;
+            }
+
+            function cityPositionDropdown() {
+                if (!cityDropdownEl || !cityWrap.classList.contains('is-open')) return;
+                var applyPosition = function() {
+                    if (!cityWrap.classList.contains('is-open')) return;
+                    cityDropdownEl.style.setProperty('--weather-city-dropdown-shift', '0px');
+                    var rect = cityDropdownEl.getBoundingClientRect();
+                    var pad = 18;
+                    var shift = 0;
+                    if (rect.left < pad) {
+                        shift = pad - rect.left;
+                    } else if (rect.right > window.innerWidth - pad) {
+                        shift = window.innerWidth - pad - rect.right;
+                    }
+                    cityDropdownEl.style.setProperty('--weather-city-dropdown-shift', shift + 'px');
+                };
+                applyPosition();
+                requestAnimationFrame(applyPosition);
+                setTimeout(applyPosition, 260);
+            }
 
             function cityRenderList() {
                 var q = cityInput.value.trim();
-                if (!q) { cityFiltered = POPULAR_CITIES.slice(); }
-                else {
-                    var lq = q.toLowerCase();
-                    cityFiltered = POPULAR_CITIES.filter(function(c) { return c.toLowerCase().indexOf(lq) !== -1; });
+                var normalizedQuery = normalizeCityQuery(q);
+                var exactKnownCity = false;
+                cityOptions = POPULAR_CITIES
+                    .filter(function(city) {
+                        if (!normalizedQuery) return true;
+                        return getCitySearchText(city).indexOf(normalizedQuery) !== -1;
+                    })
+                    .map(function(city) {
+                        if (city === q) exactKnownCity = true;
+                        return { city: city, custom: false };
+                    });
+
+                if (q && !exactKnownCity) {
+                    cityOptions.push({ city: q, custom: true });
                 }
-                cityHighlightIdx = cityFiltered.length > 0 ? 0 : -1;
-                if (cityFiltered.length === 0) {
-                    cityListEl.innerHTML = '<div class="weather-city-empty">没有找到匹配的城市 🐾</div>';
+
+                cityHighlightIdx = cityOptions.length > 0 ? 0 : -1;
+                if (cityClear) cityClear.classList.toggle('show', !!q);
+                if (cityListTitleEl) cityListTitleEl.textContent = q ? '匹配城市' : '全部城市';
+                if (cityOptions.length === 0) {
+                    cityListEl.innerHTML = '<div class="weather-city-empty">输入城市名后按 Enter 查询喵~</div>';
+                    cityPositionDropdown();
                     return;
                 }
-                var esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                var re = new RegExp('(' + esc + ')', 'gi');
-                cityListEl.innerHTML = cityFiltered.map(function(c, i) {
+                cityListEl.innerHTML = cityOptions.map(function(option, i) {
+                    var c = option.city;
                     var isCur = c === currentCity;
                     return '<div class="weather-city-option' +
                         (i === cityHighlightIdx ? ' is-active' : '') +
                         (isCur ? ' is-selected' : '') +
-                        '" data-index="' + i + '" data-city="' + c + '">' +
+                        (option.custom ? ' is-custom' : '') +
+                        '" data-index="' + i + '" data-city="' + escapeHtml(c) + '"' +
+                        (option.custom ? ' data-custom="true"' : '') +
+                        ' role="option" aria-selected="' + (isCur ? 'true' : 'false') + '" tabindex="-1">' +
                         '<span class="city-dot"></span>' +
-                        '<span>' + (q ? c.replace(re, '<mark>$1</mark>') : c) + '</span>' +
+                        '<span class="weather-city-option-main">' + highlightCityLabel(c, q) + '</span>' +
+                        (option.custom ? '<span class="weather-city-option-hint">查询</span>' : '') +
                     '</div>';
                 }).join('');
+                cityPositionDropdown();
+            }
+
+            function cityUpdateHighlight(newIdx) {
+                var prev = cityListEl.querySelector('.weather-city-option.is-active');
+                if (prev) prev.classList.remove('is-active');
+                cityHighlightIdx = Math.max(0, Math.min(newIdx, cityOptions.length - 1));
+                var next = cityListEl.querySelector('.weather-city-option[data-index="' + cityHighlightIdx + '"]');
+                if (next) {
+                    next.classList.add('is-active');
+                    next.scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            function cityClose(options) {
+                var shouldRestoreFocus = options && options.restoreFocus === true;
+                cityWrap.classList.remove('is-open');
+                cityTrigger.setAttribute('aria-expanded', 'false');
+                if (cityDropdownEl) cityDropdownEl.style.setProperty('--weather-city-dropdown-shift', '0px');
+                cityHighlightIdx = -1;
+                if (cityClear) cityClear.classList.remove('show');
+                if (shouldRestoreFocus) cityTrigger.focus();
+            }
+
+            function cityOpen() {
+                cityWrap.classList.add('is-open');
+                cityTrigger.setAttribute('aria-expanded', 'true');
+                if (cityDropdownEl) cityDropdownEl.style.setProperty('--weather-city-dropdown-shift', '0px');
+                cityInput.value = '';
+                renderCityQuick();
+                cityRenderList();
+                if (!window.reduceMotion && typeof gsap !== 'undefined') {
+                    var opts = cityWrap.querySelectorAll('.weather-city-chip, .weather-city-option');
+                    gsap.fromTo(opts,
+                        { y: 12, opacity: 0, scale: 0.9 },
+                        { y: 0, opacity: 1, scale: 1, duration: 0.35, stagger: 0.03, ease: 'back.out(1.6)' }
+                    );
+                }
+                setTimeout(function() { cityInput.focus(); }, 50);
             }
 
             function citySelect(name) {
-                if (name && name !== currentCity) {
-                    cityEl.textContent = name;
+                var targetCity = String(name || '').trim();
+                if (targetCity && targetCity !== currentCity) {
+                    cityEl.textContent = targetCity;
                     cardEl.classList.add('is-switching');
-                    fetchWeather(name, true);
+                    fetchWeather(targetCity, true);
                 }
-                cityWrap.classList.remove('is-open');
-                cityTrigger.focus();
+                if (targetCity) {
+                    rememberRecentCity(targetCity);
+                    renderCityQuick();
+                }
+                cityClose({ restoreFocus: true });
             }
 
             cityTrigger.addEventListener('click', function(e) {
                 e.stopPropagation();
-                if (cityWrap.classList.contains('is-open')) {
-                    cityWrap.classList.remove('is-open');
-                } else {
-                    cityWrap.classList.add('is-open');
-                    cityInput.value = '';
-                    cityRenderList();
-                    setTimeout(function() { cityInput.focus(); }, 50);
-                }
+                if (cityWrap.classList.contains('is-open')) cityClose({ restoreFocus: true });
+                else cityOpen();
             });
 
             cityInput.addEventListener('input', cityRenderList);
 
             cityInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') { cityWrap.classList.remove('is-open'); cityTrigger.focus(); return; }
-                if (e.key === 'ArrowDown') { e.preventDefault(); cityHighlightIdx = Math.min(cityHighlightIdx + 1, cityFiltered.length - 1); cityRenderList(); return; }
-                if (e.key === 'ArrowUp') { e.preventDefault(); cityHighlightIdx = Math.max(cityHighlightIdx - 1, 0); cityRenderList(); return; }
+                if (e.key === 'Escape') { cityClose({ restoreFocus: true }); return; }
+                if (e.key === 'ArrowDown') { e.preventDefault(); cityUpdateHighlight(Math.min(cityHighlightIdx + 1, cityOptions.length - 1)); return; }
+                if (e.key === 'ArrowUp') { e.preventDefault(); cityUpdateHighlight(Math.max(cityHighlightIdx - 1, 0)); return; }
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (cityHighlightIdx >= 0 && cityFiltered[cityHighlightIdx]) citySelect(cityFiltered[cityHighlightIdx]);
+                    if (cityHighlightIdx >= 0 && cityOptions[cityHighlightIdx]) citySelect(cityOptions[cityHighlightIdx].city);
                     else if (cityInput.value.trim()) citySelect(cityInput.value.trim());
                 }
             });
 
+            if (cityClear) {
+                cityClear.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cityInput.value = '';
+                    cityRenderList();
+                    cityInput.focus();
+                });
+            }
+
+            if (cityQuickEl) {
+                cityQuickEl.addEventListener('click', function(e) {
+                    var chip = e.target.closest('.weather-city-chip');
+                    if (!chip) return;
+                    e.preventDefault();
+                    citySelect(chip.dataset.city);
+                });
+            }
+
             cityListEl.addEventListener('click', function(e) {
                 var opt = e.target.closest('.weather-city-option');
                 if (!opt) return;
+                if (!window.reduceMotion && typeof gsap !== 'undefined' && opt.dataset.city !== currentCity) {
+                    gsap.fromTo(opt,
+                        { scale: 1 },
+                        { scale: 0.92, duration: 0.08, ease: 'power2.in',
+                            onComplete: function() {
+                                gsap.to(opt, { scale: 1.04, duration: 0.12, ease: 'power2.out',
+                                    onComplete: function() {
+                                        gsap.to(opt, { scale: 1, duration: 0.15, ease: 'power2.out' });
+                                    }
+                                });
+                            }
+                        }
+                    );
+                }
                 citySelect(opt.dataset.city);
             });
 
-            document.addEventListener('click', function(e) {
-                if (!cityWrap.contains(e.target)) cityWrap.classList.remove('is-open');
+            cityListEl.addEventListener('mouseover', function(e) {
+                var opt = e.target.closest('.weather-city-option');
+                if (opt && opt.dataset.index !== undefined) {
+                    cityUpdateHighlight(parseInt(opt.dataset.index, 10));
+                }
             });
+
+            document.addEventListener('click', function(e) {
+                if (cityWrap.classList.contains('is-open') && !cityWrap.contains(e.target)) cityClose();
+            });
+            window.addEventListener('resize', cityPositionDropdown);
 
             fetchWeather();
             setInterval(function() { fetchWeather(); }, 1800000);
@@ -5440,15 +6218,15 @@
             if (!cardEl || !window.GlassSurface) return;
             new window.GlassSurface(cardEl, {
                 borderRadius: 20,
-                blur: 8,
-                brightness: 0.10,
-                opacity: 0.06,
-                backgroundOpacity: 0.05,
+                blur: 4,
+                brightness: 0.06,
+                opacity: 0.035,
+                backgroundOpacity: 0.02,
                 distortionScale: 3,
                 redOffset: 4,
                 greenOffset: 2,
                 blueOffset: 4,
-                saturation: 100
+                saturation: 96
             });
         })();
 
@@ -5464,6 +6242,7 @@
     window.addEventListener('DOMContentLoaded', function() {
         if (!ViewManager.isInitialized('home')) {
             initHomeView();
+            ViewManager._markInitialized('home');
         }
     });
     </script>
@@ -5626,7 +6405,6 @@
             document.querySelectorAll('.tag-chip').forEach(function(el){el.classList.remove('active');});
             document.getElementById('search-input').value = '';
             loadArticles();
-            if (window.innerWidth <= 768) closeSidebar();
         }
 
         function filterByTag(tag) {
@@ -5637,7 +6415,6 @@
             if(allCat) allCat.classList.add('active');
             document.getElementById('search-input').value = '';
             loadArticles();
-            if (window.innerWidth <= 768) closeSidebar();
         }
 
         async function loadCategories() {
@@ -6051,11 +6828,6 @@
 
         function getCategoryName(slug) { var names={logistics:'快递物流',tech:'技术编程',literature:'文学小说',humanities:'人文社科',lifestyle:'生活百科',business:'经济管理'}; return names[slug]||slug; }
 
-        // ---- 移动端侧边栏 ----
-        function toggleSidebar(){ document.getElementById('content-sidebar').classList.toggle('sidebar-open'); document.getElementById('sidebar-backdrop').classList.toggle('show'); }
-        function closeSidebar(){ document.getElementById('content-sidebar').classList.remove('sidebar-open'); document.getElementById('sidebar-backdrop').classList.remove('show'); }
-        window.addEventListener('resize',function(){ if(window.innerWidth>768) closeSidebar(); });
-
         // ---- 键盘快捷键 ----
         document.addEventListener('keydown',function(e){
             if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&state.view==='editor'){ e.preventDefault(); saveArticle(); }
@@ -6366,9 +7138,9 @@
             gsap.registerPlugin(ScrollTrigger);
             var mm=gsap.matchMedia();
             var safetyTimer=setTimeout(function(){ gsap.set('#view-knowledge .mode-tabs, #view-knowledge .content-sidebar .glass-card, #view-knowledge .article-card, #view-knowledge .action-bar, #view-knowledge .pagination',{opacity:1}); },3000);
-            mm.add({isDesktop:"(min-width: 768px)",isMobile:"(max-width: 767px)",reduceMotion:"(prefers-reduced-motion: reduce)"},function(ctx){
+            mm.add({reduceMotion:"(prefers-reduced-motion: reduce)"},function(ctx){
                 clearTimeout(safetyTimer);
-                var conds=ctx.conditions||{},isDesktop=!!conds.isDesktop,rm=!!conds.reduceMotion;
+                var conds=ctx.conditions||{},rm=!!conds.reduceMotion;
                 var entryTl=gsap.timeline({defaults:{ease:'power3.out'}});
                 var modeTabs=document.querySelector('#view-knowledge .mode-tabs');
                 if(modeTabs){entryTl.fromTo(modeTabs,rm?{opacity:0}:{y:8,opacity:0},{y:0,opacity:1,duration:rm?0.3:0.4,force3D:true,onComplete:function(){gsap.set(modeTabs,{clearProps:'transform,willChange'});}},0.0);}
@@ -6419,8 +7191,6 @@
         window.openLightbox = openLightbox;
         window.closeLightbox = closeLightbox;
         window.showAuth = showAuth;
-        window.toggleSidebar = toggleSidebar;
-        window.closeSidebar = closeSidebar;
         window.switchMode = switchMode;
         window.goPage = goPage;
         window.toggleSection = toggleSection;
@@ -6440,17 +7210,17 @@
         ViewManager.register('knowledge', initKnowledge);
     }
 
-    // 动态加载 DOMPurify 和 epubjs（CDN）
+    // 动态加载 DOMPurify 和 epubjs（同源本地资源）
     (function() {
         if (typeof DOMPurify === 'undefined') {
             var s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js';
+            s.src = '/lib/purify.min.js';
             s.async = false;
             document.head.appendChild(s);
         }
         if (typeof ePub === 'undefined') {
             var s2 = document.createElement('script');
-            s2.src = 'https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js';
+            s2.src = '/lib/epub.min.js';
             s2.async = false;
             document.head.appendChild(s2);
         }
@@ -6507,13 +7277,14 @@
 
         function showToast(msg, type) {
             if (type === undefined) type = 'info';
-            var container = document.getElementById('toastContainer');
-            var t = document.createElement('div');
-            t.className = 'toast ' + type;
-            t.textContent = msg;
-            container.appendChild(t);
-            requestAnimationFrame(function() { t.classList.add('show'); });
-            setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 350); }, 2200);
+            var sharedToast = document.getElementById('toast');
+            if (!sharedToast) return;
+            sharedToast.textContent = msg;
+            sharedToast.className = 'toast ' + type + ' show';
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(function() {
+                sharedToast.classList.remove('show');
+            }, 2200);
         }
 
         MiaositeAuth.mount({ toast: showToast, onAuthChange: function(user) { if (user && window.ChatSync) ChatSync.fullSync(); } });
@@ -6655,6 +7426,16 @@
             window._selectSkill = function(name) { var card = document.querySelector('.skill-card[data-skill="' + name + '"]'); if (card) selectSkill(card); if (skillMenu) skillMenu.classList.remove('show'); input.focus(); };
             input.addEventListener('input', function() { if (input.value === '/') { createSkillMenu(); skillMenu.classList.add('show'); } else if (skillMenu) { skillMenu.classList.remove('show'); } });
             document.getElementById('chatFileInput').addEventListener('change', function(e) { chatFiles.push.apply(chatFiles, Array.from(e.target.files)); renderFilePreview(); e.target.value = ''; });
+            document.querySelectorAll('#chatCard .result-actions button[data-action="copy"]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var lastAssistant = chatMessages.filter(function(m) { return m.role === 'assistant'; }).pop();
+                    navigator.clipboard.writeText(lastAssistant ? lastAssistant.content : '').then(function() {
+                        showToast('已复制喵~');
+                    }).catch(function() {
+                        showToast('复制失败，请手动选择文本喵~');
+                    });
+                });
+            });
             document.querySelectorAll('#chatCard .result-actions button[data-action="retry"]').forEach(function(btn) { btn.addEventListener('click', function() { sendChatMessage(true); }); });
             document.getElementById('chatCard').addEventListener('wheel', function(e) {
                 var st = document.getElementById('msgList');
@@ -7120,6 +7901,23 @@
         init();
     };
     if (typeof ViewManager !== 'undefined') ViewManager.register('tools', initTools);
+    </script>
+    <script>
+    (function() {
+        if (!('serviceWorker' in navigator)) return;
+        var hostname = window.location.hostname;
+        var canRegisterServiceWorker = hostname === 'localhost'
+            || hostname === '127.0.0.1'
+            || hostname === 'miaojiaozhu.com'
+            || hostname === 'www.miaojiaozhu.com';
+        if (!canRegisterServiceWorker) return;
+
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                console.warn('Service Worker 注册失败喵~', err);
+            });
+        });
+    })();
     </script>
 </body>
 </html>

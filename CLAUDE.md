@@ -60,7 +60,7 @@ node server.js  # → http://localhost:3000
 - **SSE**: `X-Accel-Buffering: no`, 15s keepalive, 不可用 compression
 - **OCR**: 先本地尺寸检测 → Mimo v2.5 API → cleanOCRText
 - **条码**: pyzbar (本地) + AI OCR (兜底)
-- **响应式**: 所有页面通过 CSS 媒体查询适配桌面/平板/手机
+- **布局目标**: 只维护桌面端布局，不再添加或修复手机端/小屏响应式适配
 
 ---
 

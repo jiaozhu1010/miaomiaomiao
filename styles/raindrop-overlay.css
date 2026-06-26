@@ -101,7 +101,6 @@ html.miaosite-rainy-glass :is(
   .action-bar,
   .pagination,
   .ocr-dropzone,
-  .weather-city-dropdown,
   .chat-history-menu,
   .skill-quick-menu
 ) {
@@ -111,6 +110,18 @@ html.miaosite-rainy-glass :is(
   border-color: rgba(255, 255, 255, 0.28) !important;
   box-shadow: 0 8px 26px rgba(40, 2, 60, 0.16) !important;
   color: var(--rain-glass-text);
+}
+
+html.miaosite-rainy-glass .weather-city-dropdown {
+  background:
+    linear-gradient(145deg, rgba(18, 22, 28, 0.92), rgba(31, 28, 35, 0.88)),
+    radial-gradient(circle at 18% 0%, rgba(255, 159, 67, 0.16), transparent 48%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
+  backdrop-filter: blur(22px) saturate(150%) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
+  color: rgba(255, 255, 255, 0.94);
+  text-shadow: none;
 }
 
 html.miaosite-rainy-glass :is(
@@ -135,6 +146,22 @@ html.miaosite-rainy-glass :is(
   background: rgba(255, 255, 255, 0.07) !important;
   border-color: rgba(255, 255, 255, 0.18) !important;
   color: inherit;
+}
+
+html.miaosite-rainy-glass .weather-city-dropdown :is(
+  .weather-city-dropdown-search,
+  .weather-city-chip,
+  .weather-city-option
+) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+html.miaosite-rainy-glass .weather-city-dropdown :is(
+  .weather-city-input,
+  .weather-city-input::placeholder
+) {
+  color: rgba(255, 255, 255, 0.92) !important;
 }
 
 html.miaosite-rainy-glass :is(

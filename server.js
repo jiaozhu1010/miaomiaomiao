@@ -675,6 +675,25 @@ function readJSON(file, defaultValue) {
     }
 }
 
+const JSON_CACHE_TTL_MS = 5000;
+const _jsonCache = new Map();
+
+function invalidateJSONCache(file) {
+    _jsonCache.delete(file);
+}
+
+function readJSONCached(file, defaultValue, ttlMs = JSON_CACHE_TTL_MS) {
+    const now = Date.now();
+    const cached = _jsonCache.get(file);
+    if (cached && (now - cached.ts) < ttlMs) {
+        return cached.data;
+    }
+
+    const data = readJSON(file, defaultValue);
+    _jsonCache.set(file, { data, ts: now });
+    return data;
+}
+
 // 异步写锁：防止同一文件被并发写入导致损坏
 const _writeQueues = new Map();
 function writeJSON(file, data) {
@@ -685,6 +704,7 @@ function writeJSON(file, data) {
         const tmpFile = file + '.tmp.' + Date.now();
         await fs.promises.writeFile(tmpFile, JSON.stringify(data, null, 2), 'utf8');
         await fs.promises.rename(tmpFile, file);
+        invalidateJSONCache(file);
     }).catch(err => {
         const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
         console.error(`[${now}] writeJSON 失败 (${file}):`, err.message);
@@ -1748,7 +1768,7 @@ app.get('/api/admin/stats', adminAuthMiddleware, (req, res) => {
     }
     try {
         var users = readJSON(USERS_FILE, []);
-        var articles = readJSON(KNOWLEDGE_FILE, []);
+        var articles = readJSONCached(KNOWLEDGE_FILE, []);
         var conversations = readJSON(CONVERSATIONS_FILE, []);
         var barcodes = readJSON(BARCODE_HISTORY_FILE, []);
 
@@ -1804,7 +1824,7 @@ app.get('/api/admin/stats', adminAuthMiddleware, (req, res) => {
 app.get('/api/admin/users', adminAuthMiddleware, (req, res) => {
     try {
         var users = readJSON(USERS_FILE, []);
-        var articles = readJSON(KNOWLEDGE_FILE, []);
+        var articles = readJSONCached(KNOWLEDGE_FILE, []);
         var conversations = readJSON(CONVERSATIONS_FILE, []);
         var prompts = readJSON(PROMPTS_FILE, []);
         var search = (req.query.search || '').toLowerCase();
@@ -1968,7 +1988,7 @@ app.delete('/api/admin/users/:id', adminAuthMiddleware, (req, res) => {
 // 文章列表（管理员视图）
 app.get('/api/admin/articles', adminAuthMiddleware, (req, res) => {
     try {
-        var articles = readJSON(KNOWLEDGE_FILE, []);
+        var articles = readJSONCached(KNOWLEDGE_FILE, []).slice();
         var search = (req.query.search || '').toLowerCase();
         var page = parseInt(req.query.page) || 1;
         var limit = Math.min(parseInt(req.query.limit) || 50, 100);
@@ -2940,7 +2960,7 @@ app.delete('/api/barcode-history', authMiddleware, async (req, res) => {
 // 获取所有分类及其文章计数
 app.get('/api/wiki/categories', async (req, res) => {
     try {
-        const articles = readJSON(KNOWLEDGE_FILE, []);
+        const articles = readJSONCached(KNOWLEDGE_FILE, []);
         const counts = {};
         WIKI_CATEGORIES.forEach(cat => { counts[cat] = 0; });
         articles.forEach(a => {
@@ -2960,7 +2980,7 @@ app.get('/api/wiki/categories', async (req, res) => {
 // 获取所有标签及其计数
 app.get('/api/wiki/tags', async (req, res) => {
     try {
-        const articles = readJSON(KNOWLEDGE_FILE, []);
+        const articles = readJSONCached(KNOWLEDGE_FILE, []);
         const tagMap = {};
         articles.forEach(a => {
             if (Array.isArray(a.tags)) {
@@ -2985,7 +3005,7 @@ app.get('/api/wiki', optionalAuth, async (req, res) => {
         const pageNum = Math.max(1, parseInt(page) || 1);
         const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
 
-        let articles = readJSON(KNOWLEDGE_FILE, []);
+        let articles = readJSONCached(KNOWLEDGE_FILE, []).slice();
 
         // 分类筛选
         if (category && WIKI_CATEGORIES.includes(category)) {

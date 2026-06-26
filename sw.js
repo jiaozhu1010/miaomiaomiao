@@ -1,19 +1,44 @@
-// 喵码 Service Worker — 离线缓存 + 秒开
-const CACHE_NAME = 'miaosite-v2';
+// 喵码 Service Worker — 离线缓存 + 平滑更新
+const CACHE_NAME = 'miaosite-v3';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/tools.html',
-    '/knowledge.html',
     '/404.html',
-    '/server.js', // 不缓存API，仅用于预缓存判断
+    '/styles/base.css?v=2',
+    '/styles/auth.css',
+    '/lib/jsbarcode.min.js?v=1',
+    '/lib/miaosite-auth.js',
 ];
 
-// 安装：预缓存核心页面
+function cacheSuccessfulResponse(request, response) {
+    if (!response || response.status !== 200) return response;
+    const clone = response.clone();
+    caches.open(CACHE_NAME).then(cache => cache.put(request, clone)).catch(() => {});
+    return response;
+}
+
+function cacheFirstWithRefresh(request) {
+    return caches.match(request).then(cached => {
+        const network = fetch(request)
+            .then(response => cacheSuccessfulResponse(request, response))
+            .catch(() => cached);
+        return cached || network;
+    });
+}
+
+function networkFirstPage(request) {
+    return fetch(request)
+        .then(response => cacheSuccessfulResponse(request, response))
+        .catch(() => caches.match(request).then(cached => cached || caches.match('/index.html')));
+}
+
+// 安装：逐个预缓存核心资源，单个失败不影响整批缓存
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
-            return cache.addAll(STATIC_ASSETS).catch(() => {});
+            return Promise.all(
+                STATIC_ASSETS.map(asset => cache.add(asset).catch(() => {}))
+            );
         })
     );
     self.skipWaiting();
@@ -35,28 +60,17 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
+    if (event.request.method !== 'GET') return;
+
     // API 请求：网络优先，失败时返回离线提示
     if (url.pathname.startsWith('/api/')) {
         return; // API 不缓存，直接走网络
     }
 
-    // SSG/静态资源：缓存优先（Cache First）
-    event.respondWith(
-        caches.match(event.request).then(cached => {
-            if (cached) return cached;
-            return fetch(event.request).then(response => {
-                // 只缓存成功的 GET 请求
-                if (event.request.method === 'GET' && response.status === 200) {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            }).catch(() => {
-                // 离线时返回缓存，HTML请求返回首页
-                if (event.request.headers.get('accept')?.includes('text/html')) {
-                    return caches.match('/index.html');
-                }
-            });
-        })
-    );
+    if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+        event.respondWith(networkFirstPage(event.request));
+        return;
+    }
+
+    event.respondWith(cacheFirstWithRefresh(event.request));
 });

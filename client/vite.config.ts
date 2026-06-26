@@ -9,12 +9,12 @@ export default defineConfig({
     react(),
     tailwindcss(),
     // Vite always outputs type="module" in built HTML regardless of output.format.
-    // This plugin strips it so the IIFE bundle loads as a regular script.
+    // Strip it and defer the IIFE so #auth-root exists before the bundle runs.
     {
       name: 'remove-module-type',
       enforce: 'post',
       transformIndexHtml(html) {
-        return html.replace(/<script type="module" crossorigin /g, '<script ')
+        return html.replace(/<script type="module" crossorigin /g, '<script defer ')
       },
     },
   ],
