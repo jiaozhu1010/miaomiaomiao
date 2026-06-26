@@ -35,8 +35,11 @@ async function run() {
 
         const homeHeader = await readHeaderState(page);
         assert.strictEqual(homeHeader.activeView, 'home');
-        assert.strictEqual(homeHeader.titleText, '喵码生成器', 'home title text is the fixed header baseline');
+        assert.strictEqual(homeHeader.titleText, '喵码生成器', 'page nav title should stay as the simple in-page brand label');
         assert.strictEqual(homeHeader.subtitleText, '🏠 miaojiaozhu.com　💬 京me群 10229406786', 'home subtitle text is the fixed header baseline');
+
+        const browserTitle = await page.title();
+        assert.strictEqual(browserTitle, '喵码生成器', 'browser tab title should be exactly 喵码生成器');
 
         for (const view of ['knowledge', 'tools', 'home']) {
             await page.click(`.nav-pill-tab[data-view="${view}"]`);

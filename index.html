@@ -2,28 +2,42 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>喵码 — 条码 · 知识库 · AI 工具箱</title>
+    <title>喵码生成器</title>
     <script>
     (function() {
-        var reloadToken = sessionStorage.getItem('miaosite_force_reload_token');
-        if (reloadToken) sessionStorage.removeItem('miaosite_force_reload_token');
-        window.__miaositeForceReloadToken = reloadToken || '';
+        var urlToken = '';
+        try {
+            urlToken = new URL(window.location.href).searchParams.get('__miaosite_force_reload') || '';
+        } catch (_) {}
+
+        var reloadToken = '';
+        try {
+            reloadToken = sessionStorage.getItem('miaosite_force_reload_token') || '';
+            if (reloadToken) sessionStorage.removeItem('miaosite_force_reload_token');
+        } catch (_) {}
+
+        window.__miaositeForceReloadToken = reloadToken || urlToken;
+        window.__miaositeSkipServiceWorkerOnce = !!window.__miaositeForceReloadToken;
 
         window.miaositeCacheBust = function(url) {
             if (!url || url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) return url;
             if (!window.__miaositeForceReloadToken) return url;
-            var nextUrl = new URL(url, window.location.href);
-            if (nextUrl.origin !== window.location.origin) return url;
-            nextUrl.searchParams.set('__miaosite_force_reload', window.__miaositeForceReloadToken);
-            return nextUrl.pathname + nextUrl.search + nextUrl.hash;
+            try {
+                var nextUrl = new URL(url, window.location.href);
+                if (nextUrl.origin !== window.location.origin) return url;
+                nextUrl.searchParams.set('__miaosite_force_reload', window.__miaositeForceReloadToken);
+                return nextUrl.pathname + nextUrl.search + nextUrl.hash;
+            } catch (_) {
+                return url;
+            }
         };
     })();
     </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='42' text-anchor='middle' dominant-baseline='central' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E">
     <!-- 知识库专用 CSS（仅在 knowledge 视图激活时使用） -->
-    <link rel="stylesheet" href="/lib/highlight-github.min.css?v=1">
-    <link rel="stylesheet" href="/lib/katex.min.css?v=1">
     <script>
+    document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/lib/highlight-github.min.css?v=1') + '">');
+    document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/lib/katex.min.css?v=1') + '">');
     document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/styles/base.css?v=2') + '">');
     document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/styles/auth.css') + '">');
     document.write('<link rel="stylesheet" href="' + window.miaositeCacheBust('/styles/raindrop-overlay.css?v=9') + '">');
@@ -542,9 +556,112 @@
     #view-home .ocr-progress { position: relative; height: 4px; margin-top: 14px; background: rgba(0,0,0,0.04); border-radius: 99px; overflow: hidden; display: none; }
     #view-home .ocr-progress.active { display: block; }
     #view-home .ocr-progress-bar { height: 100%; width: 0; border-radius: 99px; }
-    #view-home .ocr-preview-wrap { margin-top: 14px; border: 1px solid rgba(0,0,0,0.05); border-radius: var(--radius-sm); background: rgba(255,255,255,0.4); overflow: hidden; }
-    #view-home .ocr-preview-wrap img { width: 100%; max-height: 200px; object-fit: contain; display: block; }
-    #view-home .ocr-preview-wrap img[hidden] { display: none; }
+    #view-home .ocr-preview-wrap {
+        margin-top: 14px;
+        border: 1px solid rgba(10, 189, 227, 0.12);
+        border-radius: var(--radius-sm);
+        background: linear-gradient(145deg, rgba(255,255,255,0.68), rgba(255,255,255,0.36));
+        overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 28px rgba(10,189,227,0.08);
+    }
+    #view-home .ocr-preview-wrap[hidden] { display: none; }
+    #view-home .ocr-preview-button {
+        width: 100%;
+        min-height: 120px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        cursor: zoom-in;
+        display: grid;
+        grid-template-columns: 108px minmax(0, 1fr);
+        align-items: stretch;
+        text-align: left;
+    }
+    #view-home .ocr-preview-button:hover .ocr-preview-stage img { transform: scale(1.035); }
+    #view-home .ocr-preview-button:focus-visible {
+        outline: 3px solid rgba(10,189,227,0.24);
+        outline-offset: -3px;
+    }
+    #view-home .ocr-preview-stage {
+        position: relative;
+        min-height: 120px;
+        background:
+            linear-gradient(45deg, rgba(10,189,227,0.06) 25%, transparent 25%, transparent 75%, rgba(10,189,227,0.06) 75%),
+            linear-gradient(45deg, rgba(10,189,227,0.06) 25%, transparent 25%, transparent 75%, rgba(10,189,227,0.06) 75%);
+        background-position: 0 0, 8px 8px;
+        background-size: 16px 16px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #view-home .ocr-preview-stage img {
+        width: 100%;
+        height: 100%;
+        max-height: 168px;
+        object-fit: cover;
+        display: block;
+        transition: transform var(--transition-smooth);
+    }
+    #view-home .ocr-preview-stage img[hidden] { display: none; }
+    #view-home .ocr-preview-zoom {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(21, 29, 43, 0.78);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    }
+    #view-home .ocr-preview-details {
+        min-width: 0;
+        padding: 12px 13px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+    }
+    #view-home .ocr-preview-title {
+        color: var(--text-primary);
+        font-family: var(--font-display);
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.35;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #view-home .ocr-preview-meta {
+        color: var(--text-tertiary);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+    #view-home .ocr-preview-codes {
+        align-self: flex-start;
+        max-width: 100%;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: rgba(10,189,227,0.1);
+        color: var(--accent-3);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #view-home .ocr-preview-hint {
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
     #view-home .ocr-status { margin-top: 14px; min-height: 20px; font-size: 12px; font-weight: 500; color: var(--text-secondary); line-height: 1.5; display: flex; align-items: center; gap: 4px; }
     #view-home .ocr-status.success { color: #34c759; font-weight: 700; }
     #view-home .ocr-status.error { color: var(--accent-2); font-weight: 700; }
@@ -572,45 +689,321 @@
     /* ===== 灯箱 ===== */
     .lightbox-overlay {
         position: fixed; inset: 0; z-index: 99999;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        display: flex; align-items: center; justify-content: center;
+        padding: 22px;
         opacity: 0; pointer-events: none;
         transition: opacity 0.3s ease;
     }
     .lightbox-overlay.active { opacity: 1; pointer-events: auto; }
-    .lightbox-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(16px); cursor: pointer; }
-    .lightbox-close {
-        position: absolute; top: 24px; right: 24px; width: 40px; height: 40px;
-        border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
-        background: rgba(255,255,255,0.1); backdrop-filter: blur(12px);
-        color: #fff; font-size: 18px; cursor: pointer; z-index: 10;
-        display: flex; align-items: center; justify-content: center;
-        transition: all var(--transition-bounce);
+    .lightbox-backdrop {
+        position: absolute; inset: 0;
+        background: rgba(255, 255, 255, 0.34);
+        backdrop-filter: blur(10px) saturate(135%);
+        -webkit-backdrop-filter: blur(10px) saturate(135%);
+        cursor: pointer;
     }
-    .lightbox-close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg) scale(1.1); }
-    .lightbox-image-wrap { position: relative; max-width: 90vw; max-height: 85vh; overflow: hidden; z-index: 5; }
-    #lightbox-img { display: block; max-width: 100%; max-height: 85vh; object-fit: contain; user-select: none; -webkit-user-drag: none; cursor: grab; transform-origin: center center; }
-    .lightbox-info { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; font-size: 13px; color: rgba(255,255,255,0.7); z-index: 10; pointer-events: none; }
-    .lightbox-codes-text { color: #0abde3; font-weight: 700; }
+    .lightbox-panel {
+        position: relative;
+        z-index: 5;
+        width: min(1180px, 96vw);
+        max-height: min(88vh, 880px);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 18px;
+        background: rgba(18, 24, 36, 0.88);
+        box-shadow: 0 30px 90px rgba(0,0,0,0.38);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .lightbox-topbar {
+        min-height: 66px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: rgba(255,255,255,0.045);
+    }
+    .lightbox-heading { min-width: 0; flex: 1; }
+    .lightbox-title {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.4;
+    }
+    .lightbox-subtitle {
+        margin-top: 2px;
+        color: rgba(255,255,255,0.58);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+    .lightbox-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .lightbox-tool-btn,
+    .lightbox-close {
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgba(255,255,255,0.16);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast);
+    }
+    .lightbox-tool-btn:hover,
+    .lightbox-close:hover {
+        background: rgba(255,255,255,0.16);
+        border-color: rgba(255,255,255,0.3);
+        transform: translateY(-1px);
+    }
+    .lightbox-close { font-size: 18px; }
+    .lightbox-zoom-value {
+        min-width: 54px;
+        text-align: center;
+        color: rgba(255,255,255,0.8);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 800;
+    }
+    .lightbox-body {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 0;
+        flex: 1;
+        overflow: hidden;
+    }
+    .lightbox-image-wrap {
+        position: relative;
+        min-height: 0;
+        height: min(66vh, 680px);
+        overflow: hidden;
+        background:
+            linear-gradient(45deg, rgba(255,255,255,0.035) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.035) 75%),
+            linear-gradient(45deg, rgba(255,255,255,0.035) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.035) 75%),
+            rgba(2, 7, 15, 0.62);
+        background-position: 0 0, 12px 12px, 0 0;
+        background-size: 24px 24px, 24px 24px, auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: none;
+    }
+    #lightbox-img {
+        display: block;
+        max-width: calc(100% - 36px);
+        max-height: calc(100% - 36px);
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+        cursor: grab;
+        transform-origin: center center;
+        will-change: transform;
+    }
+    #lightbox-img.is-dragging { cursor: grabbing; }
+    .lightbox-side {
+        min-width: 0;
+        padding: 16px;
+        border-left: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.045);
+        overflow-y: auto;
+    }
+    .lightbox-section + .lightbox-section { margin-top: 18px; }
+    .lightbox-section-title {
+        margin-bottom: 10px;
+        color: rgba(255,255,255,0.62);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+    .lightbox-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .lightbox-info-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        color: rgba(255,255,255,0.78);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+    .lightbox-info-row span:first-child {
+        flex-shrink: 0;
+        color: rgba(255,255,255,0.48);
+        font-weight: 700;
+    }
+    .lightbox-info-row span:last-child {
+        min-width: 0;
+        text-align: right;
+        overflow-wrap: anywhere;
+        font-weight: 700;
+    }
+    .lightbox-code-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .lightbox-code-chip {
+        max-width: 100%;
+        border: 1px solid rgba(10,189,227,0.28);
+        border-radius: 999px;
+        background: rgba(10,189,227,0.1);
+        color: #60dfff;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 800;
+        padding: 6px 9px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .lightbox-empty {
+        color: rgba(255,255,255,0.46);
+        font-size: 12px;
+        line-height: 1.6;
+    }
+    .lightbox-help {
+        color: rgba(255,255,255,0.52);
+        font-size: 12px;
+        line-height: 1.65;
+    }
+
+    @media (max-width: 760px) {
+        .lightbox-overlay { padding: 10px; }
+        .lightbox-panel {
+            width: min(100%, 520px);
+            max-height: 94vh;
+            border-radius: 14px;
+        }
+        .lightbox-topbar {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
+        }
+        .lightbox-toolbar {
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+        .lightbox-tool-btn,
+        .lightbox-close {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+        }
+        .lightbox-body {
+            grid-template-columns: 1fr;
+        }
+        .lightbox-image-wrap {
+            height: 44vh;
+        }
+        .lightbox-side {
+            max-height: 30vh;
+            border-left: 0;
+            border-top: 1px solid rgba(255,255,255,0.12);
+        }
+        #view-home .ocr-preview-button {
+            grid-template-columns: 92px minmax(0, 1fr);
+        }
+    }
 
     /* ===== 扩展拖放区 ===== */
     #view-home .ocr-card.drop-expanded .ocr-dropzone { border-style: solid; border-color: rgba(10,189,227,0.12); opacity: 0.65; }
 
     /* ===== AI 智能数据处理 ===== */
-    #view-home .data-tools-card { padding: 20px; }
+    #view-home .data-tools-card {
+        padding: 20px; overflow: visible; scrollbar-width: none; -ms-overflow-style: none;
+        isolation: isolate;
+        transform: translateY(0);
+        transition:
+            transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+            border-color 0.28s ease,
+            background-color 0.28s ease;
+        animation: dataToolsCardIn 0.46s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+    #view-home .data-tools-card::-webkit-scrollbar { display: none; }
+    #view-home .data-tools-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        z-index: -1;
+        background:
+            radial-gradient(circle at 20% 18%, rgba(255,159,67,0.17), transparent 38%),
+            radial-gradient(circle at 86% 14%, rgba(10,189,227,0.12), transparent 34%);
+        transition: opacity 0.38s ease;
+    }
+    #view-home .data-tools-card:hover,
+    #view-home .data-tools-card.is-focused {
+        transform: translateY(-3px);
+        border-color: rgba(255,255,255,0.78);
+        box-shadow: 0 16px 46px rgba(101,75,45,0.12), 0 2px 10px rgba(255,159,67,0.08);
+    }
+    #view-home .data-tools-card:hover::before,
+    #view-home .data-tools-card.is-focused::before,
+    #view-home .data-tools-card.is-processing::before,
+    #view-home .data-tools-card.is-complete::before { opacity: 1; }
+    #view-home .data-tools-card.is-processing {
+        box-shadow: 0 16px 46px rgba(101,75,45,0.12), 0 0 0 1px rgba(255,159,67,0.12);
+    }
+    #view-home .data-tools-card.is-processing .data-tools-tabs-indicator {
+        animation: dataToolsIndicatorPulse 1.4s ease-in-out infinite;
+    }
+    #view-home .data-tools-card.is-complete {
+        animation: dataToolsCompletePop 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+    }
     #view-home .data-tools-card h3 { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0 0 12px; }
     #view-home .data-tools-input {
         width: 100%; min-height: 80px; padding: 12px 14px;
         border: 1px solid rgba(0,0,0,0.08); border-radius: var(--radius-sm);
         font-family: var(--font-body); font-size: 12px; color: var(--text-primary);
-        resize: vertical; background: rgba(255,255,255,0.45);
+        resize: vertical; background: rgba(255,255,255,0.45); overflow-y: auto;
         backdrop-filter: blur(8px); line-height: 1.6;
-        transition: all var(--transition-smooth); box-sizing: border-box;
+        transition:
+            border-color 0.28s ease,
+            background-color 0.28s ease,
+            transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        box-sizing: border-box;
+        scrollbar-width: none; -ms-overflow-style: none;
     }
-    #view-home .data-tools-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.72); box-shadow: 0 0 0 4px rgba(255,159,67,0.07); }
+    #view-home .data-tools-input::-webkit-scrollbar { display: none; }
+    #view-home textarea.data-tools-input:focus,
+    #view-home textarea.data-tools-input:focus-visible {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255,255,255,0.72);
+        box-shadow: none;
+        transform: translateY(-1px);
+    }
     #view-home .data-tools-actions { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
-    #view-home .data-tools-output { margin-top: 12px; min-height: 40px; max-height: 200px; overflow: auto; }
-    #view-home .data-tools-empty { text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 12px 0; background: rgba(255,255,255,0.25); border-radius: 10px; }
+    #view-home .data-tools-output {
+        margin-top: 12px; min-height: 40px; max-height: 200px; overflow: auto;
+        scrollbar-width: none; -ms-overflow-style: none;
+    }
+    #view-home .data-tools-output::-webkit-scrollbar { display: none; }
+    #view-home .data-tools-output.is-updating { animation: dataToolsOutputPulse 0.9s ease-in-out infinite; }
+    #view-home .data-tools-empty { text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 12px 0; background: rgba(255,255,255,0.25); border-radius: 10px; animation: dataToolsResultIn 0.34s ease both; }
     #view-home .data-tools-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    #view-home .data-tools-table { animation: dataToolsResultIn 0.36s cubic-bezier(0.22,1,0.36,1) both; }
     #view-home .data-tools-table th { background: rgba(255,159,67,0.1); color: var(--accent); font-weight: 700; padding: 8px 10px; text-align: left; border-bottom: 2px solid rgba(255,159,67,0.2); white-space: nowrap; }
     #view-home .data-tools-table td { padding: 7px 10px; border-bottom: 1px solid rgba(0,0,0,0.04); color: var(--text-primary); word-break: break-all; }
     #view-home .data-tools-status { font-size: 11px; color: var(--text-secondary); margin-top: 8px; min-height: 18px; }
@@ -622,11 +1015,16 @@
         position: relative; display: flex; gap: 4px; padding: 4px; margin-bottom: 12px;
         background: var(--glass-bg); backdrop-filter: blur(20px) saturate(180%);
         border: 1px solid var(--glass-border); border-radius: var(--radius); overflow: hidden;
+        transition: border-color 0.28s ease, background-color 0.28s ease;
     }
     #view-home .data-tools-tabs-indicator {
         position: absolute; top: 4px; left: 0; height: calc(100% - 8px);
         border-radius: 12px; background: linear-gradient(135deg, #fff9f0, #fff5ec);
         box-shadow: 0 2px 8px rgba(255,159,67,0.2); pointer-events: none; z-index: 0;
+        transition:
+            transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+            width 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.28s ease;
         will-change: transform, width;
     }
     #view-home .data-tools-tab {
@@ -635,11 +1033,17 @@
         color: var(--text-secondary); font-family: var(--font-display);
         font-size: 12px; font-weight: 500; border-radius: 12px;
         cursor: pointer; white-space: nowrap;
-        transition: color 0.35s ease, font-weight 0.35s ease;
+        transform: translateY(0) scale(1);
+        transition:
+            color 0.35s ease,
+            font-weight 0.35s ease,
+            transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    #view-home .data-tools-tab.active { color: var(--accent); font-weight: 600; }
+    #view-home .data-tools-tab:hover { transform: translateY(-1px); }
+    #view-home .data-tools-tab:active { transform: translateY(0) scale(0.97); }
+    #view-home .data-tools-tab.active { color: var(--accent); font-weight: 600; transform: translateY(-1px) scale(1.015); }
     #view-home .data-tools-panel { display: none; }
-    #view-home .data-tools-panel.active { display: block; }
+    #view-home .data-tools-panel.active { display: block; animation: dataToolsPanelIn 0.34s cubic-bezier(0.22,1,0.36,1) both; }
     #view-home .data-tools-dropzone {
         min-height: 130px; border: 2px dashed rgba(255,159,67,0.3);
         border-radius: var(--radius); background: rgba(255,255,255,0.35);
@@ -650,6 +1054,7 @@
     }
     #view-home .data-tools-dropzone:hover,
     #view-home .data-tools-dropzone.dragover { border-color: var(--accent); background: rgba(255,159,67,0.06); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,159,67,0.12); }
+    #view-home .data-tools-dropzone.dragover .ocr-target-mark { animation: dataToolsIconBounce 0.62s cubic-bezier(0.22,1,0.36,1) infinite alternate; }
     #view-home .data-tools-dropzone .ocr-target-mark {
         background: rgba(255, 159, 67, 0.1);
         border-color: rgba(255, 159, 67, 0.24);
@@ -661,6 +1066,57 @@
         font-size: 11.5px;
     }
     #view-home .data-tools-file-input { display: none; }
+
+    @keyframes dataToolsCardIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dataToolsPanelIn {
+        from { opacity: 0; transform: translateY(7px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dataToolsResultIn {
+        from { opacity: 0; transform: translateY(6px) scale(0.985); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes dataToolsOutputPulse {
+        0%, 100% { opacity: 0.68; transform: translateY(0); }
+        50% { opacity: 1; transform: translateY(-1px); }
+    }
+    @keyframes dataToolsIndicatorPulse {
+        0%, 100% { box-shadow: 0 2px 8px rgba(255,159,67,0.2); }
+        50% { box-shadow: 0 4px 18px rgba(255,159,67,0.28); }
+    }
+    @keyframes dataToolsCompletePop {
+        0% { transform: translateY(-3px) scale(1); }
+        42% { transform: translateY(-4px) scale(1.012); }
+        100% { transform: translateY(-3px) scale(1); }
+    }
+    @keyframes dataToolsIconBounce {
+        from { transform: translateY(0) rotate(-2deg); }
+        to { transform: translateY(-3px) rotate(2deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #view-home .data-tools-card,
+        #view-home .data-tools-card.is-complete,
+        #view-home .data-tools-card.is-processing .data-tools-tabs-indicator,
+        #view-home .data-tools-panel.active,
+        #view-home .data-tools-output.is-updating,
+        #view-home .data-tools-empty,
+        #view-home .data-tools-table,
+        #view-home .data-tools-dropzone.dragover .ocr-target-mark {
+            animation-duration: 0.01ms;
+            animation-iteration-count: 1;
+        }
+        #view-home .data-tools-card,
+        #view-home .data-tools-input,
+        #view-home .data-tools-tabs-indicator,
+        #view-home .data-tools-tab,
+        #view-home .data-tools-dropzone {
+            transition-duration: 0.01ms;
+        }
+    }
 
     /* ===== 使用提示 ===== */
     #view-home .tips-card { padding: 18px; max-height: 320px; overflow-y: auto; scrollbar-width: none; }
@@ -1211,30 +1667,190 @@
 
     /* ===== 回到顶部按钮 ===== */
     .back-to-top-wrap {
+        --scroll-progress: 0;
         position: fixed; right: 24px; bottom: 24px;
         width: 56px; height: 56px; z-index: 9997;
         opacity: 0; pointer-events: none;
-        transform: translateY(16px) scale(0.7);
-        transition: all 0.45s cubic-bezier(.18,1.25,.4,1);
+        transform: translateY(18px) scale(0.72) rotate(8deg);
+        filter: blur(1px) saturate(0.9);
+        transition:
+            opacity 0.32s ease,
+            transform 0.55s cubic-bezier(.18,1.25,.36,1),
+            filter 0.45s ease;
     }
-    .back-to-top-wrap.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
-    .back-to-top-ring { position: absolute; inset: 0; width: 56px; height: 56px; transform: rotate(-90deg); pointer-events: none; }
-    .ring-track { fill: none; stroke: rgba(200,180,170,0.25); stroke-width: 3; }
-    .ring-fill { fill: none; stroke: url(#ringGradient); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 157.08; stroke-dashoffset: 157.08; }
+    .back-to-top-wrap.visible {
+        opacity: 1; pointer-events: auto;
+        transform: translateY(0) scale(1) rotate(0deg);
+        filter: blur(0) saturate(1.08);
+    }
+    .back-to-top-wrap.is-ready { animation: backTopFloat 3.2s ease-in-out infinite; }
+    .back-to-top-wrap.launching { pointer-events: none; animation: backTopLaunchSquash 0.68s cubic-bezier(.2,.8,.2,1) both; }
+    .back-to-top-halo {
+        position: absolute; inset: -8px; border-radius: 50%;
+        background:
+            radial-gradient(circle at 50% 55%, rgba(255,255,255,0.9), rgba(255,255,255,0.12) 34%, transparent 62%),
+            conic-gradient(from -90deg, rgba(248,113,113,0.18), rgba(251,191,36,0.38), rgba(10,189,227,0.26), rgba(248,113,113,0.18));
+        opacity: calc(0.22 + var(--scroll-progress) * 0.58);
+        transform: scale(calc(0.88 + var(--scroll-progress) * 0.16));
+        filter: blur(4px);
+        pointer-events: none;
+    }
+    .back-to-top-ring {
+        position: absolute; inset: 0; width: 56px; height: 56px;
+        transform: rotate(-90deg); pointer-events: none;
+        filter: drop-shadow(0 4px 10px rgba(251,146,60,0.2));
+    }
+    .ring-track { fill: none; stroke: rgba(200,180,170,0.22); stroke-width: 3; }
+    .ring-fill {
+        fill: none; stroke: url(#ringGradient); stroke-width: 3.4; stroke-linecap: round;
+        stroke-dasharray: 157.08; stroke-dashoffset: 157.08;
+        transition: stroke-dashoffset 0.18s ease-out;
+        filter: drop-shadow(0 0 6px rgba(251,191,36,0.52));
+    }
     .back-to-top {
         position: absolute; inset: 4px; width: 48px; height: 48px;
-        background: rgba(255,255,255,0.72); backdrop-filter: blur(16px);
-        border: 1.5px solid rgba(255,255,255,0.7); border-radius: 50%;
+        background:
+            linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,255,255,0.56)),
+            radial-gradient(circle at 50% 100%, rgba(251,191,36,0.3), transparent 62%);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        border: 1.5px solid rgba(255,255,255,0.78); border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        font-size: 22px; cursor: pointer; z-index: 2;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 3px 16px rgba(0,0,0,0.06);
-        transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+        cursor: pointer; z-index: 2; overflow: hidden;
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.95),
+            inset 0 -10px 22px rgba(251,146,60,0.12),
+            0 12px 32px rgba(251,146,60,0.24),
+            0 3px 12px rgba(0,0,0,0.08);
+        transition:
+            transform 0.28s cubic-bezier(.2,.8,.2,1),
+            box-shadow 0.28s ease,
+            border-color 0.28s ease;
+        animation: backTopRocketIdle 2.6s ease-in-out infinite;
     }
-    .back-to-top:hover { background: rgba(255,255,255,0.88); border-color: rgba(255,255,255,0.9); transform: translateY(-2px) scale(1.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 8px 30px rgba(251,146,60,0.25); }
-    .back-to-top:active { transform: scale(0.92) !important; }
-    .back-to-top-ripple { position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; opacity: 0; z-index: 1; }
-    .launch-rocket { position: fixed; z-index: 99999; font-size: 28px; pointer-events: none; }
-    .launch-spark { position: fixed; z-index: 99998; pointer-events: none; }
+    .back-to-top:hover {
+        border-color: rgba(255,255,255,0.96);
+        transform: translateY(-3px) scale(1.06);
+        box-shadow:
+            inset 0 1px 0 rgba(255,255,255,1),
+            inset 0 -12px 24px rgba(251,146,60,0.17),
+            0 18px 42px rgba(251,146,60,0.34),
+            0 6px 18px rgba(10,189,227,0.16);
+    }
+    .back-to-top:active { transform: translateY(1px) scale(0.92) !important; }
+    .back-to-top-icon {
+        position: relative; z-index: 3; display: inline-block;
+        font-size: 22px; line-height: 1;
+        transform: translateY(calc(var(--scroll-progress) * -2px));
+        transition: transform 0.28s ease;
+    }
+    .back-to-top-trail {
+        position: absolute; left: 50%; bottom: 5px; z-index: 1;
+        width: 12px; height: 22px; border-radius: 999px;
+        background: linear-gradient(180deg, rgba(251,191,36,0.72), rgba(248,113,113,0.2), transparent);
+        opacity: calc(0.24 + var(--scroll-progress) * 0.52);
+        transform: translateX(-50%) scaleY(calc(0.55 + var(--scroll-progress) * 0.55));
+        transform-origin: top center;
+        filter: blur(1px);
+    }
+    .back-to-top-flame {
+        position: absolute; left: 50%; bottom: 6px; z-index: 2;
+        width: 7px; height: 14px; border-radius: 999px 999px 50% 50%;
+        background: linear-gradient(180deg, #fff4ad, #fb923c 58%, #f87171);
+        opacity: 0;
+        transform: translateX(-50%) scaleY(0.5);
+        transform-origin: top center;
+        filter: blur(0.2px);
+    }
+    .back-to-top:hover .back-to-top-flame,
+    .back-to-top-wrap.launching .back-to-top-flame {
+        opacity: 1;
+        animation: backTopFlame 0.28s ease-in-out infinite alternate;
+    }
+    .back-to-top-ripple {
+        position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; opacity: 0; z-index: 1;
+        border: 1px solid rgba(251,191,36,0.38);
+        box-shadow: 0 0 24px rgba(251,191,36,0.2);
+    }
+    .back-to-top-ripple.burst { animation: backTopBurst 0.72s ease-out both; }
+    .launch-rocket {
+        position: fixed; z-index: 99999; font-size: 28px; pointer-events: none;
+        filter: drop-shadow(0 10px 18px rgba(251,146,60,0.32));
+        animation: rocketLiftOff 0.96s cubic-bezier(.18,.84,.2,1) forwards;
+    }
+    .launch-spark,
+    .launch-cloud {
+        position: fixed; z-index: 99998; pointer-events: none;
+        transform: translate(-50%, -50%);
+    }
+    .launch-spark {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--spark-color, #fbbf24);
+        box-shadow: 0 0 14px var(--spark-color, #fbbf24);
+        animation: sparkPop 0.82s ease-out forwards;
+    }
+    .launch-cloud {
+        width: var(--cloud-size, 18px); height: var(--cloud-size, 18px);
+        border-radius: 50%;
+        background: rgba(255,255,255,0.72);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 8px 18px rgba(251,146,60,0.14);
+        filter: blur(1px);
+        animation: cloudPuff 0.9s ease-out forwards;
+    }
+    @keyframes backTopFloat {
+        0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+        50% { transform: translateY(-4px) scale(1.015) rotate(-1.5deg); }
+    }
+    @keyframes backTopRocketIdle {
+        0%, 100% { animation-timing-function: ease-in-out; }
+        50% { transform: translateY(-1px); }
+    }
+    @keyframes backTopFlame {
+        from { transform: translateX(-50%) scaleY(0.58) scaleX(0.82); opacity: 0.72; }
+        to { transform: translateX(-50%) scaleY(1.08) scaleX(1.06); opacity: 1; }
+    }
+    @keyframes backTopBurst {
+        0% { opacity: 0.85; transform: scale(0.84); }
+        100% { opacity: 0; transform: scale(1.65); }
+    }
+    @keyframes backTopLaunchSquash {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        26% { transform: translateY(3px) scale(0.92, 1.08); opacity: 1; }
+        100% { transform: translateY(-18px) scale(0.72); opacity: 0; }
+    }
+    @keyframes rocketLiftOff {
+        0% { opacity: 1; transform: translate3d(0,0,0) rotate(-8deg) scale(1); }
+        38% { transform: translate3d(-10px,-72px,0) rotate(-16deg) scale(1.12); }
+        100% { opacity: 0; transform: translate3d(-30px,-210px,0) rotate(-28deg) scale(0.76); }
+    }
+    @keyframes sparkPop {
+        0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.7); }
+        100% {
+            opacity: 0;
+            transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, -40px))) scale(0.25);
+        }
+    }
+    @keyframes cloudPuff {
+        0% { opacity: 0.82; transform: translate(-50%, -50%) scale(0.65); }
+        100% {
+            opacity: 0;
+            transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 18px))) scale(1.55);
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .back-to-top-wrap.is-ready,
+        .back-to-top,
+        .back-to-top:hover .back-to-top-flame,
+        .back-to-top-wrap.launching .back-to-top-flame {
+            animation: none;
+        }
+        .launch-rocket,
+        .launch-spark,
+        .launch-cloud,
+        .back-to-top-ripple.burst {
+            animation-duration: 0.01ms;
+        }
+    }
 
     /* ===== 强制刷新按钮 ===== */
     .force-refresh-btn {
@@ -2800,16 +3416,48 @@
         <div class="view-container">
             <div id="view-home" class="view-panel active">
                 <!-- ========== 沉浸式灯箱 ========== -->
-                <div class="lightbox-overlay" id="lightbox-overlay" hidden>
+                <div class="lightbox-overlay" id="lightbox-overlay" role="dialog" aria-modal="true" aria-label="快递面单图片预览" tabindex="-1" hidden>
                     <div class="lightbox-backdrop"></div>
-                    <button class="lightbox-close" id="lightbox-close" aria-label="关闭灯箱" title="关闭 (Esc)">✕</button>
-                    <div class="lightbox-image-wrap" id="lightbox-wrap">
-                        <img id="lightbox-img" alt="快递面单大图预览" draggable="false">
-                    </div>
-                    <div class="lightbox-info">
-                        <span id="lightbox-filename"></span>
-                        <span id="lightbox-dimensions"></span>
-                        <span id="lightbox-codes" class="lightbox-codes-text"></span>
+                    <div class="lightbox-panel">
+                        <div class="lightbox-topbar">
+                            <div class="lightbox-heading">
+                                <div class="lightbox-title">面单图片检查</div>
+                                <div class="lightbox-subtitle">滚轮缩放，拖动查看细节，双击快速放大</div>
+                            </div>
+                            <div class="lightbox-toolbar" aria-label="图片预览工具">
+                                <button class="lightbox-tool-btn" id="lightbox-zoom-out" type="button" aria-label="缩小" title="缩小">−</button>
+                                <span class="lightbox-zoom-value" id="lightbox-zoom-value">100%</span>
+                                <button class="lightbox-tool-btn" id="lightbox-zoom-in" type="button" aria-label="放大" title="放大">+</button>
+                                <button class="lightbox-tool-btn" id="lightbox-fit" type="button" aria-label="适应窗口" title="适应窗口">Fit</button>
+                                <button class="lightbox-tool-btn" id="lightbox-actual" type="button" aria-label="原始大小" title="原始大小">1:1</button>
+                                <button class="lightbox-tool-btn" id="lightbox-rotate-left" type="button" aria-label="向左旋转" title="向左旋转">↺</button>
+                                <button class="lightbox-tool-btn" id="lightbox-rotate-right" type="button" aria-label="向右旋转" title="向右旋转">↻</button>
+                                <button class="lightbox-close" id="lightbox-close" type="button" aria-label="关闭灯箱" title="关闭 (Esc)">✕</button>
+                            </div>
+                        </div>
+                        <div class="lightbox-body">
+                            <div class="lightbox-image-wrap" id="lightbox-wrap">
+                                <img id="lightbox-img" alt="快递面单大图预览" draggable="false">
+                            </div>
+                            <aside class="lightbox-side" aria-label="图片信息和识别结果">
+                                <section class="lightbox-section">
+                                    <div class="lightbox-section-title">图片信息</div>
+                                    <div class="lightbox-info-list">
+                                        <div class="lightbox-info-row"><span>文件</span><span id="lightbox-filename"></span></div>
+                                        <div class="lightbox-info-row"><span>尺寸</span><span id="lightbox-dimensions"></span></div>
+                                        <div class="lightbox-info-row"><span>大小</span><span id="lightbox-file-size"></span></div>
+                                    </div>
+                                </section>
+                                <section class="lightbox-section">
+                                    <div class="lightbox-section-title">识别结果</div>
+                                    <div class="lightbox-code-list" id="lightbox-code-list"></div>
+                                </section>
+                                <section class="lightbox-section">
+                                    <div class="lightbox-section-title">查看提示</div>
+                                    <div class="lightbox-help">放大后拖动画面，可检查条码边缘、面单方向和模糊区域。旋转只影响预览，不会改动原图喵~</div>
+                                </section>
+                            </aside>
+                        </div>
                     </div>
                 </div>
 
@@ -3001,8 +3649,19 @@
                             <div class="ocr-progress" id="ocr-progress" aria-hidden="true">
                                 <div class="ocr-progress-bar" id="ocr-progress-bar"></div>
                             </div>
-                            <div class="ocr-preview-wrap">
-                                <img id="ocr-preview" alt="待识别图片预览" hidden>
+                            <div class="ocr-preview-wrap" id="ocr-preview-wrap" hidden>
+                                <button class="ocr-preview-button" id="ocr-preview-button" type="button" aria-label="查看识别图片大图">
+                                    <span class="ocr-preview-stage">
+                                        <img id="ocr-preview" alt="待识别图片预览" hidden>
+                                        <span class="ocr-preview-zoom">查看大图</span>
+                                    </span>
+                                    <span class="ocr-preview-details">
+                                        <span class="ocr-preview-title" id="ocr-preview-title">待识别图片</span>
+                                        <span class="ocr-preview-meta" id="ocr-preview-meta">图片信息加载中</span>
+                                        <span class="ocr-preview-codes" id="ocr-preview-codes">等待识别结果</span>
+                                        <span class="ocr-preview-hint">点击预览，放大检查条码与面单方向</span>
+                                    </span>
+                                </button>
                             </div>
                             <div class="ocr-status" id="ocr-status">拖入图片或点击上传开始识别喵~</div>
                             <div class="ocr-candidates" id="ocr-candidates"></div>
@@ -3061,7 +3720,8 @@
                 </div>
 
                 <!-- ========== 回到顶部 ========== -->
-                <div class="back-to-top-wrap" id="back-to-top-wrap">
+                <div class="back-to-top-wrap" id="back-to-top-wrap" aria-hidden="true">
+                    <span class="back-to-top-halo" aria-hidden="true"></span>
                     <svg class="back-to-top-ring" viewBox="0 0 56 56">
                         <defs>
                             <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3075,7 +3735,11 @@
                         <circle class="ring-track" cx="28" cy="28" r="25" />
                         <circle class="ring-fill" id="ring-fill" cx="28" cy="28" r="25" />
                     </svg>
-                    <button class="back-to-top" id="back-to-top" title="回到顶部喵~">🚀</button>
+                    <button class="back-to-top" id="back-to-top" type="button" title="回到顶部喵~" aria-label="回到顶部">
+                        <span class="back-to-top-trail" aria-hidden="true"></span>
+                        <span class="back-to-top-flame" aria-hidden="true"></span>
+                        <span class="back-to-top-icon" aria-hidden="true">🚀</span>
+                    </button>
                     <span class="back-to-top-ripple" id="back-to-top-ripple"></span>
                 </div>
 
@@ -3421,18 +4085,21 @@
     <div id="auth-root"></div>
 
     <!-- ==================== 共享 JS 库导入（只加载一次） ==================== -->
-    <script src="/lib/gsap.min.js"></script>
-    <script src="/lib/ScrollTrigger.min.js"></script>
-    <script src="/lib/jsbarcode.min.js?v=1"></script>
-    <script src="/lib/weather-state.js"></script>
-    <script src="/lib/raindrop-fx.js"></script>
-    <script src="/lib/raindrop-overlay.js"></script>
-    <!-- 知识库需要的前端库（静态加载，避免重复） -->
-    <script src="/lib/marked.min.js?v=1"></script>
-    <script src="/lib/highlight.min.js?v=1"></script>
-    <script src="/lib/katex.min.js?v=1"></script>
     <script>
-    document.write('<script src="' + window.miaositeCacheBust('/lib/miaosite-auth.js') + '"><\/script>');
+    [
+        '/lib/gsap.min.js',
+        '/lib/ScrollTrigger.min.js',
+        '/lib/jsbarcode.min.js?v=1',
+        '/lib/weather-state.js',
+        '/lib/raindrop-fx.js',
+        '/lib/raindrop-overlay.js',
+        '/lib/marked.min.js?v=1',
+        '/lib/highlight.min.js?v=1',
+        '/lib/katex.min.js?v=1',
+        '/lib/miaosite-auth.js'
+    ].forEach(function(src) {
+        document.write('<script src="' + window.miaositeCacheBust(src) + '"><\/script>');
+    });
     </script>
 
     <!-- ViewManager + 共享逻辑（Task 4） -->
@@ -3836,12 +4503,26 @@
         var ocrProgress = document.getElementById('ocr-progress');
         var ocrProgressBar = document.getElementById('ocr-progress-bar');
         var ocrCandidates = document.getElementById('ocr-candidates');
+        var ocrPreviewWrap = document.getElementById('ocr-preview-wrap');
+        var ocrPreviewButton = document.getElementById('ocr-preview-button');
+        var ocrPreviewTitle = document.getElementById('ocr-preview-title');
+        var ocrPreviewMeta = document.getElementById('ocr-preview-meta');
+        var ocrPreviewCodes = document.getElementById('ocr-preview-codes');
         var lightboxOverlay = document.getElementById('lightbox-overlay');
         var lightboxImg = document.getElementById('lightbox-img');
         var lightboxWrap = document.getElementById('lightbox-wrap');
         var lightboxClose = document.getElementById('lightbox-close');
         var lightboxFilename = document.getElementById('lightbox-filename');
         var lightboxDimensions = document.getElementById('lightbox-dimensions');
+        var lightboxFileSize = document.getElementById('lightbox-file-size');
+        var lightboxCodeList = document.getElementById('lightbox-code-list');
+        var lightboxZoomValue = document.getElementById('lightbox-zoom-value');
+        var lightboxZoomIn = document.getElementById('lightbox-zoom-in');
+        var lightboxZoomOut = document.getElementById('lightbox-zoom-out');
+        var lightboxFit = document.getElementById('lightbox-fit');
+        var lightboxActual = document.getElementById('lightbox-actual');
+        var lightboxRotateLeft = document.getElementById('lightbox-rotate-left');
+        var lightboxRotateRight = document.getElementById('lightbox-rotate-right');
         var lightboxBackdrop = document.querySelector('.lightbox-backdrop');
 
         var STANDARD_CODE_RE = /^(DPK|DPL)\d{12}$/;
@@ -3871,12 +4552,15 @@
         var lightboxScale = 1;
         var lightboxTranslateX = 0;
         var lightboxTranslateY = 0;
+        var lightboxRotation = 0;
         var lightboxIsDragging = false;
         var lightboxDragStartX = 0;
         var lightboxDragStartY = 0;
         var lightboxDragOrigX = 0;
         var lightboxDragOrigY = 0;
         var lightboxCurrentFile = null;
+        var lightboxOriginalParent = lightboxOverlay ? lightboxOverlay.parentNode : null;
+        var lightboxOriginalNext = lightboxOverlay ? lightboxOverlay.nextSibling : null;
 
         // ========== 工具函数 ==========
         function showToast(message) {
@@ -4061,6 +4745,41 @@
             ocrStatus.className = ('ocr-status ' + type).trim();
         }
 
+        function formatFileSize(bytes) {
+            if (!bytes || bytes < 0) return '未知大小';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+        }
+
+        function getPreviewDimensionsText() {
+            if (!ocrPreview || !ocrPreview.naturalWidth) return '尺寸读取中';
+            return ocrPreview.naturalWidth + ' x ' + ocrPreview.naturalHeight;
+        }
+
+        function updateOcrPreviewDetails(file, codes) {
+            if (!ocrPreviewWrap) return;
+            var safeCodes = Array.isArray(codes) ? codes : lastDetectedCodes;
+            ocrPreviewWrap.hidden = false;
+            if (ocrPreviewTitle) ocrPreviewTitle.textContent = file && file.name ? file.name : '快递面单图片';
+            if (ocrPreviewMeta) {
+                var pieces = [];
+                if (file && file.name) pieces.push(file.name);
+                pieces.push(getPreviewDimensionsText());
+                if (file) pieces.push(formatFileSize(file.size));
+                ocrPreviewMeta.textContent = pieces.join(' · ');
+            }
+            if (ocrPreviewCodes) {
+                if (safeCodes && safeCodes.length > 0) {
+                    ocrPreviewCodes.textContent = '识别到 ' + safeCodes.length + ' 个单号';
+                    ocrPreviewCodes.title = safeCodes.join('\n');
+                } else {
+                    ocrPreviewCodes.textContent = '等待识别结果';
+                    ocrPreviewCodes.title = '';
+                }
+            }
+        }
+
         // ---- OCR 进度条 ----
         var ocrShimmerTween = null;
 
@@ -4160,37 +4879,90 @@
         }
 
         // ===== Lightbox =====
+        function clampLightboxPan() {
+            if (lightboxScale <= 1.01) {
+                lightboxTranslateX = 0;
+                lightboxTranslateY = 0;
+                return;
+            }
+            var maxPan = 1400 * lightboxScale;
+            lightboxTranslateX = Math.max(-maxPan, Math.min(maxPan, lightboxTranslateX));
+            lightboxTranslateY = Math.max(-maxPan, Math.min(maxPan, lightboxTranslateY));
+        }
+
+        function setLightboxScale(nextScale, anchor) {
+            var oldScale = lightboxScale || 1;
+            var newScale = Math.max(0.35, Math.min(6, nextScale));
+            if (newScale === oldScale) return;
+            if (anchor && lightboxWrap) {
+                var rect = lightboxWrap.getBoundingClientRect();
+                var offsetX = anchor.x - rect.left - rect.width / 2;
+                var offsetY = anchor.y - rect.top - rect.height / 2;
+                var ratio = newScale / oldScale;
+                lightboxTranslateX = offsetX - ratio * (offsetX - lightboxTranslateX);
+                lightboxTranslateY = offsetY - ratio * (offsetY - lightboxTranslateY);
+            }
+            lightboxScale = newScale;
+            applyLightboxTransform();
+        }
+
+        function renderLightboxCodes() {
+            if (!lightboxCodeList) return;
+            lightboxCodeList.innerHTML = '';
+            if (!lastDetectedCodes.length) {
+                var empty = document.createElement('div');
+                empty.className = 'lightbox-empty';
+                empty.textContent = '暂时没有识别到单号，可放大检查图片清晰度喵~';
+                lightboxCodeList.appendChild(empty);
+                return;
+            }
+            lastDetectedCodes.forEach(function(code) {
+                var chip = document.createElement('span');
+                chip.className = 'lightbox-code-chip';
+                chip.textContent = code;
+                lightboxCodeList.appendChild(chip);
+            });
+        }
+
+        function resetLightboxView(scale) {
+            lightboxScale = scale || 1;
+            lightboxTranslateX = 0;
+            lightboxTranslateY = 0;
+            lightboxRotation = 0;
+            applyLightboxTransform();
+        }
+
+        function mountLightboxToBody() {
+            if (!lightboxOverlay || lightboxOverlay.parentNode === document.body) return;
+            document.body.appendChild(lightboxOverlay);
+        }
+
+        function restoreLightboxPosition() {
+            if (!lightboxOverlay || !lightboxOriginalParent || lightboxOverlay.parentNode === lightboxOriginalParent) return;
+            lightboxOriginalParent.insertBefore(lightboxOverlay, lightboxOriginalNext);
+        }
+
         function openLightbox(file) {
             if (!file) return;
             lightboxCurrentFile = file;
             var previewUrl = ocrPreview.src;
             if (!previewUrl) return;
+            mountLightboxToBody();
             lightboxImg.src = previewUrl;
-            lightboxFilename.textContent = '📸 ' + (file.name || '图片');
+            lightboxFilename.textContent = file.name || '图片';
+            lightboxDimensions.textContent = getPreviewDimensionsText();
+            if (lightboxFileSize) lightboxFileSize.textContent = formatFileSize(file.size);
             lightboxScale = 1;
             lightboxTranslateX = 0;
             lightboxTranslateY = 0;
-            lightboxImg.style.transform = 'scale(1) translate(0px, 0px)';
-            lightboxWrap.classList.remove('scrollable');
-
-            var srcImg = document.getElementById('ocr-preview');
-            if (srcImg && srcImg.naturalWidth) {
-                lightboxDimensions.textContent = srcImg.naturalWidth + ' × ' + srcImg.naturalHeight;
-            } else {
-                lightboxDimensions.textContent = '';
-            }
-
-            var codesEl = document.getElementById('lightbox-codes');
-            if (lastDetectedCodes.length > 0) {
-                codesEl.textContent = '📦 ' + lastDetectedCodes.join(' · ');
-                codesEl.style.display = '';
-            } else {
-                codesEl.style.display = 'none';
-            }
+            lightboxRotation = 0;
+            applyLightboxTransform();
+            renderLightboxCodes();
 
             lightboxOverlay.hidden = false;
             document.body.style.overflow = 'hidden';
             lightboxOverlay.classList.add('active');
+            lightboxOverlay.focus({ preventScroll: true });
         }
 
         function closeLightbox() {
@@ -4199,45 +4971,36 @@
             lightboxOverlay.classList.remove('active');
             document.body.style.overflow = '';
             lightboxOverlay.hidden = true;
+            restoreLightboxPosition();
             lightboxScale = 1;
             lightboxTranslateX = 0;
             lightboxTranslateY = 0;
-            lightboxImg.style.transform = 'scale(1) translate(0px, 0px)';
+            lightboxRotation = 0;
+            applyLightboxTransform();
         }
 
         function applyLightboxTransform() {
+            clampLightboxPan();
+            if (lightboxZoomValue) lightboxZoomValue.textContent = Math.round(lightboxScale * 100) + '%';
+            if (!lightboxImg) return;
             lightboxImg.style.transform =
-                'scale(' + lightboxScale + ') translate(' + lightboxTranslateX + 'px, ' + lightboxTranslateY + 'px)';
-            if (lightboxScale > 1.05) {
-                lightboxWrap.classList.add('scrollable');
-            } else {
-                lightboxWrap.classList.remove('scrollable');
-                lightboxTranslateX = 0;
-                lightboxTranslateY = 0;
-            }
+                'translate3d(' + lightboxTranslateX + 'px, ' + lightboxTranslateY + 'px, 0) ' +
+                'scale(' + lightboxScale + ') rotate(' + lightboxRotation + 'deg)';
+            lightboxImg.style.cursor = lightboxScale > 1.01 ? 'grab' : 'zoom-in';
         }
 
         if (lightboxImg) {
             lightboxImg.addEventListener('wheel', function(e) {
                 if (!lightboxOverlay.classList.contains('active')) return;
                 e.preventDefault();
-                var rect = lightboxImg.getBoundingClientRect();
-                var pointerRatioX = rect.width > 0 ? (e.clientX - rect.left) / rect.width : 0.5;
-                var pointerRatioY = rect.height > 0 ? (e.clientY - rect.top) / rect.height : 0.5;
-                var oldScale = lightboxScale;
-                var newScale = Math.max(1, Math.min(5, oldScale + (e.deltaY < 0 ? 0.25 : -0.25)));
-                if (newScale === oldScale) return;
-                var scaleRatio = newScale / oldScale;
-                lightboxTranslateX = pointerRatioX * (1 - scaleRatio) + scaleRatio * lightboxTranslateX;
-                lightboxTranslateY = pointerRatioY * (1 - scaleRatio) + scaleRatio * lightboxTranslateY;
-                lightboxScale = newScale;
-                applyLightboxTransform();
+                setLightboxScale(lightboxScale + (e.deltaY < 0 ? 0.25 : -0.25), { x: e.clientX, y: e.clientY });
             }, { passive: false });
 
             lightboxImg.addEventListener('mousedown', function(e) {
-                if (!lightboxOverlay.classList.contains('active') || lightboxScale <= 1.05) return;
+                if (!lightboxOverlay.classList.contains('active') || lightboxScale <= 1.01) return;
                 e.preventDefault();
                 lightboxIsDragging = true;
+                lightboxImg.classList.add('is-dragging');
                 lightboxDragStartX = e.clientX;
                 lightboxDragStartY = e.clientY;
                 lightboxDragOrigX = lightboxTranslateX;
@@ -4247,9 +5010,8 @@
 
         document.addEventListener('mousemove', function(e) {
             if (!lightboxIsDragging) return;
-            var rect = lightboxImg.getBoundingClientRect();
-            var dx = rect.width > 0 ? (e.clientX - lightboxDragStartX) / rect.width : 0;
-            var dy = rect.height > 0 ? (e.clientY - lightboxDragStartY) / rect.height : 0;
+            var dx = e.clientX - lightboxDragStartX;
+            var dy = e.clientY - lightboxDragStartY;
             lightboxTranslateX = lightboxDragOrigX + dx;
             lightboxTranslateY = lightboxDragOrigY + dy;
             applyLightboxTransform();
@@ -4258,6 +5020,7 @@
         document.addEventListener('mouseup', function() {
             if (lightboxIsDragging) {
                 lightboxIsDragging = false;
+                lightboxImg.classList.remove('is-dragging');
             }
         });
 
@@ -4265,22 +5028,28 @@
             lightboxImg.addEventListener('dblclick', function(e) {
                 if (!lightboxOverlay.classList.contains('active')) return;
                 e.preventDefault();
-                if (lightboxScale > 1.05) {
-                    lightboxScale = 1;
-                    lightboxTranslateX = 0;
-                    lightboxTranslateY = 0;
-                } else {
-                    lightboxScale = 2.5;
-                    var rect = lightboxImg.getBoundingClientRect();
-                    var px = rect.width > 0 ? (e.clientX - rect.left) / rect.width : 0.5;
-                    var py = rect.height > 0 ? (e.clientY - rect.top) / rect.height : 0.5;
-                    lightboxTranslateX = px * (1 - 2.5) / 2.5;
-                    lightboxTranslateY = py * (1 - 2.5) / 2.5;
-                }
-                applyLightboxTransform();
+                if (lightboxScale > 1.01) resetLightboxView(1);
+                else setLightboxScale(2.5, { x: e.clientX, y: e.clientY });
             });
         }
 
+        if (lightboxZoomIn) lightboxZoomIn.addEventListener('click', function() { setLightboxScale(lightboxScale + 0.25); });
+        if (lightboxZoomOut) lightboxZoomOut.addEventListener('click', function() { setLightboxScale(lightboxScale - 0.25); });
+        if (lightboxFit) lightboxFit.addEventListener('click', function() { resetLightboxView(1); });
+        if (lightboxActual) lightboxActual.addEventListener('click', function() {
+            lightboxScale = 1;
+            lightboxTranslateX = 0;
+            lightboxTranslateY = 0;
+            applyLightboxTransform();
+        });
+        if (lightboxRotateLeft) lightboxRotateLeft.addEventListener('click', function() {
+            lightboxRotation = (lightboxRotation - 90) % 360;
+            applyLightboxTransform();
+        });
+        if (lightboxRotateRight) lightboxRotateRight.addEventListener('click', function() {
+            lightboxRotation = (lightboxRotation + 90) % 360;
+            applyLightboxTransform();
+        });
         // ===== 旋转函数 =====
         async function applyRotation(image, angleDeg) {
             var srcW = image.naturalWidth || image.width;
@@ -4401,6 +5170,8 @@
                 currentOcrPreviewUrl = previewUrl;
                 ocrPreview.src = previewUrl;
                 ocrPreview.hidden = false;
+                ocrPreview.onload = function() { updateOcrPreviewDetails(file, []); };
+                updateOcrPreviewDetails(file, []);
                 setOcrProgress(8);
 
                 // 双引擎并行
@@ -4424,6 +5195,8 @@
                             if (currentOcrPreviewUrl) URL.revokeObjectURL(currentOcrPreviewUrl);
                             currentOcrPreviewUrl = flipResult.image.src;
                             ocrPreview.src = flipResult.image.src;
+                            ocrPreview.onload = function() { updateOcrPreviewDetails(file, result.allCodes || []); };
+                            updateOcrPreviewDetails(file, result.allCodes || []);
                             showToast('图片已自动翻转 180° 喵~');
                         }
                     } catch (flipErr) {
@@ -4447,6 +5220,7 @@
 
                 setInputValue(allCodes.join('\n'));
                 renderOcrCandidates(allCodes);
+                updateOcrPreviewDetails(file, allCodes);
                 if (allCodes.length > 0) expandDropZone();
 
                 var parts = [];
@@ -4794,7 +5568,8 @@
             if (lightboxOverlay.classList.contains('active')) return;
             openLightbox(file);
         }
-        ocrPreview.addEventListener('click', handlePreviewClick);
+        if (ocrPreviewButton) ocrPreviewButton.addEventListener('click', handlePreviewClick);
+        window.__openOcrLightboxForTest = handlePreviewClick;
         ocrPreview.style.cursor = 'zoom-in';
         ocrPreview.title = '点击查看大图';
 
@@ -4959,6 +5734,8 @@
         var dataToolsPreviewImg = document.getElementById('data-tools-preview-img');
         var dataToolsProgress = document.getElementById('data-tools-progress');
         var dataToolsProgressBar = document.getElementById('data-tools-progress-bar');
+        var dataToolsCard = document.querySelector('#view-home .data-tools-card');
+        var dataToolsCompleteTimer = null;
 
         var lastParsedTableData = null;
         var currentDataTab = 'text';
@@ -4991,6 +5768,8 @@
             dataToolsAnimating = true;
             var targetPanelId = targetTab.dataset.tab === 'text' ? 'panel-text' : 'panel-image';
             var leavingPanelId = targetTab.dataset.tab === 'text' ? 'panel-image' : 'panel-text';
+            var targetPanel = document.getElementById(targetPanelId);
+            var leavingPanel = document.getElementById(leavingPanelId);
 
             document.querySelectorAll('.data-tools-tab').forEach(function(t) {
                 t.classList.toggle('active', t === targetTab);
@@ -5008,8 +5787,12 @@
                 });
             }
 
-            document.getElementById(leavingPanelId).classList.remove('active');
-            document.getElementById(targetPanelId).classList.add('active');
+            if (leavingPanel) leavingPanel.classList.remove('active');
+            if (targetPanel) {
+                targetPanel.classList.remove('active');
+                void targetPanel.offsetWidth;
+                targetPanel.classList.add('active');
+            }
             dataToolsAnimating = false;
         }
 
@@ -5050,12 +5833,30 @@
             reader.readAsDataURL(file);
             dataToolsStatus.textContent = '📸 已加载图片：' + file.name + ' (' + (file.size/1024).toFixed(0) + 'KB)，点击「识别图片」开始';
             dataToolsStatus.className = 'data-tools-status';
+            animateDataToolsResult('ready');
         }
+
+        function animateDataToolsResult(state) {
+            if (!dataToolsCard || !dataToolsOutput) return;
+            clearTimeout(dataToolsCompleteTimer);
+            dataToolsCard.classList.toggle('is-processing', state === 'loading');
+            dataToolsCard.classList.toggle('is-complete', state === 'success');
+            dataToolsCard.classList.toggle('is-error', state === 'error');
+            dataToolsOutput.classList.toggle('is-updating', state === 'loading');
+            if (state === 'success') {
+                dataToolsCompleteTimer = setTimeout(function() {
+                    dataToolsCard.classList.remove('is-complete');
+                }, 900);
+            }
+        }
+
+        window.__dataToolsAnimateResultForTest = animateDataToolsResult;
 
         function renderDataTable(data) {
             if (!data || !data.rows.length) {
                 dataToolsOutput.innerHTML = '<div class="data-tools-empty">未识别到结构化数据，请尝试调整文本或更换图片</div>';
                 dataCopyBtn.disabled = true;
+                animateDataToolsResult('error');
                 return;
             }
             var html = '<table class="data-tools-table"><thead><tr>';
@@ -5070,10 +5871,12 @@
             dataToolsOutput.innerHTML = html;
             dataCopyBtn.disabled = false;
             lastParsedTableData = data;
+            animateDataToolsResult('success');
         }
 
         async function doTextParse(text) {
             dataToolsOutput.innerHTML = '<div class="data-tools-empty">🤖 AI 正在分析数据...</div>';
+            animateDataToolsResult('loading');
             dataToolsStatus.textContent = '正在调用 DeepSeek AI 智能识别数据...';
             dataToolsStatus.className = 'data-tools-status';
             dataParseBtn.disabled = true;
@@ -5098,6 +5901,7 @@
             } catch (err) {
                 dataToolsStatus.textContent = '⚠️ 解析失败：' + err.message;
                 dataToolsStatus.className = 'data-tools-status error';
+                animateDataToolsResult('error');
             } finally {
                 dataParseBtn.disabled = false;
                 dataParseBtn.textContent = '🤖 智能解析';
@@ -5106,6 +5910,7 @@
 
         async function doImageParse() {
             dataToolsOutput.innerHTML = '<div class="data-tools-empty">🤖 Mimo 正在识别图片内容...</div>';
+            animateDataToolsResult('loading');
             dataToolsStatus.textContent = '正在调用 Mimo v2.5 多模态 AI 识别表格...';
             dataParseBtn.textContent = '⏳ 识别中...';
             dataToolsProgress.classList.add('active');
@@ -5130,6 +5935,7 @@
             } catch (err) {
                 dataToolsStatus.textContent = '⚠️ 识别失败：' + err.message;
                 dataToolsStatus.className = 'data-tools-status error';
+                animateDataToolsResult('error');
             } finally {
                 dataToolsProgress.classList.remove('active');
                 dataToolsProgressBar.style.width = '0';
@@ -5184,10 +5990,21 @@
             dataToolsStatus.className = 'data-tools-status';
             dataCopyBtn.disabled = true;
             lastParsedTableData = null;
+            animateDataToolsResult('ready');
         });
         dataToolsInput.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); doDataParse(); }
         });
+        if (dataToolsCard) {
+            dataToolsCard.addEventListener('focusin', function() {
+                dataToolsCard.classList.add('is-focused');
+            });
+            dataToolsCard.addEventListener('focusout', function() {
+                setTimeout(function() {
+                    if (!dataToolsCard.contains(document.activeElement)) dataToolsCard.classList.remove('is-focused');
+                }, 0);
+            });
+        }
 
         // ===== 历史记录 =====
         (function initHistory() {
@@ -5412,28 +6229,84 @@
             var ripple = document.getElementById('back-to-top-ripple');
             var ticking = false;
             var CIRCUMFERENCE = 2 * Math.PI * 25;
+            var launchTimer = null;
+
+            if (!wrap || !btn || !ring || !ripple) return;
 
             function updateRing() {
                 var scrollTop = window.scrollY;
                 var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                if (docHeight <= 0) { ring.style.strokeDashoffset = CIRCUMFERENCE; return; }
+                if (docHeight <= 0) {
+                    ring.style.strokeDashoffset = CIRCUMFERENCE;
+                    wrap.style.setProperty('--scroll-progress', '0');
+                    return 0;
+                }
                 var progress = Math.min(scrollTop / docHeight, 1);
                 ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+                wrap.style.setProperty('--scroll-progress', progress.toFixed(3));
+                return progress;
+            }
+
+            function setVisible(isVisible) {
+                wrap.classList.toggle('visible', isVisible);
+                wrap.classList.toggle('is-ready', isVisible && !wrap.classList.contains('launching'));
+                wrap.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+                btn.tabIndex = isVisible ? 0 : -1;
             }
 
             function onScroll() {
                 if (!ticking) {
                     requestAnimationFrame(function() {
-                        var scrolled = window.scrollY > 400;
-                        wrap.classList.toggle('visible', scrolled);
-                        updateRing();
+                        var progress = updateRing();
+                        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                        var scrolled = window.scrollY > Math.min(400, Math.max(120, docHeight * 0.35));
+                        if (!wrap.classList.contains('launching')) setVisible(scrolled);
                         ticking = false;
                     });
                     ticking = true;
                 }
             }
 
+            function spawnLaunchClouds(x, y) {
+                var cloudOffsets = [
+                    [-22, 17, 18], [-8, 24, 22], [12, 22, 19], [27, 14, 15], [1, 30, 16]
+                ];
+                cloudOffsets.forEach(function(item, idx) {
+                    var cloud = document.createElement('span');
+                    cloud.className = 'launch-cloud';
+                    cloud.style.left = (x + item[0]) + 'px';
+                    cloud.style.top = (y + item[1]) + 'px';
+                    cloud.style.setProperty('--cloud-size', item[2] + 'px');
+                    cloud.style.setProperty('--dx', (item[0] * 0.85) + 'px');
+                    cloud.style.setProperty('--dy', (18 + idx * 2) + 'px');
+                    document.body.appendChild(cloud);
+                    setTimeout(function() { cloud.remove(); }, 950);
+                });
+            }
+
+            function spawnLaunchSparks(x, y) {
+                var colors = ['#fbbf24', '#fb923c', '#f87171', '#0abde3', '#34c759', '#fef3c7', '#fbbf24', '#fb923c'];
+                for (var i = 0; i < 8; i++) {
+                    (function(idx) {
+                        setTimeout(function() {
+                            var angle = (-150 + idx * 38) * Math.PI / 180;
+                            var distance = 28 + (idx % 3) * 13;
+                            var spark = document.createElement('span');
+                            spark.className = 'launch-spark';
+                            spark.style.left = (x + Math.cos(angle) * 10) + 'px';
+                            spark.style.top = (y + 12 + Math.sin(angle) * 6) + 'px';
+                            spark.style.setProperty('--spark-color', colors[idx % colors.length]);
+                            spark.style.setProperty('--dx', (Math.cos(angle) * distance) + 'px');
+                            spark.style.setProperty('--dy', (Math.sin(angle) * distance - 18) + 'px');
+                            document.body.appendChild(spark);
+                            setTimeout(function() { spark.remove(); }, 900);
+                        }, idx * 16);
+                    })(i);
+                }
+            }
+
             btn.addEventListener('click', function() {
+                if (wrap.classList.contains('launching')) return;
                 ripple.classList.remove('burst');
                 void ripple.offsetWidth;
                 ripple.classList.add('burst');
@@ -5442,23 +6315,10 @@
                 var rocketX = btnRect.left + btnRect.width / 2;
                 var rocketY = btnRect.top + btnRect.height / 2;
 
-                btn.style.opacity = '0';
-                btn.style.transform = 'scale(0.3)';
-
-                var sparks = ['✨','💨','🔥','💫','⭐','✨'];
-                for (var i = 0; i < 6; i++) {
-                    (function(idx) {
-                        setTimeout(function() {
-                            var spark = document.createElement('span');
-                            spark.className = 'launch-spark s' + ((idx % 3) + 1);
-                            spark.textContent = sparks[idx];
-                            spark.style.left = (rocketX - 8 + (Math.random() - 0.5) * 30) + 'px';
-                            spark.style.top = (rocketY + 10 + idx * 8) + 'px';
-                            document.body.appendChild(spark);
-                            setTimeout(function() { spark.remove(); }, 800);
-                        }, idx * 60);
-                    })(i);
-                }
+                wrap.classList.add('launching');
+                wrap.classList.remove('is-ready');
+                spawnLaunchClouds(rocketX, rocketY);
+                spawnLaunchSparks(rocketX, rocketY);
 
                 var rocket = document.createElement('span');
                 rocket.className = 'launch-rocket';
@@ -5469,17 +6329,19 @@
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
-                setTimeout(function() {
+                clearTimeout(launchTimer);
+                launchTimer = setTimeout(function() {
                     rocket.remove();
-                    btn.style.opacity = '';
-                    btn.style.transform = '';
+                    wrap.classList.remove('launching');
+                    setVisible(window.scrollY > 400);
                     wrap.classList.add('boing');
                     setTimeout(function() { wrap.classList.remove('boing'); }, 600);
-                }, 850);
+                }, 980);
             });
 
             window.addEventListener('scroll', onScroll, { passive: true });
             updateRing();
+            onScroll();
         })();
 
         // ===== GSAP 动画系统 =====
@@ -7905,6 +8767,7 @@
     <script>
     (function() {
         if (!('serviceWorker' in navigator)) return;
+        if (window.__miaositeSkipServiceWorkerOnce) return;
         var hostname = window.location.hostname;
         var canRegisterServiceWorker = hostname === 'localhost'
             || hostname === '127.0.0.1'
