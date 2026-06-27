@@ -7,7 +7,12 @@
     (function() {
         var urlToken = '';
         try {
-            urlToken = new URL(window.location.href).searchParams.get('__miaosite_force_reload') || '';
+            var currentUrl = new URL(window.location.href);
+            urlToken = currentUrl.searchParams.get('__miaosite_force_reload') || '';
+            if (urlToken && window.history && window.history.replaceState) {
+                currentUrl.searchParams.delete('__miaosite_force_reload');
+                window.history.replaceState(window.history.state, document.title, currentUrl.pathname + currentUrl.search + currentUrl.hash);
+            }
         } catch (_) {}
 
         var reloadToken = '';
@@ -148,7 +153,7 @@
         background: rgba(255, 255, 255, 0.45);
         backdrop-filter: blur(8px);
         line-height: 1.7;
-        transition: all var(--transition-smooth);
+        transition: border-color var(--transition-smooth), background var(--transition-smooth), box-shadow var(--transition-smooth);
         box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
     }
     #view-home textarea#barcode-input:focus {
@@ -314,6 +319,12 @@
     /* ===== 分割按钮 ===== */
     #view-home .btn-split-group { position: relative; display: inline-flex; align-items: stretch; }
     #view-home .btn-split-main { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+    #view-home #comma-copy-btn {
+        width: 91px;
+        padding-left: 10px;
+        padding-right: 10px;
+        justify-content: center;
+    }
     #view-home .btn-split-arrow {
         border-top-left-radius: 0 !important;
         border-bottom-left-radius: 0 !important;
@@ -345,7 +356,7 @@
         position: absolute;
         left: 0; top: calc(100% + 8px);
         width: 100%; box-sizing: border-box;
-        padding: 6px;
+        padding: 5px;
         background: var(--glass-bg-strong);
         backdrop-filter: blur(24px) saturate(180%);
         border: 1px solid var(--glass-border-strong);
@@ -363,18 +374,25 @@
         width: 100%; border: none; border-radius: 10px;
         background: transparent; color: var(--text-primary);
         cursor: pointer; font-family: var(--font-body);
-        font-size: 13px; font-weight: 500;
-        padding: 9px 12px; text-align: left;
+        font-size: 12px; font-weight: 500;
+        padding: 7px 8px; text-align: left;
+        line-height: 1.25;
         transition: background 0.18s ease;
     }
     #view-home .comma-popup-item:hover { background: rgba(255, 159, 67, 0.07); }
     #view-home .comma-popup-item:active { background: rgba(255, 159, 67, 0.13); }
     #view-home .comma-popup-hint {
-        font-size: 10px; font-weight: 400;
+        display: inline-block;
+        font-size: 9px; font-weight: 400;
         color: var(--text-tertiary); margin-top: 2px;
         font-family: var(--font-mono);
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.35;
     }
-    #view-home .comma-hint-mark { font-size: 12px; font-weight: 700; color: var(--accent); vertical-align: middle; }
+    #view-home .comma-popup-hint--newline { white-space: pre-line; }
+    #view-home .comma-hint-mark { font-size: 10px; font-weight: 700; color: var(--accent); vertical-align: middle; }
     #view-home .comma-popup-item.is-active { background: rgba(255,159,67,0.06); color: var(--accent); font-weight: 600; }
 
     /* ===== 自定义 Select ===== */
@@ -1854,16 +1872,16 @@
 
     /* ===== 强制刷新按钮 ===== */
     .force-refresh-btn {
-        position: relative; width: 42px; height: 42px;
-        border: 1px solid rgba(255,255,255,0.6); border-radius: 50%;
-        color: #fff; cursor: pointer; font-size: 20px;
+        position: relative; width: 40px; height: 40px;
+        border: 0; border-radius: 14px;
+        color: #fff; cursor: pointer; font-size: 19px; font-weight: 700;
         transition: all var(--transition-bounce);
         display: inline-flex; align-items: center; justify-content: center;
         text-decoration: none;
         background: linear-gradient(135deg, #34c759, #0abde3);
-        box-shadow: 0 4px 16px rgba(10,189,227,0.25);
+        box-shadow: 0 9px 20px rgba(10,189,227,0.22);
     }
-    .force-refresh-btn:hover { transform: translateY(-3px) scale(1.1); box-shadow: 0 8px 24px rgba(10,189,227,0.4); }
+    .force-refresh-btn:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 24px rgba(10,189,227,0.36); }
     .force-refresh-btn:active { transform: translateY(1px) scale(0.94); }
     .force-refresh-btn::after {
         position: absolute; bottom: -36px; left: 50%; transform: translateX(-50%) translateY(4px);
@@ -3376,20 +3394,16 @@
     <div class="app-shell">
         <!-- 共享导航栏 -->
         <nav class="nav-bar">
-            <div class="nav-brand">
-                <div class="nav-logo">🐱</div>
-                <div>
-                    <div class="nav-title" id="nav-title">喵码生成器</div>
-                    <div class="nav-subtitle" id="nav-subtitle">🏠 miaojiaozhu.com　💬 京me群 10229406786</div>
+            <div class="nav-module nav-brand-module">
+                <div class="nav-brand">
+                    <div class="nav-logo">🐱</div>
+                    <div class="nav-brand-copy">
+                        <div class="nav-title" id="nav-title">喵码生成器</div>
+                        <div class="nav-subtitle" id="nav-subtitle">🏠 miaojiaozhu.com　💬 京me群 10229406786</div>
+                    </div>
                 </div>
             </div>
-            <div class="nav-actions">
-                <span class="online-badge" id="online-badge" title="全站在线人数">
-                    <span class="dot"></span>
-                    <span id="online-count">-</span> 喵在线
-                </span>
-                <a href="admin.html" class="admin-btn" id="admin-entry" style="display:none" title="在线用户管理">📊</a>
-                <button class="force-refresh-btn js-force-cache-refresh" id="force-cache-refresh" type="button" title="清理缓存并强制刷新">↻</button>
+            <div class="nav-module nav-menu-module">
                 <nav class="nav-pill" role="tablist" aria-label="页面导航">
                     <div class="nav-pill-indicator" id="nav-pill-indicator"></div>
                     <div class="nav-pill-lamp" id="nav-pill-lamp"></div>
@@ -3406,6 +3420,14 @@
                         <span class="nav-pill-label">AI 工具</span>
                     </button>
                 </nav>
+            </div>
+            <div class="nav-module nav-ops-module">
+                <span class="online-badge" id="online-badge" title="全站在线人数">
+                    <span class="dot"></span>
+                    <span id="online-count">-</span> 喵在线
+                </span>
+                <a href="admin.html" class="admin-btn" id="admin-entry" style="display:none" title="在线用户管理">📊</a>
+                <button class="force-refresh-btn js-force-cache-refresh" id="force-cache-refresh" type="button" title="清理缓存并强制刷新">↻</button>
                 <button class="nav-btn btn-user" id="btn-user" type="button">
                     👤 <span id="user-label">登录</span>
                 </button>
@@ -3601,11 +3623,12 @@
                                         <span class="comma-popup" id="comma-popup" role="menu" aria-label="拼接格式选项">
                                             <button class="comma-popup-item is-active" data-format="comma" role="menuitem">
                                                 逗号拼接
-                                                <span class="comma-popup-hint">DPK...,DPL...,DPK...</span>
+                                                <span class="comma-popup-hint">DPK...，DPK...</span>
                                             </button>
                                             <button class="comma-popup-item" data-format="newline" role="menuitem">
                                                 逗号+换行
-                                                <span class="comma-popup-hint">DPK...,<b class="comma-hint-mark">⏎</b> DPL...,<b class="comma-hint-mark">⏎</b> DPK...,</span>
+                                                <span class="comma-popup-hint comma-popup-hint--newline">DPK...，<b class="comma-hint-mark">↵</b>
+DPK...，</span>
                                             </button>
                                         </span>
                                     </span>
@@ -4597,10 +4620,10 @@
 
             Promise.all([cacheCleanup, serviceWorkerCleanup]).then(function() {
                 var reloadToken = Date.now().toString();
-                sessionStorage.setItem('miaosite_force_reload_token', reloadToken);
-                var url = new URL(window.location.href);
-                url.searchParams.set('__miaosite_force_reload', reloadToken);
-                window.location.replace(url.toString());
+                try {
+                    sessionStorage.setItem('miaosite_force_reload_token', reloadToken);
+                } catch (_) {}
+                window.location.reload();
             }).catch(function() {
                 showToast('缓存清理失败，请手动硬刷新喵~');
                 if (triggerButton) {
@@ -6230,8 +6253,10 @@
             var ticking = false;
             var CIRCUMFERENCE = 2 * Math.PI * 25;
             var launchTimer = null;
+            var REVEAL_SCROLL_RATIO = 0.5;
 
             if (!wrap || !btn || !ring || !ripple) return;
+            if (wrap.parentElement !== document.body) document.body.appendChild(wrap);
 
             function updateRing() {
                 var scrollTop = window.scrollY;
@@ -6254,13 +6279,15 @@
                 btn.tabIndex = isVisible ? 0 : -1;
             }
 
+            function shouldShowBackToTop() {
+                return window.scrollY >= window.innerHeight * REVEAL_SCROLL_RATIO;
+            }
+
             function onScroll() {
                 if (!ticking) {
                     requestAnimationFrame(function() {
                         var progress = updateRing();
-                        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-                        var scrolled = window.scrollY > Math.min(400, Math.max(120, docHeight * 0.35));
-                        if (!wrap.classList.contains('launching')) setVisible(scrolled);
+                        if (!wrap.classList.contains('launching')) setVisible(shouldShowBackToTop());
                         ticking = false;
                     });
                     ticking = true;
@@ -6333,7 +6360,7 @@
                 launchTimer = setTimeout(function() {
                     rocket.remove();
                     wrap.classList.remove('launching');
-                    setVisible(window.scrollY > 400);
+                    setVisible(shouldShowBackToTop());
                     wrap.classList.add('boing');
                     setTimeout(function() { wrap.classList.remove('boing'); }, 600);
                 }, 980);

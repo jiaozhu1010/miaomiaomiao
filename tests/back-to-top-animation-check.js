@@ -15,7 +15,8 @@ async function run() {
 
     try {
         const page = await browser.newPage();
-        await page.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1 });
+        await page.setBypassServiceWorker(true);
+        await page.setViewport({ width: 1440, height: 720, deviceScaleFactor: 1 });
         await page.goto(`${BASE_URL}?back_to_top_animation_check=${Date.now()}`, {
             waitUntil: 'networkidle2',
             timeout: 30000
@@ -34,12 +35,31 @@ async function run() {
         assert.strictEqual(initialState.ariaHidden, 'true', 'hidden back-to-top button must be hidden from assistive tech');
 
         await page.evaluate(() => {
-            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-            window.scrollTo(0, Math.max(0, maxScroll * 0.75));
+            window.scrollTo(0, Math.floor(window.innerHeight * 0.5) - 20);
+        });
+        await delay(180);
+        const beforeHalfPageState = await page.evaluate(() => {
+            const wrap = document.getElementById('back-to-top-wrap');
+            return {
+                scrollY: window.scrollY,
+                viewportHeight: window.innerHeight,
+                visible: wrap.classList.contains('visible'),
+                ariaHidden: wrap.getAttribute('aria-hidden')
+            };
+        });
+        assert(
+            beforeHalfPageState.scrollY < beforeHalfPageState.viewportHeight * 0.5,
+            'test page must be just before the half-page reveal threshold'
+        );
+        assert.strictEqual(beforeHalfPageState.visible, false, 'back-to-top button must stay hidden before half a page is scrolled');
+        assert.strictEqual(beforeHalfPageState.ariaHidden, 'true', 'pre-threshold back-to-top button must stay hidden from assistive tech');
+
+        await page.evaluate(() => {
+            window.scrollTo(0, Math.ceil(window.innerHeight * 0.5) + 20);
         });
         await page.waitForFunction(() => {
             const wrap = document.getElementById('back-to-top-wrap');
-            return window.scrollY > 100 && wrap && wrap.classList.contains('visible');
+            return window.scrollY >= window.innerHeight * 0.5 && wrap && wrap.classList.contains('visible');
         }, { timeout: 5000 });
 
         const scrolledState = await page.evaluate(() => {
@@ -53,6 +73,7 @@ async function run() {
             const btnStyle = getComputedStyle(btn);
             return {
                 scrollY: window.scrollY,
+                viewportHeight: window.innerHeight,
                 visible: wrap.classList.contains('visible'),
                 ready: wrap.classList.contains('is-ready'),
                 progressValue: parseFloat(wrap.style.getPropertyValue('--scroll-progress')),
@@ -71,7 +92,7 @@ async function run() {
             };
         });
 
-        assert(scrolledState.scrollY > 100, 'test page must be scrolled before checking the animation');
+        assert(scrolledState.scrollY >= scrolledState.viewportHeight * 0.5, 'test page must be at least half a viewport down before checking the animation');
         assert.strictEqual(scrolledState.visible, true, 'back-to-top button must become visible after scrolling');
         assert.strictEqual(scrolledState.ready, true, 'visible back-to-top button must enter its enhanced ready state');
         assert(scrolledState.progressValue > 0 && scrolledState.progressValue < 1, 'scroll progress CSS variable must be updated');
@@ -85,7 +106,7 @@ async function run() {
         assert(/transform|opacity|filter/.test(scrolledState.wrapTransition), 'wrap transition must animate visibility smoothly');
         assert.notStrictEqual(scrolledState.btnAnimation, 'none', 'visible rocket button must have a subtle idle animation');
         assert(!/rgba\(0,\s*0,\s*0,\s*0\)/.test(scrolledState.btnBoxShadow), 'button must have a visible polished shadow');
-        assert(scrolledState.bottom <= 1000 && scrolledState.right <= 1440, 'button must stay inside viewport');
+        assert(scrolledState.bottom <= scrolledState.viewportHeight && scrolledState.right <= 1440, 'button must stay inside viewport');
 
         await page.click('#back-to-top');
         await delay(120);

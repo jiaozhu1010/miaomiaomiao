@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>喵码标题栏方案预览</title>
+  <style>
+    :root {
+      --accent: #ff9f43;
+      --accent-2: #ee5a6f;
+      --accent-3: #0abde3;
+      --mint: #20c997;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --soft: #f7f1ea;
+      --glass: rgba(255, 255, 255, 0.62);
+      --glass-strong: rgba(255, 255, 255, 0.82);
+      --line: rgba(255, 255, 255, 0.72);
+      --shadow: 0 18px 50px rgba(45, 37, 29, 0.12), 0 3px 10px rgba(45, 37, 29, 0.06);
+      --radius: 24px;
+      --font: "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 1180px;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(255,159,67,0.08), rgba(10,189,227,0.07)),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.08) 0, rgba(0,0,0,0.08) 1px, transparent 1px, transparent 22px),
+        repeating-linear-gradient(-45deg, rgba(0,0,0,0.07) 0, rgba(0,0,0,0.07) 1px, transparent 1px, transparent 22px),
+        #fbfaf7;
+      background-size: auto, 44px 44px, 44px 44px, auto;
+    }
+
+    .preview-page {
+      width: min(1840px, calc(100vw - 56px));
+      margin: 28px auto 48px;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 18px;
+    }
+
+    .preview-title h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .preview-title p {
+      margin: 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .preview-switcher {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 10px 26px rgba(45,37,29,0.08);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .preview-switcher button {
+      border: 0;
+      border-radius: 13px;
+      padding: 10px 15px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .2s ease, color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    .preview-switcher button:hover {
+      transform: translateY(-1px);
+      color: var(--ink);
+    }
+
+    .preview-switcher button.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #ffb86d);
+      box-shadow: 0 8px 18px rgba(255,159,67,0.28);
+    }
+
+    .option-panel {
+      display: none;
+      animation: panelIn .28s ease both;
+    }
+
+    .option-panel.active { display: block; }
+
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stage {
+      min-height: 780px;
+      padding: 28px 30px 38px;
+      border: 1px solid rgba(255,255,255,0.78);
+      border-radius: 30px;
+      background: rgba(255,255,255,0.32);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+
+    .stage-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .stage-label strong {
+      font-size: 16px;
+    }
+
+    .stage-label span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .site-canvas {
+      position: relative;
+      min-height: 680px;
+      padding: 26px 24px;
+      border-radius: 24px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.58), rgba(255,255,255,0.36)),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.055) 0, rgba(0,0,0,0.055) 1px, transparent 1px, transparent 20px);
+      background-size: auto, 40px 40px;
+      overflow: hidden;
+    }
+
+    .mock-content {
+      display: grid;
+      grid-template-columns: 310px 1fr 390px;
+      gap: 24px;
+      margin-top: 34px;
+      opacity: .62;
+    }
+
+    .ghost-card {
+      border: 1px solid rgba(255,255,255,.78);
+      border-radius: 24px;
+      background: rgba(255,255,255,.56);
+      box-shadow: 0 8px 28px rgba(45,37,29,.06);
+    }
+
+    .weather-ghost { height: 500px; background: linear-gradient(135deg, rgba(255,159,67,.24), rgba(255,255,255,.18)); }
+    .main-ghost { height: 420px; padding: 28px; }
+    .side-ghost { height: 360px; padding: 22px; }
+
+    .ghost-title {
+      width: 46%;
+      height: 34px;
+      border-radius: 12px;
+      background: rgba(29,29,31,.11);
+      margin-bottom: 28px;
+    }
+
+    .ghost-line {
+      height: 14px;
+      border-radius: 99px;
+      background: rgba(29,29,31,.08);
+      margin: 14px 0;
+    }
+
+    .ghost-line.short { width: 54%; }
+    .ghost-line.mid { width: 72%; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 25px;
+      background: linear-gradient(135deg, #ff9f43, #ee5a6f);
+      box-shadow: 0 8px 20px rgba(255,159,67,.26), inset 0 1px 0 rgba(255,255,255,.44);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .meta-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(29,29,31,.24);
+    }
+
+    .chip,
+    .icon-btn,
+    .tab,
+    .login-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,.72);
+      background: rgba(255,255,255,.62);
+      color: var(--muted);
+      font: inherit;
+      white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(45,37,29,.07);
+    }
+
+    .chip {
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34c759;
+      box-shadow: 0 0 0 5px rgba(52,199,89,.12), 0 0 12px rgba(52,199,89,.42);
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 18px;
+    }
+
+    .icon-btn.refresh {
+      color: #fff;
+      border: 0;
+      background: linear-gradient(135deg, #34c759, #0abde3);
+      box-shadow: 0 9px 24px rgba(10,189,227,.24);
+    }
+
+    .login-btn {
+      gap: 8px;
+      min-height: 42px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .tabs {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px;
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      box-shadow: 0 12px 34px rgba(45,37,29,.1);
+    }
+
+    .tab {
+      position: relative;
+      z-index: 1;
+      gap: 7px;
+      min-height: 42px;
+      padding: 8px 19px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      box-shadow: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      color: var(--accent);
+      background: linear-gradient(135deg, #fff6ed, #ffe9cf);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 18px rgba(255,159,67,.16);
+    }
+
+    .nav-a {
+      display: grid;
+      grid-template-columns: minmax(340px, 1fr) auto minmax(340px, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 16px 22px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--glass);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+    }
+
+    .nav-a .right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .nav-a .brand-meta span:first-child {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255,159,67,.1);
+      color: #cb6d14;
+    }
+
+    .nav-b-wrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .nav-b-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 20px;
+      background: rgba(255,255,255,.42);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .nav-b {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) auto minmax(320px, 1fr);
+      align-items: center;
+      gap: 20px;
+      padding: 13px 18px;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background: var(--glass-strong);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    .nav-b .utility {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav-b .tabs {
+      background: #fff;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.035), 0 10px 24px rgba(45,37,29,.08);
+    }
+
+    .nav-c {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 14px 18px 14px 22px;
+      border: 1px solid rgba(255,255,255,.74);
+      border-radius: 30px;
+      background: linear-gradient(135deg, rgba(255,255,255,.86), rgba(255,250,244,.62));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(26px) saturate(180%);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+    }
+
+    .dock {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px;
+      border: 1px solid rgba(255,255,255,.74);
+      border-radius: 26px;
+      background: rgba(255,255,255,.68);
+      box-shadow: 0 12px 32px rgba(45,37,29,.1);
+    }
+
+    .dock-item {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 20px;
+      color: var(--muted);
+      background: rgba(255,255,255,.48);
+      border: 1px solid rgba(255,255,255,.56);
+      font-size: 20px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+
+    .dock-item.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #ffb86d);
+      box-shadow: 0 10px 22px rgba(255,159,67,.27);
+    }
+
+    .dock-item span {
+      position: absolute;
+      left: 50%;
+      bottom: -25px;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      opacity: .88;
+    }
+
+    .nav-c .status-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-d {
+      display: grid;
+      grid-template-columns: minmax(360px, .92fr) minmax(500px, 1.08fr) auto;
+      align-items: stretch;
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 24px;
+      background: rgba(255,255,255,.42);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+    }
+
+    .nav-d .module {
+      display: flex;
+      align-items: center;
+      min-height: 66px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 18px;
+      background: rgba(255,255,255,.58);
+    }
+
+    .nav-d .module.brand-module { gap: 12px; }
+    .nav-d .module.nav-module { justify-content: center; }
+    .nav-d .module.ops-module { justify-content: flex-end; gap: 8px; }
+
+    .mini-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 14px;
+      background: rgba(255,255,255,.62);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 6px 16px rgba(45,37,29,.06);
+    }
+
+    .mini-action.primary {
+      color: #fff;
+      border: 0;
+      background: linear-gradient(135deg, var(--accent-3), #48cae4);
+      box-shadow: 0 9px 20px rgba(10,189,227,.22);
+    }
+
+    .recommend {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: #9b560f;
+      background: rgba(255,159,67,.13);
+      font-size: 12px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <main class="preview-page">
+    <header class="preview-header">
+      <div class="preview-title">
+        <h1>标题栏优化预览</h1>
+        <p>四套方案都保留现有入口：品牌、站点信息、在线人数、强制刷新、知识库、喵码、AI 工具、登录。差别在于信息层级、按钮密度和维护入口的位置。</p>
+      </div>
+      <div class="preview-switcher" role="tablist" aria-label="标题栏方案切换">
+        <button class="active" type="button" data-target="option-a">方案 A</button>
+        <button type="button" data-target="option-b">方案 B</button>
+        <button type="button" data-target="option-c">方案 C</button>
+        <button type="button" data-target="option-d">方案 D</button>
+      </div>
+    </header>
+
+    <section class="option-panel active" id="option-a">
+      <div class="stage">
+        <div class="stage-label">
+          <strong>方案 A：平衡玻璃导航 <span class="recommend">推荐默认</span></strong>
+          <span>中心导航最醒目，右侧只放状态和账号，整体最接近现有风格。</span>
+        </div>
+        <div class="site-canvas">
+          <nav class="nav-a" aria-label="方案 A">
+            <div class="brand">
+              <div class="logo">🐱</div>
+              <div>
+                <p class="brand-title">喵码生成器</p>
+                <div class="brand-meta"><span>miaojiaozhu.com</span><span class="meta-dot"></span><span>京me群 10229406786</span></div>
+              </div>
+            </div>
+            <div class="tabs">
+              <button class="tab" type="button">📚 知识库</button>
+              <button class="tab active" type="button">🐱 喵码</button>
+              <button class="tab" type="button">🤖 AI 工具</button>
+            </div>
+            <div class="right">
+              <span class="chip"><i class="online-dot"></i>1 喵在线</span>
+              <button class="icon-btn refresh" type="button" title="清理缓存并强制刷新">↻</button>
+              <button class="login-btn" type="button">👤 登录</button>
+            </div>
+          </nav>
+          <div class="mock-content">
+            <div class="ghost-card weather-ghost"></div>
+            <div class="ghost-card main-ghost"><div class="ghost-title"></div><div class="ghost-line mid"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+            <div class="ghost-card side-ghost"><div class="ghost-title"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="option-panel" id="option-b">
+      <div class="stage">
+        <div class="stage-label">
+          <strong>方案 B：状态条 + 主导航</strong>
+          <span>把域名、社群、在线状态移到细状态条，主导航变轻，信息不挤。</span>
+        </div>
+        <div class="site-canvas">
+          <div class="nav-b-wrap">
+            <div class="nav-b-top">
+              <span>🏠 miaojiaozhu.com</span>
+              <span>💬 京me群 10229406786</span>
+              <span>● 1 喵在线</span>
+              <span>今天适合快速生成快递条码</span>
+            </div>
+            <nav class="nav-b" aria-label="方案 B">
+              <div class="brand">
+                <div class="logo">🐱</div>
+                <div>
+                  <p class="brand-title">喵码生成器</p>
+                  <div class="brand-meta"><span>条码生成</span><span class="meta-dot"></span><span>OCR 识别</span><span class="meta-dot"></span><span>AI 处理</span></div>
+                </div>
+              </div>
+              <div class="tabs">
+                <button class="tab" type="button">📚 知识库</button>
+                <button class="tab active" type="button">🐱 喵码</button>
+                <button class="tab" type="button">🤖 AI 工具</button>
+              </div>
+              <div class="utility">
+                <button class="icon-btn refresh" type="button" title="清理缓存并强制刷新">↻</button>
+                <button class="login-btn" type="button">👤 登录</button>
+              </div>
+            </nav>
+          </div>
+          <div class="mock-content">
+            <div class="ghost-card weather-ghost"></div>
+            <div class="ghost-card main-ghost"><div class="ghost-title"></div><div class="ghost-line mid"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+            <div class="ghost-card side-ghost"><div class="ghost-title"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="option-panel" id="option-c">
+      <div class="stage">
+        <div class="stage-label">
+          <strong>方案 C：桌面 Dock 式导航</strong>
+          <span>图标更强，标题栏更活泼；适合强调“喵码”品牌记忆点。</span>
+        </div>
+        <div class="site-canvas">
+          <nav class="nav-c" aria-label="方案 C">
+            <div class="brand">
+              <div class="logo">🐱</div>
+              <div>
+                <p class="brand-title">喵码生成器</p>
+                <div class="brand-meta"><span>快递条码生成 + OCR + AI 工具箱</span></div>
+              </div>
+            </div>
+            <div class="dock" aria-label="主导航">
+              <div class="dock-item">📚<span>知识库</span></div>
+              <div class="dock-item active">🐱<span>喵码</span></div>
+              <div class="dock-item">🤖<span>AI工具</span></div>
+              <div class="dock-item">📊<span>管理</span></div>
+            </div>
+            <div class="status-cluster">
+              <span class="chip"><i class="online-dot"></i>1 在线</span>
+              <button class="icon-btn refresh" type="button">↻</button>
+              <button class="login-btn" type="button">👤 登录</button>
+            </div>
+          </nav>
+          <div class="mock-content">
+            <div class="ghost-card weather-ghost"></div>
+            <div class="ghost-card main-ghost"><div class="ghost-title"></div><div class="ghost-line mid"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+            <div class="ghost-card side-ghost"><div class="ghost-title"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="option-panel" id="option-d">
+      <div class="stage">
+        <div class="stage-label">
+          <strong>方案 D：模块化工具栏</strong>
+          <span>把品牌、导航、工具分成三个模块，最适合后续加更多站点工具。</span>
+        </div>
+        <div class="site-canvas">
+          <nav class="nav-d" aria-label="方案 D">
+            <div class="module brand-module">
+              <div class="logo">🐱</div>
+              <div>
+                <p class="brand-title">喵码生成器</p>
+                <div class="brand-meta"><span>miaojiaozhu.com</span><span class="meta-dot"></span><span>京me群 10229406786</span></div>
+              </div>
+            </div>
+            <div class="module nav-module">
+              <div class="tabs">
+                <button class="tab" type="button">📚 知识库</button>
+                <button class="tab active" type="button">🐱 喵码</button>
+                <button class="tab" type="button">🤖 AI 工具</button>
+              </div>
+            </div>
+            <div class="module ops-module">
+              <span class="mini-action"><i class="online-dot"></i>1 在线</span>
+              <span class="mini-action primary">↻ 刷新</span>
+              <span class="mini-action">👤 登录</span>
+            </div>
+          </nav>
+          <div class="mock-content">
+            <div class="ghost-card weather-ghost"></div>
+            <div class="ghost-card main-ghost"><div class="ghost-title"></div><div class="ghost-line mid"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+            <div class="ghost-card side-ghost"><div class="ghost-title"></div><div class="ghost-line"></div><div class="ghost-line short"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function() {
+      var buttons = Array.prototype.slice.call(document.querySelectorAll('.preview-switcher button'));
+      var panels = Array.prototype.slice.call(document.querySelectorAll('.option-panel'));
+
+      buttons.forEach(function(button) {
+        button.addEventListener('click', function() {
+          buttons.forEach(function(item) { item.classList.toggle('active', item === button); });
+          panels.forEach(function(panel) { panel.classList.toggle('active', panel.id === button.dataset.target); });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

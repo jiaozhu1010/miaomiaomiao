@@ -36,6 +36,7 @@ async function run() {
             timeout: 30000,
         });
         await page.waitForSelector('.nav-bar #force-cache-refresh', { timeout: 10000 });
+        const originalPageUrl = page.url();
 
         const seededState = await page.evaluate(async () => {
             const cache = await caches.open('miaosite-test-stale-cache');
@@ -69,7 +70,7 @@ async function run() {
 
         const refreshedState = await page.evaluate(async expectedAssets => {
             const currentUrl = new URL(window.location.href);
-            const token = currentUrl.searchParams.get('__miaosite_force_reload') || '';
+            const urlHasRefreshToken = currentUrl.searchParams.has('__miaosite_force_reload');
             const cacheNames = await caches.keys();
             const registrations = await navigator.serviceWorker.getRegistrations();
             const resourceUrls = Array.from(document.querySelectorAll('link[rel="stylesheet"], script[src]'))
@@ -88,7 +89,8 @@ async function run() {
             });
 
             return {
-                token,
+                currentUrl: currentUrl.toString(),
+                urlHasRefreshToken,
                 consumedSessionToken: sessionStorage.getItem('miaosite_force_reload_token'),
                 activeToken: window.__miaositeForceReloadToken || '',
                 cacheNames,
@@ -98,12 +100,17 @@ async function run() {
             };
         }, EXPECTED_BUSTED_ASSETS);
 
-        assert(refreshedState.token, 'forced refresh must reload the page with a __miaosite_force_reload token');
         assert.strictEqual(
-            refreshedState.activeToken,
-            refreshedState.token,
-            'the next page load must expose the same token for asset cache-busting'
+            refreshedState.currentUrl,
+            originalPageUrl,
+            'forced refresh must keep the browser address unchanged'
         );
+        assert.strictEqual(
+            refreshedState.urlHasRefreshToken,
+            false,
+            'forced refresh must not add __miaosite_force_reload to the page URL'
+        );
+        assert(refreshedState.activeToken, 'forced refresh must expose a one-time token for asset cache-busting');
         assert.strictEqual(
             refreshedState.consumedSessionToken,
             null,
@@ -132,7 +139,7 @@ async function run() {
         const missingAssets = refreshedState.assetStates.filter(asset => !asset.present);
         assert.deepStrictEqual(missingAssets, [], `expected cache-busted assets missing: ${JSON.stringify(missingAssets)}`);
 
-        const unbustedAssets = refreshedState.assetStates.filter(asset => asset.token !== refreshedState.token);
+        const unbustedAssets = refreshedState.assetStates.filter(asset => asset.token !== refreshedState.activeToken);
         assert.deepStrictEqual(
             unbustedAssets,
             [],
